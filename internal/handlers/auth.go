@@ -34,4 +34,4 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	})
 }
 
-//test
+//tes
