@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "ROP_Backend/docs"
 	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/database"
 	"ROP_Backend/internal/router"
