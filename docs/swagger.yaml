@@ -1,0 +1,42 @@
+info:
+  contact: {}
+paths:
+  /api/auth/google:
+    post:
+      consumes:
+      - application/json
+      description: Verify Google ID Token and return JWT
+      parameters:
+      - description: Google ID Token
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            id_token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login with Google
+      tags:
+      - auth
+swagger: "2.0"
