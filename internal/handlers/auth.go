@@ -39,7 +39,7 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
 	}
-	fmt.Println(user.Email)
+	fmt.Printf("IDToken: %s, Token: %s, User: %+v", body.IDToken, token, user)
 
 	return c.JSON(fiber.Map{
 		"token": token,

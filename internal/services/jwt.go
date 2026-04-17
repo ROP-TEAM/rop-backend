@@ -3,13 +3,18 @@ package services
 import (
 	"time"
 
+	"ROP_Backend/internal/middleware"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (s *AuthService) makeToken(userID uint) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+func (s *AuthService) makeToken(userID uint, email string) (string, error) {
+	claims := middleware.Claims{
+		UserID: userID,
+		Email:  email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

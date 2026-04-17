@@ -9,7 +9,8 @@ import (
 )
 
 type Claims struct {
-	UserID uint `json:"user_id"`
+	UserID uint   `json:"user_id"`
+	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -34,14 +35,14 @@ func Protected(cfg *config.Config) fiber.Handler {
 			return c.Status(401).JSON(fiber.Map{"error": "Invalid Token"})
 		}
 
-		c.Locals("user_id", claims.UserID)
+		c.Locals("claims", claims)
 		return c.Next()
 	}
 }
 
-func GetUserID(c fiber.Ctx) uint {
-	if id, ok := c.Locals("user_id").(uint); ok {
-		return id
+func GetUser(c fiber.Ctx) *Claims {
+	if claims, ok := c.Locals("claims").(*Claims); ok {
+		return claims
 	}
-	return 0
+	return nil
 }

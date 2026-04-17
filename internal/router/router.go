@@ -35,10 +35,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
-	api.Get("/me", middleware.Protected(cfg), func(c fiber.Ctx) error {
-		userID := middleware.GetUserID(c)
-		return c.JSON(fiber.Map{"user_id": userID})
-	})
+	api.Get("/test", middleware.Protected(cfg), handlers.Test)
 
 	return app
 }
