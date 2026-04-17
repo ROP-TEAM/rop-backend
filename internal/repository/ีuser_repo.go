@@ -1,0 +1,26 @@
+package repository
+
+import (
+	"ROP_Backend/internal/models"
+
+	"gorm.io/gorm"
+)
+
+type UserRepository struct {
+	db *gorm.DB
+}
+
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
+}
+
+func (r *UserRepository) FindByGoogleID(googleID string) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("google_id = ?", googleID).First(&user).Error
+	return &user, err
+
+}
+
+func (r *UserRepository) Create(user *models.User) error {
+	return r.db.Create(user).Error
+}

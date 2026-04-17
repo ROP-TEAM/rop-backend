@@ -3,6 +3,7 @@ package services
 import (
 	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/models"
+	"ROP_Backend/internal/repository"
 	"context"
 	"errors"
 
@@ -11,19 +12,23 @@ import (
 )
 
 type AuthService struct {
-	db  *gorm.DB
-	cfg *config.Config
+	userRepository *repository.UserRepository
+	cfg            *config.Config
 }
 
 func NewAuthService(db *gorm.DB, cfg *config.Config) *AuthService {
-	return &AuthService{db: db, cfg: cfg}
+	userRepository := repository.NewUserRepository(db)
+	return &AuthService{
+		userRepository: userRepository,
+		cfg:            cfg,
+	}
 }
 
-func (s *AuthService) GoogleLogin(idToken string) (string, models.User, error) {
+func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) {
 	payload, err := idtoken.Validate(context.Background(), idToken, s.cfg.GOOGLE_CLIENT_ID)
 	// payload, err := idtoken.Validate(context.Background(), idToken, "") --test
 	if err != nil {
-		return "", models.User{}, errors.New("invalid google token")
+		return "", nil, errors.New("invalid google token")
 	}
 
 	email, _ := payload.Claims["email"].(string)
@@ -32,25 +37,32 @@ func (s *AuthService) GoogleLogin(idToken string) (string, models.User, error) {
 	googleID := payload.Subject
 
 	if verified, ok := payload.Claims["email_verified"].(bool); !ok || !verified {
-		return "", models.User{}, errors.New("email not verified")
+		return "", nil, errors.New("email not verified")
 	}
 
-	var user models.User
-	result := s.db.Where("google_id = ?", googleID).First(&user)
+	user, err := s.userRepository.FindByGoogleID(googleID)
 
-	if result.Error != nil {
-		user = models.User{
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		newUser := models.User{
 			Name:     name,
 			Email:    email,
 			Pictures: picture,
 			GoogleID: googleID,
 		}
-		s.db.Create(&user)
+
+		err = s.userRepository.Create(&newUser)
+		if err != nil {
+			return "", nil, err
+		}
+
+		user = &newUser
+	} else if err != nil {
+		return "", nil, err
 	}
 
 	token, err := s.makeToken(user.ID)
 	if err != nil {
-		return "", models.User{}, err
+		return "", nil, err
 	}
 
 	return token, user, nil
