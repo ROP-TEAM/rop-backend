@@ -12,6 +12,10 @@ type LoginResponse struct {
 	User  *models.User `json:"user"`
 }
 
+type OTPResponse struct {
+	Message string `json:"message"`
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }

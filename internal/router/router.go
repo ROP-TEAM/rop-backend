@@ -32,11 +32,11 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
+	//test route
+
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
 
-	api.Get("/rate-test", func(c fiber.Ctx) error {
-		return c.SendString("hit")
-	})
+	api.Post("/auth/otp", middleware.OTPLimiter(), handlers.TestOTP)
 
 	return app
 }

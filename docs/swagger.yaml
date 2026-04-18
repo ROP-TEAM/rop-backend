@@ -19,6 +19,11 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  handlers.OTPResponse:
+    properties:
+      message:
+        type: string
+    type: object
   handlers.UserResponse:
     properties:
       email:
@@ -81,6 +86,21 @@ paths:
       summary: Login with Google
       tags:
       - auth
+  /api/auth/otp:
+    post:
+      description: Use for testing OTP rate limiter (1 request per minute)
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.OTPResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Test OTP endpoint
+      tags:
+      - otp
   /api/test:
     get:
       description: Get user_id from JWT

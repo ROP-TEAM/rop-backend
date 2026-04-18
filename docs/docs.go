@@ -66,6 +66,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/otp": {
+            "post": {
+                "description": "Use for testing OTP rate limiter (1 request per minute)",
+                "tags": [
+                    "otp"
+                ],
+                "summary": "Test OTP endpoint",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.OTPResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/test": {
             "get": {
                 "security": [
@@ -133,6 +156,14 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "handlers.OTPResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
                 }
             }
         },

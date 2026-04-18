@@ -29,3 +29,16 @@ func Test(c fiber.Ctx) error {
 		Email:  user.Email,
 	})
 }
+
+// TestOTP godoc
+// @Summary Test OTP endpoint
+// @Description Use for testing OTP rate limiter (1 request per minute)
+// @Tags otp
+// @Success 200 {object} handlers.OTPResponse
+// @Failure 429 {object} handlers.ErrorResponse
+// @Router /api/auth/otp [post]
+func TestOTP(c fiber.Ctx) error {
+	return c.JSON(OTPResponse{
+		Message: "OTP endpoint hit",
+	})
+}
