@@ -10,7 +10,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
-	"github.com/gofiber/fiber/v3/middleware/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
 )
@@ -18,11 +17,9 @@ import (
 func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	app := fiber.New()
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{"*"},
-		AllowMethods: []string{"*"},
-	}))
+	app.Use(middleware.Cors())
+
+	app.Use(middleware.RateLimiter())
 
 	app.Get("/swagger/*", adaptor.HTTPHandler(
 		httpSwagger.WrapHandler,
@@ -36,6 +33,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
+
+	api.Get("/rate-test", func(c fiber.Ctx) error {
+		return c.SendString("hit")
+	})
 
 	return app
 }
