@@ -12,18 +12,20 @@ import (
 // @Tags user
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
-// @Success 200 {object} map[string]interface{}
-// @Failure 401 {object} map[string]string
+// @Success 200 {object} handlers.UserResponse
+// @Failure 401 {object} handlers.ErrorResponse
 // @Router /api/test [get]
 func Test(c fiber.Ctx) error {
 	user := middleware.GetUser(c)
 
 	if user == nil {
-		return c.Status(401).JSON(fiber.Map{"error": "Invalid token"})
+		return c.Status(401).JSON(ErrorResponse{
+			Error: "Invalid token",
+		})
 	}
 
-	return c.JSON(fiber.Map{
-		"user_id": user.UserID,
-		"email":   user.Email,
+	return c.JSON(UserResponse{
+		UserID: user.UserID,
+		Email:  user.Email,
 	})
 }

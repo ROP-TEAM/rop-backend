@@ -22,9 +22,9 @@ func NewAuthHandler(service *services.AuthService) *AuthHandler {
 // @Accept json
 // @Produce json
 // @Param body body object{id_token=string} true "Google ID Token"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
+// @Success 200 {object} handlers.LoginResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
 // @Router /api/auth/google [post]
 func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	var body struct {
@@ -32,17 +32,21 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	}
 
 	if err := c.Bind().Body(&body); err != nil || body.IDToken == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "Missing id_token"})
+		return c.Status(400).JSON(ErrorResponse{
+			Error: "Missing id_token",
+		})
 	}
 
 	token, user, err := h.service.GoogleLogin(body.IDToken)
 	if err != nil {
-		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(401).JSON(ErrorResponse{
+			Error: err.Error(),
+		})
 	}
 	fmt.Printf("IDToken: %s, Token: %s, User: %+v", body.IDToken, token, user)
 
-	return c.JSON(fiber.Map{
-		"token": token,
-		"user":  user,
+	return c.JSON(LoginResponse{
+		Token: token,
+		User:  user,
 	})
 }
