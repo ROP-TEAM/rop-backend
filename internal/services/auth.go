@@ -60,7 +60,7 @@ func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) 
 		return "", nil, err
 	}
 
-	token, err := s.makeToken(user.ID)
+	token, err := s.makeToken(user.ID, user.Email)
 	if err != nil {
 		return "", nil, err
 	}
