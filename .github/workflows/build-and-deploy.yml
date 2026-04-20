@@ -75,6 +75,5 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl set image deployment/rop-backend rop-backend=${{ needs.build.outputs.image }} -n production
-          kubectl apply -f k8s/ || true
-          kubectl rollout status deployment/rop-backend -n production --timeout=300s
+          kubectl set image deployment/rop-backend rop-backend=${{ needs.build.outputs.image }} -n rop
+          kubectl rollout status deployment/rop-backend -n rop --timeout=300s
