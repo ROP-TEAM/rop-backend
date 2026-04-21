@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
 
 env:
   REGISTRY: ghcr.io
@@ -67,6 +67,11 @@ jobs:
         with:
           authkey: ${{ secrets.TS_OAUTH_SECRET }}
 
+      # - name: Install kubectl
+      #   uses: azure/setup-kubectl@v4
+      #   with:
+      #     version: "latest" 
+
       - name: Setup kubectl
         run: |
           mkdir -p ~/.kube
@@ -75,5 +80,7 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl set image deployment/rop-backend rop-backend=${{ needs.build.outputs.image }} -n rop
+          IMAGE_TAG=$(echo "${{ needs.build.outputs.image }}" | head -n 1)
+          echo "Deploying image: $IMAGE_TAG"
+          kubectl set image deployment/rop-backend rop-backend=$IMAGE_TAG -n rop
           kubectl rollout status deployment/rop-backend -n rop --timeout=300s
