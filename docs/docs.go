@@ -66,6 +66,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/onboarding": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Save company and user info (step before OTP)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User onboarding",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Onboarding data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.OnboardingPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.OnboardingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/test": {
             "get": {
                 "security": [
@@ -128,11 +186,22 @@ const docTemplate = `{
         "handlers.LoginResponse": {
             "type": "object",
             "properties": {
+                "needOnboarding": {
+                    "type": "boolean"
+                },
                 "token": {
                     "type": "string"
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "handlers.OnboardingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -147,9 +216,100 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Company": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alley": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "sub_district": {
+                    "type": "string"
+                },
+                "tel": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.OnboardingPayload": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "123 ถนนสุขุมวิท"
+                },
+                "alley": {
+                    "type": "string",
+                    "example": "Soi 5"
+                },
+                "companyName": {
+                    "type": "string",
+                    "example": "ABC Co."
+                },
+                "companyType": {
+                    "type": "string",
+                    "example": "SME"
+                },
+                "district": {
+                    "type": "string",
+                    "example": "Pathum Wan"
+                },
+                "postalCode": {
+                    "type": "string",
+                    "example": "10330"
+                },
+                "province": {
+                    "type": "string",
+                    "example": "Bangkok"
+                },
+                "subDistrict": {
+                    "type": "string",
+                    "example": "Lumphini"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0999999999"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
+                "company": {
+                    "$ref": "#/definitions/models.Company"
+                },
+                "companyID": {
+                    "type": "integer"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -165,10 +325,13 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "is_validated": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
-                "pictures": {
+                "tel": {
                     "type": "string"
                 },
                 "updatedAt": {
