@@ -1,18 +1,16 @@
 package models
 
-import "gorm.io/gorm"
-
 type Company struct {
-	gorm.Model
-	ID          uint    `gorm:"primaryKey" json:"id"`
-	Name        string  `gorm:"size:100;not null" json:"name"`
-	Type        string  `gorm:"size:50;not null" json:"type"`
-	Province    string  `gorm:"size:50;not null" json:"province"`
-	District    string  `gorm:"size:50;not null" json:"district"`
-	SubDistrict string  `gorm:"size:50;not null" json:"sub_district"`
-	Address     string  `gorm:"size:255;not null" json:"address"`
-	Alley       *string `gorm:"size:255" json:"alley"`
-	PostalCode  string  `gorm:"size:20;not null" json:"postal_code"`
+	ID   uint   `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"type:varchar(100);" json:"name"`
+	Type string `gorm:"size:50;not null" json:"type"`
 
-	Tel string `gorm:"size:20" json:"tel"`
+	Address     string  `gorm:"type:text" json:"address"`
+	District    string  `gorm:"type:varchar(100)" json:"district"`
+	SubDistrict string  `gorm:"type:varchar(100)" json:"sub_district"`
+	Province    string  `gorm:"type:varchar(100)" json:"province"`
+	PostalCode  string  `gorm:"type:varchar(10)" json:"postal_code"`
+	Alley       *string `gorm:"type:varchar(100)" json:"alley"`
+
+	Tel string `gorm:"type:varchar(20)" json:"tel"`
 }
