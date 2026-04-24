@@ -1,29 +1,4 @@
 definitions:
-  dto.CarRequest:
-    properties:
-      breakTime:
-        $ref: '#/definitions/dto.TimeRange'
-      capacity:
-        type: integer
-      display:
-        type: string
-      endLocation:
-        $ref: '#/definitions/dto.Location'
-      id:
-        type: integer
-      maxTask:
-        type: integer
-      model:
-        type: string
-      skills:
-        items:
-          type: string
-        type: array
-      startLocation:
-        $ref: '#/definitions/dto.Location'
-      workTime:
-        $ref: '#/definitions/dto.TimeRange'
-    type: object
   dto.Location:
     properties:
       lat:
@@ -63,6 +38,8 @@ definitions:
     type: object
   dto.OrderRequest:
     properties:
+      assignToVehicleID:
+        type: integer
       capacity:
         type: integer
       deliveryWindow:
@@ -88,13 +65,13 @@ definitions:
     type: object
   dto.PlanRequest:
     properties:
-      cars:
-        items:
-          $ref: '#/definitions/dto.CarRequest'
-        type: array
       orders:
         items:
           $ref: '#/definitions/dto.OrderRequest'
+        type: array
+      vehicle:
+        items:
+          $ref: '#/definitions/dto.VehiclesRequest'
         type: array
     type: object
   dto.TimeRange:
@@ -103,6 +80,31 @@ definitions:
         type: string
       start:
         type: string
+    type: object
+  dto.VehiclesRequest:
+    properties:
+      breakTime:
+        $ref: '#/definitions/dto.TimeRange'
+      capacity:
+        type: integer
+      display:
+        type: string
+      endLocation:
+        $ref: '#/definitions/dto.Location'
+      id:
+        type: integer
+      maxTask:
+        type: integer
+      model:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      startLocation:
+        $ref: '#/definitions/dto.Location'
+      workTime:
+        $ref: '#/definitions/dto.TimeRange'
     type: object
   gorm.DeletedAt:
     properties:

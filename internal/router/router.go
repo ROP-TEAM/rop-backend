@@ -34,6 +34,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	userService := services.NewUserService(db)
 	userHandler := handlers.NewUserHandler(userService)
 
+	planService := services.NewPlanService()
+	planHandler := handlers.NewPlanHandler(planService)
+
 	api := app.Group("/api")
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
@@ -45,7 +48,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 		userHandler.Onboarding,
 	)
 
-	app.Post("/api/v1/plan", handlers.CreatePlan)
+	app.Post("/api/v1/plan", planHandler.CreatePlan)
 
 	return app
 }

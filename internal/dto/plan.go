@@ -1,11 +1,11 @@
 package dto
 
 type PlanRequest struct {
-	Cars   []CarRequest   `json:"cars"`
-	Orders []OrderRequest `json:"orders"`
+	Vehicles []VehiclesRequest `json:"vehicle"`
+	Orders   []OrderRequest    `json:"orders"`
 }
 
-type CarRequest struct {
+type VehiclesRequest struct {
 	ID       int      `json:"id"`
 	Model    string   `json:"model"`
 	Display  string   `json:"display"`
@@ -34,7 +34,8 @@ type OrderRequest struct {
 	Type     string `json:"type"`
 	Priority string `json:"priority"`
 
-	ServiceTime int `json:"serviceTime"`
+	ServiceTime       int `json:"serviceTime"`
+	AssignToVehicleID int `json:"assignToVehicleID"`
 }
 
 type TimeRange struct {

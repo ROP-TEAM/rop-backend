@@ -203,44 +203,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CarRequest": {
-            "type": "object",
-            "properties": {
-                "breakTime": {
-                    "$ref": "#/definitions/dto.TimeRange"
-                },
-                "capacity": {
-                    "type": "integer"
-                },
-                "display": {
-                    "type": "string"
-                },
-                "endLocation": {
-                    "$ref": "#/definitions/dto.Location"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "maxTask": {
-                    "type": "integer"
-                },
-                "model": {
-                    "type": "string"
-                },
-                "skills": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "startLocation": {
-                    "$ref": "#/definitions/dto.Location"
-                },
-                "workTime": {
-                    "$ref": "#/definitions/dto.TimeRange"
-                }
-            }
-        },
         "dto.Location": {
             "type": "object",
             "properties": {
@@ -296,6 +258,9 @@ const docTemplate = `{
         "dto.OrderRequest": {
             "type": "object",
             "properties": {
+                "assignToVehicleID": {
+                    "type": "integer"
+                },
                 "capacity": {
                     "type": "integer"
                 },
@@ -334,16 +299,16 @@ const docTemplate = `{
         "dto.PlanRequest": {
             "type": "object",
             "properties": {
-                "cars": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.CarRequest"
-                    }
-                },
                 "orders": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.OrderRequest"
+                    }
+                },
+                "vehicle": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VehiclesRequest"
                     }
                 }
             }
@@ -356,6 +321,44 @@ const docTemplate = `{
                 },
                 "start": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.VehiclesRequest": {
+            "type": "object",
+            "properties": {
+                "breakTime": {
+                    "$ref": "#/definitions/dto.TimeRange"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "display": {
+                    "type": "string"
+                },
+                "endLocation": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "maxTask": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startLocation": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "workTime": {
+                    "$ref": "#/definitions/dto.TimeRange"
                 }
             }
         },
