@@ -17,6 +17,8 @@ type Config struct {
 	GOOGLE_CLIENT_ID     string
 	GOOGLE_CLIENT_SECRET string
 	GOOGLE_REDIRECT_URL  string
+	GOOGLE_MAPS_API_KEY  string
+	SOLVER_BINARY_PATH   string
 }
 
 func Load() *Config {
@@ -33,6 +35,8 @@ func Load() *Config {
 		GOOGLE_CLIENT_ID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GOOGLE_REDIRECT_URL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+		GOOGLE_MAPS_API_KEY:  getEnv("GOOGLE_MAPS_API_KEY", ""),
+		SOLVER_BINARY_PATH:   getEnv("SOLVER_BINARY_PATH", ""),
 	}
 }
 
