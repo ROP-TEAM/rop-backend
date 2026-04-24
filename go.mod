@@ -3,7 +3,7 @@ module ROP_Backend
 go 1.26.2
 
 require (
-	github.com/ROP-TEAM/rop-algorithm v0.0.3-00010101000000-000000000000
+	github.com/ROP-TEAM/rop-algorithm v0.0.4-00010101000000-000000000000
 	github.com/gofiber/fiber/v3 v3.1.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/joho/godotenv v1.5.1
