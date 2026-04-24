@@ -1,12 +1,13 @@
 package services
 
 import (
+	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/models"
 
 	"gorm.io/gorm"
 )
 
-func (s *UserService) Onboarding(userID uint, payload models.OnboardingPayload) error {
+func (s *UserService) Onboarding(userID uint, payload dto.OnboardingPayload) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 
 		var user models.User

@@ -1,4 +1,4 @@
-package models
+package dto
 
 type OnboardingPayload struct {
 	CompanyName string  `json:"companyName" example:"ABC Co."`

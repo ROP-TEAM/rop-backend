@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/middleware"
-	"ROP_Backend/internal/models"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -15,13 +15,13 @@ import (
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
-// @Param body body models.OnboardingPayload true "Onboarding data"
+// @Param body body dto.OnboardingPayload true "Onboarding data"
 // @Success 200 {object} handlers.OnboardingResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 401 {object} handlers.ErrorResponse
 // @Router /api/onboarding [post]
 func (h *UserHandler) Onboarding(c fiber.Ctx) error {
-	var body models.OnboardingPayload
+	var body dto.OnboardingPayload
 
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{

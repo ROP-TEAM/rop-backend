@@ -98,7 +98,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.OnboardingPayload"
+                            "$ref": "#/definitions/dto.OnboardingPayload"
                         }
                     }
                 ],
@@ -160,9 +160,205 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/plan": {
+            "post": {
+                "description": "Receive cars and orders from frontend (no processing yet)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Create plan",
+                "parameters": [
+                    {
+                        "description": "Plan payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.PlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.CarRequest": {
+            "type": "object",
+            "properties": {
+                "breakTime": {
+                    "$ref": "#/definitions/dto.TimeRange"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "display": {
+                    "type": "string"
+                },
+                "endLocation": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "maxTask": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startLocation": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "workTime": {
+                    "$ref": "#/definitions/dto.TimeRange"
+                }
+            }
+        },
+        "dto.Location": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "lng": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.OnboardingPayload": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "123 ถนนสุขุมวิท"
+                },
+                "alley": {
+                    "type": "string",
+                    "example": "Soi 5"
+                },
+                "companyName": {
+                    "type": "string",
+                    "example": "ABC Co."
+                },
+                "companyType": {
+                    "type": "string",
+                    "example": "SME"
+                },
+                "district": {
+                    "type": "string",
+                    "example": "Pathum Wan"
+                },
+                "postalCode": {
+                    "type": "string",
+                    "example": "10330"
+                },
+                "province": {
+                    "type": "string",
+                    "example": "Bangkok"
+                },
+                "subDistrict": {
+                    "type": "string",
+                    "example": "Lumphini"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0999999999"
+                }
+            }
+        },
+        "dto.OrderRequest": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "deliveryWindow": {
+                    "$ref": "#/definitions/dto.TimeRange"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "serviceTime": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timeWindow": {
+                    "$ref": "#/definitions/dto.TimeRange"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PlanRequest": {
+            "type": "object",
+            "properties": {
+                "cars": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CarRequest"
+                    }
+                },
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OrderRequest"
+                    }
+                }
+            }
+        },
+        "dto.TimeRange": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
         "gorm.DeletedAt": {
             "type": "object",
             "properties": {
@@ -205,6 +401,14 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.PlanResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.UserResponse": {
             "type": "object",
             "properties": {
@@ -224,12 +428,6 @@ const docTemplate = `{
                 },
                 "alley": {
                     "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "district": {
                     "type": "string"
@@ -254,50 +452,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.OnboardingPayload": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string",
-                    "example": "123 ถนนสุขุมวิท"
-                },
-                "alley": {
-                    "type": "string",
-                    "example": "Soi 5"
-                },
-                "companyName": {
-                    "type": "string",
-                    "example": "ABC Co."
-                },
-                "companyType": {
-                    "type": "string",
-                    "example": "SME"
-                },
-                "district": {
-                    "type": "string",
-                    "example": "Pathum Wan"
-                },
-                "postalCode": {
-                    "type": "string",
-                    "example": "10330"
-                },
-                "province": {
-                    "type": "string",
-                    "example": "Bangkok"
-                },
-                "subDistrict": {
-                    "type": "string",
-                    "example": "Lumphini"
-                },
-                "tel": {
-                    "type": "string",
-                    "example": "0999999999"
                 }
             }
         },
@@ -332,6 +486,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tel": {
+                    "type": "string"
+                },
+                "tel_otp": {
                     "type": "string"
                 },
                 "updatedAt": {

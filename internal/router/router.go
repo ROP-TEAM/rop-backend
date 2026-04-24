@@ -45,5 +45,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 		userHandler.Onboarding,
 	)
 
+	app.Post("/api/v1/plan", handlers.CreatePlan)
+
 	return app
 }

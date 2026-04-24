@@ -1,68 +1,37 @@
 definitions:
-  gorm.DeletedAt:
+  dto.CarRequest:
     properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
-    type: object
-  handlers.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  handlers.LoginResponse:
-    properties:
-      needOnboarding:
-        type: boolean
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/models.User'
-    type: object
-  handlers.OnboardingResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  handlers.UserResponse:
-    properties:
-      email:
-        type: string
-      user_id:
+      breakTime:
+        $ref: '#/definitions/dto.TimeRange'
+      capacity:
         type: integer
-    type: object
-  models.Company:
-    properties:
-      address:
+      display:
         type: string
-      alley:
-        type: string
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
-      district:
-        type: string
+      endLocation:
+        $ref: '#/definitions/dto.Location'
       id:
         type: integer
-      name:
+      maxTask:
+        type: integer
+      model:
         type: string
-      postal_code:
-        type: string
-      province:
-        type: string
-      sub_district:
-        type: string
-      tel:
-        type: string
-      type:
-        type: string
-      updatedAt:
-        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      startLocation:
+        $ref: '#/definitions/dto.Location'
+      workTime:
+        $ref: '#/definitions/dto.TimeRange'
     type: object
-  models.OnboardingPayload:
+  dto.Location:
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+    type: object
+  dto.OnboardingPayload:
     properties:
       address:
         example: 123 ถนนสุขุมวิท
@@ -92,6 +61,111 @@ definitions:
         example: "0999999999"
         type: string
     type: object
+  dto.OrderRequest:
+    properties:
+      capacity:
+        type: integer
+      deliveryWindow:
+        $ref: '#/definitions/dto.TimeRange'
+      id:
+        type: integer
+      location:
+        $ref: '#/definitions/dto.Location'
+      name:
+        type: string
+      priority:
+        type: string
+      serviceTime:
+        type: integer
+      skills:
+        items:
+          type: string
+        type: array
+      timeWindow:
+        $ref: '#/definitions/dto.TimeRange'
+      type:
+        type: string
+    type: object
+  dto.PlanRequest:
+    properties:
+      cars:
+        items:
+          $ref: '#/definitions/dto.CarRequest'
+        type: array
+      orders:
+        items:
+          $ref: '#/definitions/dto.OrderRequest'
+        type: array
+    type: object
+  dto.TimeRange:
+    properties:
+      end:
+        type: string
+      start:
+        type: string
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.LoginResponse:
+    properties:
+      needOnboarding:
+        type: boolean
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  handlers.OnboardingResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.PlanResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.UserResponse:
+    properties:
+      email:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.Company:
+    properties:
+      address:
+        type: string
+      alley:
+        type: string
+      district:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      postal_code:
+        type: string
+      province:
+        type: string
+      sub_district:
+        type: string
+      tel:
+        type: string
+      type:
+        type: string
+    type: object
   models.User:
     properties:
       company:
@@ -113,6 +187,8 @@ definitions:
       name:
         type: string
       tel:
+        type: string
+      tel_otp:
         type: string
       updatedAt:
         type: string
@@ -169,7 +245,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.OnboardingPayload'
+          $ref: '#/definitions/dto.OnboardingPayload'
       produces:
       - application/json
       responses:
@@ -213,4 +289,30 @@ paths:
       summary: Get current user
       tags:
       - user
+  /api/v1/plan:
+    post:
+      consumes:
+      - application/json
+      description: Receive cars and orders from frontend (no processing yet)
+      parameters:
+      - description: Plan payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create plan
+      tags:
+      - plan
 swagger: "2.0"
