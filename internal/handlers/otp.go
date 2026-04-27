@@ -11,11 +11,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// type RequestOTPRequest struct {
-// 	Tel    string `json:"tel"`
-// 	UserId string `json:"user_id"`
-// }
-
 type OTPHandler struct {
 	service *services.OTPService
 }
@@ -70,21 +65,25 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 
 	res, err := h.service.RequestOTP(ctx, &body)
 	if err != nil {
+
 		if errors.Is(err, services.ErrUsedPhoneNumber) {
 			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
 				Error: "phone number already in use",
 			})
 		}
+
 		if errors.Is(err, services.ErrPhoneNumberHasRecentRequest) {
 			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
 				Error: "phone number recently request for OTP",
 			})
 		}
+
 		if errors.Is(err, services.ErrOTPProvider) {
 			return c.Status(fiber.StatusBadGateway).JSON(ErrorResponse{
 				Error: "OTP service unavailable",
 			})
 		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Error: "internal server error",
 		})

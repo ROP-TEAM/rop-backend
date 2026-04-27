@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrReachMaxAttempt = errors.New("verification reach the maximum attempt")
+var ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
+var ErrUsedOTPRequest = errors.New("tel already be verified by otp pin")
+
 type OTPRepository struct {
 	db *gorm.DB
 }
@@ -54,10 +58,6 @@ func (r *OTPRepository) CreateOTPRequest(ctx context.Context, req *CreateOTPRequ
 
 	return nil
 }
-
-var ErrReachMaxAttempt = errors.New("verification reach the maximum attempt")
-var ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
-var ErrUsedOTPRequest = errors.New("tel already be verified by otp pin")
 
 func (r *OTPRepository) IsOTPRequestMutable(ctx context.Context, tel string, ref string) (string, error) {
 	var otp models.OtpRequest

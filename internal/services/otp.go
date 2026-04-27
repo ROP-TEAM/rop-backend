@@ -55,6 +55,25 @@ type thaiBulkErrorResponse struct {
 
 type StringOrArray []string
 
+type VerifyOTPRequest struct {
+	Pin   string `json:"pin"`
+	Tel   string `json:"tel"`
+	RefNo string `json:"refNo"`
+}
+
+type verifyOTPResponse struct {
+	// Pin string `json:"pin"`
+	// Tel string `json:"tel"`
+	Status string `json:"status"`
+}
+
+type OTPService struct {
+	userRepository *repository.UserRepository
+	otpRepository  *repository.OTPRepository
+	cfg            *config.Config
+	httpClient     *http.Client
+}
+
 // helper function for ThaiBulkErrorResponse
 func (s *StringOrArray) UnmarshalJSON(data []byte) error {
 	// try array first
@@ -72,13 +91,6 @@ func (s *StringOrArray) UnmarshalJSON(data []byte) error {
 	}
 
 	return fmt.Errorf("invalid detail format")
-}
-
-type OTPService struct {
-	userRepository *repository.UserRepository
-	otpRepository  *repository.OTPRepository
-	cfg            *config.Config
-	httpClient     *http.Client
 }
 
 func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
@@ -184,18 +196,6 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 	}
 	log.Printf("OTPRequest: error from api status fail: %v", errMsg)
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
-}
-
-type VerifyOTPRequest struct {
-	Pin   string `json:"pin"`
-	Tel   string `json:"tel"`
-	RefNo string `json:"refNo"`
-}
-
-type verifyOTPResponse struct {
-	// Pin string `json:"pin"`
-	// Tel string `json:"tel"`
-	Status string `json:"status"`
 }
 
 func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*verifyOTPResponse, error) {
