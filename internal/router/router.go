@@ -30,10 +30,13 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	authService := services.NewAuthService(db, cfg)
 	authHandler := handlers.NewAuthHandler(authService)
-
 	api := app.Group("/api")
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
+
+	otpService := services.NewOTPService(db, cfg)
+	otpHandler := handlers.NewOTPHandler(otpService)
+	api.Post("/auth/otpReq", otpHandler.RequestOTP)
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
 

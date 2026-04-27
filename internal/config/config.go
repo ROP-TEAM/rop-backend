@@ -17,6 +17,9 @@ type Config struct {
 	GOOGLE_CLIENT_ID     string
 	GOOGLE_CLIENT_SECRET string
 	GOOGLE_REDIRECT_URL  string
+	OTP_APP_KEY          string
+	OTP_APP_SECRET       string
+	OTP_APP_URL          string
 }
 
 func Load() *Config {
@@ -33,6 +36,9 @@ func Load() *Config {
 		GOOGLE_CLIENT_ID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GOOGLE_CLIENT_SECRET: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GOOGLE_REDIRECT_URL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+		OTP_APP_KEY:          getEnv("OTP_APP_KEY", ""),
+		OTP_APP_SECRET:       getEnv("OTP_APP_SECRET", ""),
+		OTP_APP_URL:          getEnv("OTP_APP_URL", "https://otp.thaibulksms.com/v2/otp/request"),
 	}
 }
 

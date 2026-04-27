@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ROP_Backend/internal/models"
+	"context"
 
 	"gorm.io/gorm"
 )
@@ -23,4 +24,13 @@ func (r *UserRepository) FindByGoogleID(googleID string) (*models.User, error) {
 
 func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
+}
+
+func (r *UserRepository) FindByPhone(ctx context.Context, tel string) (*models.User, error) {
+	var user models.User
+	err := r.db.WithContext(ctx).Where("tel = ?", tel).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
