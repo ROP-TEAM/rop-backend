@@ -34,3 +34,23 @@ func (r *UserRepository) FindByPhone(ctx context.Context, tel string) (*models.U
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) CompleteUserValidation(ctx context.Context, id int, tel string) error {
+	result := r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"tel":          tel,
+			"is_validated": true,
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
+}

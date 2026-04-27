@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
 	"context"
 	"errors"
@@ -10,9 +11,10 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-type RequestOTPRequest struct {
-	Tel string `json:"tel"`
-}
+// type RequestOTPRequest struct {
+// 	Tel    string `json:"tel"`
+// 	UserId string `json:"user_id"`
+// }
 
 type OTPHandler struct {
 	service *services.OTPService
@@ -38,7 +40,61 @@ var phoneRegex = regexp.MustCompile(`^\d{10}$`)
 // @Failure      500      {object}  handlers.ErrorResponse "Internal server error"
 // @Router       /api/auth/otp [post]
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
-	var body RequestOTPRequest
+	var body services.RequestOTPRequest
+	if err := c.Bind().Body(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error: "invalid request body",
+		})
+	}
+
+	if body.Tel == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error: "tel field is required",
+		})
+	}
+
+	// if body.UserId == "" {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+	// 		Error: "user_id field is required",
+	// 	})
+	// }
+
+	if !phoneRegex.MatchString(body.Tel) {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error: "invalid tel format",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.service.RequestOTP(ctx, &body)
+	if err != nil {
+		if errors.Is(err, services.ErrUsedPhoneNumber) {
+			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
+				Error: "phone number already in use",
+			})
+		}
+		if errors.Is(err, services.ErrPhoneNumberHasRecentRequest) {
+			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
+				Error: "phone number recently request for OTP",
+			})
+		}
+		if errors.Is(err, services.ErrOTPProvider) {
+			return c.Status(fiber.StatusBadGateway).JSON(ErrorResponse{
+				Error: "OTP service unavailable",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+			Error: "internal server error",
+		})
+	}
+
+	return c.JSON(res)
+}
+
+func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
+	var body services.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
 			Error: "invalid request body",
@@ -57,25 +113,43 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 		})
 	}
 
+	if body.Pin == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error: "Pin field is required",
+		})
+	}
+
+	if body.RefNo == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
+			Error: "refNo field is required",
+		})
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	res, err := h.service.RequestOTP(ctx, body.Tel)
+	res, err := h.service.VerifyOTP(ctx, &body)
 	if err != nil {
-		if errors.Is(err, services.ErrUsedPhoneNumber) {
+		if errors.Is(err, repository.ErrReachMaxAttempt) {
 			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
-				Error: "phone number already in use",
+				Error: "number of attempt already reach the limit",
 			})
 		}
-		if errors.Is(err, services.ErrOTPProvider) {
-			return c.Status(fiber.StatusBadGateway).JSON(ErrorResponse{
-				Error: "OTP service unavailable",
+
+		if errors.Is(err, repository.ErrExpiredOTPRequest) {
+			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
+				Error: "OTP already expire for verification",
 			})
 		}
+
+		if errors.Is(err, repository.ErrUsedOTPRequest) {
+			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
+				Error: "OTP verification already done",
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 			Error: "internal server error",
 		})
 	}
-
 	return c.JSON(res)
 }
