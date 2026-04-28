@@ -22,6 +22,7 @@ import (
 var ErrUsedPhoneNumber = errors.New("phone number already in use")
 var ErrOTPProvider = errors.New("otp provider error")
 var ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
+var ErrInvalidOTP = errors.New("invalid otp pin")
 
 type RequestOTPRequest struct {
 	Tel    string `json:"tel"`
@@ -61,9 +62,7 @@ type VerifyOTPRequest struct {
 	RefNo string `json:"refNo"`
 }
 
-type verifyOTPResponse struct {
-	// Pin string `json:"pin"`
-	// Tel string `json:"tel"`
+type VerifyOTPResponse struct {
 	Status string `json:"status"`
 }
 
@@ -72,6 +71,7 @@ type OTPService struct {
 	otpRepository  *repository.OTPRepository
 	cfg            *config.Config
 	httpClient     *http.Client
+	db             *gorm.DB
 }
 
 // helper function for ThaiBulkErrorResponse
@@ -103,6 +103,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 		httpClient: &http.Client{
 			Timeout: 15 * time.Second,
 		},
+		db: db,
 	}
 }
 
@@ -198,7 +199,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
 }
 
-func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*verifyOTPResponse, error) {
+func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*VerifyOTPResponse, error) {
 
 	token, err := s.otpRepository.IsOTPRequestMutable(ctx, req.Tel, req.RefNo)
 	if err != nil {
@@ -250,23 +251,24 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*ver
 				log.Printf("OTPVerify: error when increase attempt: %v", err)
 				return nil, err
 			}
-			return nil, fmt.Errorf("%w: unexpected status %q", ErrOTPProvider, apiSuccess.Status)
+			return nil, ErrInvalidOTP
 		}
 
-		// success
-		userID, err := s.otpRepository.MarkOTPRequestUsed(ctx, req.Tel, req.RefNo)
+		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			userID, err := s.otpRepository.WithTx(tx).MarkOTPRequestUsed(ctx, req.Tel, req.RefNo)
+			if err != nil {
+				log.Printf("OTPVerify: error when save otp request: %v", err)
+
+				return err
+			}
+			return s.userRepository.WithTx(tx).CompleteUserValidation(ctx, int(userID), req.Tel)
+		})
 		if err != nil {
-			log.Printf("OTPVerify: error when save otp request: %v", err)
+			log.Printf("OTPVerify: error in commit transaction: %v", err)
 			return nil, err
 		}
 
-		err = s.userRepository.CompleteUserValidation(ctx, int(userID), req.Tel)
-		if err != nil {
-			log.Printf("OTPVerify: error when validate user: %v", err)
-			return nil, err
-		}
-
-		return &verifyOTPResponse{Status: apiSuccess.Status}, nil
+		return &VerifyOTPResponse{Status: apiSuccess.Status}, nil
 	}
 
 	//fail code

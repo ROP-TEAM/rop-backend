@@ -17,27 +17,19 @@ type OTPRepository struct {
 	db *gorm.DB
 }
 
-func NewOTPRepository(db *gorm.DB) *OTPRepository {
-	return &OTPRepository{db: db}
-}
-
-func (r *OTPRepository) FindByTelAndRef(ctx context.Context, tel string, ref string) (*models.OtpRequest, error) {
-	var otp models.OtpRequest
-	err := r.db.WithContext(ctx).
-		Where("tel = ? AND ref_no = ?", tel, ref).
-		First(&otp).Error
-
-	if err != nil {
-		return nil, err
-	}
-	return &otp, nil
-}
-
 type CreateOTPRequest struct {
 	Tel    string
 	Token  string
 	UserId uint
 	RefNo  string
+}
+
+func NewOTPRepository(db *gorm.DB) *OTPRepository {
+	return &OTPRepository{db: db}
+}
+
+func (r *OTPRepository) WithTx(tx *gorm.DB) *OTPRepository {
+	return &OTPRepository{db: tx}
 }
 
 func (r *OTPRepository) CreateOTPRequest(ctx context.Context, req *CreateOTPRequest) error {
@@ -120,28 +112,18 @@ func (r *OTPRepository) HasRecentRequest(ctx context.Context, tel string) (bool,
 func (r *OTPRepository) MarkOTPRequestUsed(ctx context.Context, tel string, ref string) (uint, error) {
 	var otp models.OtpRequest
 
-	result := r.db.WithContext(ctx).
-		Model(&models.OtpRequest{}).
-		Where(`
-			tel = ? AND ref_no = ?
-			AND is_used = false
-			AND expires_at > ?
-			AND attempts < max_attempts
-		`, tel, ref, time.Now()).
-		Update("is_used", true)
-
-	if result.Error != nil {
-		return 0, result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return 0, ErrUsedOTPRequest
-	}
-
-	// fetch user id after update
 	if err := r.db.WithContext(ctx).
-		Where("tel = ? AND ref_no = ?", tel, ref).
+		Where("tel = ? AND ref_no = ? AND is_used = false AND expires_at > ? AND attempts < max_attempts", tel, ref, time.Now()).
 		First(&otp).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, ErrExpiredOTPRequest
+		}
+		return 0, err
+	}
+
+	if err := r.db.WithContext(ctx).
+		Model(&otp).
+		Update("is_used", true).Error; err != nil {
 		return 0, err
 	}
 

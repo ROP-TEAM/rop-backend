@@ -28,7 +28,7 @@ var phoneRegex = regexp.MustCompile(`^\d{10}$`)
 // @Accept       json
 // @Produce      json
 // @Param        request  body      handlers.otpRequest  true  "Phone number in 10-digit format"
-// @Success      200      {object}  services.OTPResponse "Successfully sent OTP"
+// @Success      200      {object}  services.RequestOTPRespons "Successfully sent OTP"
 // @Failure      400      {object}  handlers.ErrorResponse "Invalid phone format or request body"
 // @Failure      409      {object}  handlers.ErrorResponse "Phone number already validated"
 // @Failure      502      {object}  handlers.ErrorResponse "OTP Provider (ThaiBulk) error"
@@ -92,6 +92,19 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// VerifyOTP godoc
+// @Summary      Verify OTP
+// @Description  Verifies the OTP pin and marks the phone number as validated.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      services.VerifyOTPRequest  true  "OTP verification payload"
+// @Success      200      {object}  services.VerifyOTPResponse "Successfully verified OTP"
+// @Failure      400      {object}  handlers.ErrorResponse "Invalid request body or missing fields"
+// @Failure      401      {object}  handlers.ErrorResponse "Invalid OTP pin"
+// @Failure      409      {object}  handlers.ErrorResponse "Expired, used, or max attempts reached"
+// @Failure      500      {object}  handlers.ErrorResponse "Internal server error"
+// @Router       /api/auth/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 	var body services.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
@@ -143,6 +156,12 @@ func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 		if errors.Is(err, repository.ErrUsedOTPRequest) {
 			return c.Status(fiber.StatusConflict).JSON(ErrorResponse{
 				Error: "OTP verification already done",
+			})
+		}
+
+		if errors.Is(err, services.ErrInvalidOTP) {
+			return c.Status(fiber.StatusUnauthorized).JSON(ErrorResponse{
+				Error: "invalid OTP pin",
 			})
 		}
 

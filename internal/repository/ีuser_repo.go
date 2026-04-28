@@ -15,6 +15,10 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
+func (r *UserRepository) WithTx(tx *gorm.DB) *UserRepository {
+	return &UserRepository{db: tx}
+}
+
 func (r *UserRepository) FindByGoogleID(googleID string) (*models.User, error) {
 	var user models.User
 	err := r.db.Where("google_id = ?", googleID).First(&user).Error
