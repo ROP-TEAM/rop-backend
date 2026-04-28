@@ -119,7 +119,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*RequestOTPResponse, error) {
 	user, err := s.userRepository.FindByPhone(ctx, req.Tel)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Printf("OTPRequest: database error: %v", err)
+		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
 		return nil, err
 	}
 

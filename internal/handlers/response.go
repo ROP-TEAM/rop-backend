@@ -15,3 +15,31 @@ type LoginResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+type APIResponse struct {
+	Status  string      `json:"status"` //suc/fail/err
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+func Success(message string, data interface{}) APIResponse {
+	return APIResponse{
+		Status:  "success",
+		Message: message,
+		Data:    data,
+	}
+}
+
+func Fail(message string) APIResponse {
+	return APIResponse{
+		Status:  "fail",
+		Message: message,
+	}
+}
+
+func Error(message string) APIResponse {
+	return APIResponse{
+		Status:  "error",
+		Message: message,
+	}
+}
