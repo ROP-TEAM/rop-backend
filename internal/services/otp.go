@@ -24,16 +24,21 @@ var ErrOTPProvider = errors.New("otp provider error")
 var ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
 var ErrInvalidOTP = errors.New("invalid otp pin")
 
+const (
+	StatusSuccess = "success"
+)
+
 type RequestOTPRequest struct {
 	Tel    string `json:"tel"`
 	UserId uint   `json:"user_id"`
 }
 
 type RequestOTPResponse struct {
-	RefNo string `json:"refNo"`
+	RefNo  string `json:"refNo"`
+	Status string `json:"status"`
 }
 
-type thaiBulkSuccessResponse struct {
+type requestThaiBulkSuccessResponse struct {
 	Status string `json:"status"`
 	Token  string `json:"token"`
 	RefNo  string `json:"refno"`
@@ -129,23 +134,51 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 		return nil, ErrPhoneNumberHasRecentRequest
 	}
 
-	vals := url.Values{}
-	vals.Set("key", s.cfg.OTP_APP_KEY)
-	vals.Set("secret", s.cfg.OTP_APP_SECRET)
-	vals.Set("msisdn", req.Tel)
-	payload := strings.NewReader(vals.Encode())
-	thaibulkReq, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OTP_APP_URL_REQUEST, payload)
+	apiRes, err := s.callThaiBulkRequestOTP(ctx, req.Tel)
 	if err != nil {
-		log.Printf("OTPRequest: error when create new request: %v", err)
+		log.Printf("OTPRequest: fetching thaibulk api : %v", err)
 		return nil, err
 	}
 
-	thaibulkReq.Header.Set("accept", "application/json")
-	thaibulkReq.Header.Set("content-type", "application/x-www-form-urlencoded")
+	//at this point success on calling thaibulk api
 
-	res, err := s.httpClient.Do(thaibulkReq)
+	if apiRes.Status != StatusSuccess {
+		return &RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
+	}
+
+	err = s.otpRepository.CreateOTPRequest(ctx, &repository.CreateOTPRequest{
+		Tel:    req.Tel,
+		Token:  apiRes.Token,
+		RefNo:  apiRes.RefNo,
+		UserId: req.UserId,
+	})
 	if err != nil {
-		log.Printf("OTPRequest: provider request failed: tel=%s err=%v", req.Tel, err)
+		log.Printf("OTPRequest:  database saving otp request: %v", err)
+		return nil, err
+	}
+
+	return &RequestOTPResponse{RefNo: apiRes.RefNo, Status: apiRes.Status}, nil
+}
+
+func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*requestThaiBulkSuccessResponse, error) {
+	vals := url.Values{}
+	vals.Set("key", s.cfg.OTP_APP_KEY)
+	vals.Set("secret", s.cfg.OTP_APP_SECRET)
+	vals.Set("msisdn", tel)
+
+	payload := strings.NewReader(vals.Encode())
+
+	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OTP_APP_URL_REQUEST, payload)
+	if err != nil {
+		return nil, fmt.Errorf("creating request body: %w", err)
+	}
+
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("content-type", "application/x-www-form-urlencoded")
+
+	res, err := s.httpClient.Do(req)
+	if err != nil {
+		log.Printf("OTPRequest: provider request failed: tel=%s err=%v", tel, err)
 		return nil, fmt.Errorf("%w: request failed: %v", ErrOTPProvider, err)
 	}
 	defer res.Body.Close()
@@ -156,46 +189,24 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 		return nil, err
 	}
 
-	//at this point success on calling thaibulk api
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
-		var apiSuccess thaiBulkSuccessResponse
+		var apiSuccess requestThaiBulkSuccessResponse
 		if err := json.Unmarshal(body, &apiSuccess); err != nil {
-			log.Printf("OTPRequest: error when read unmarshal body: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("parsing success response: %w", err)
 		}
-
-		if apiSuccess.Status != "success" {
-			return nil, fmt.Errorf("%w: unexpected status %q", ErrOTPProvider, apiSuccess.Status)
-		}
-
-		err := s.otpRepository.CreateOTPRequest(ctx, &repository.CreateOTPRequest{
-			Tel:    req.Tel,
-			Token:  apiSuccess.Token,
-			RefNo:  apiSuccess.RefNo,
-			UserId: req.UserId,
-		})
-		if err != nil {
-			log.Printf("OTPRequest: error when save otp request: %v", err)
-			return nil, err
-		}
-
-		return &RequestOTPResponse{RefNo: apiSuccess.RefNo}, nil
+		return &apiSuccess, nil
 	}
 
-	//fail code
+	//error response
 	var apiError thaiBulkErrorResponse
 	if err := json.Unmarshal(body, &apiError); err != nil {
-		log.Printf("OTPRequest: error when read unmarshal body: %v", err)
-		return nil, fmt.Errorf("%w: invalid error response: %v", ErrOTPProvider, err)
+		return nil, fmt.Errorf("%w: invalid error response (status=%d): %v", ErrOTPProvider, res.StatusCode, err)
 	}
 
-	var errMsg string
+	errMsg := "unknown error"
 	if len(apiError.Errors) > 0 {
 		errMsg = apiError.Errors[0].Message
-	} else {
-		errMsg = "unknown error"
 	}
-	log.Printf("OTPRequest: error from api status fail: %v", errMsg)
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
 }
 
@@ -207,6 +218,11 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, err
 	}
 
+	if token == "" {
+		log.Printf("OTPVerify: empty token retrieved for tel=%s ref=%s", req.Tel, req.RefNo)
+		return nil, fmt.Errorf("invalid OTP token format")
+	}
+
 	apiRes, err := s.callThaiBulkVerifyAPI(ctx, token, req.Pin)
 	if err != nil {
 		if incrErr := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); incrErr != nil {
@@ -215,7 +231,7 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, err
 	}
 
-	if apiRes.Status != "success" {
+	if apiRes.Status != StatusSuccess {
 		if err := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); err != nil {
 			log.Printf("OTPVerify: error when increase attempt after enter invalid pin: %v", err)
 			return nil, err
@@ -244,7 +260,7 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, fmt.Errorf("completing verification: %w", err)
 	}
 
-	return &VerifyOTPResponse{Status: "success"}, nil
+	return &VerifyOTPResponse{Status: StatusSuccess}, nil
 
 }
 
@@ -273,7 +289,7 @@ func (s *OTPService) callThaiBulkVerifyAPI(ctx context.Context, token, pin strin
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("OTPVerify: reading response body: %v", err)
+		return nil, fmt.Errorf("reading response body: %v", err)
 	}
 
 	//at this point success on calling thaibulk api
