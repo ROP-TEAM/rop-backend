@@ -207,34 +207,73 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, err
 	}
 
+	apiRes, err := s.callThaiBulkVerifyAPI(ctx, token, req.Pin)
+	if err != nil {
+		if incrErr := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); incrErr != nil {
+			log.Printf("OTPVerify: failed to increment attempt: %v", incrErr)
+		}
+		return nil, err
+	}
+
+	if apiRes.Status != "success" {
+		if err := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); err != nil {
+			log.Printf("OTPVerify: error when increase attempt after enter invalid pin: %v", err)
+			return nil, err
+		}
+		return nil, ErrInvalidOTP
+	}
+
+	// success
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		userID, err := s.otpRepository.WithTx(tx).MarkOTPRequestUsed(ctx, req.Tel, req.RefNo)
+		if err != nil {
+			log.Printf("OTPVerify: failed to mark OTP as used: %v", err)
+			return fmt.Errorf("marking OTP as used: %w", err)
+		}
+
+		if err := s.userRepository.WithTx(tx).CompleteUserValidation(ctx, int(userID), req.Tel); err != nil {
+			log.Printf("OTPVerify: failed to complete user validation: %v", err)
+			return fmt.Errorf("completing user validation: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Printf("OTPVerify: transaction failed: %v", err)
+		return nil, fmt.Errorf("completing verification: %w", err)
+	}
+
+	return &VerifyOTPResponse{Status: "success"}, nil
+
+}
+
+func (s *OTPService) callThaiBulkVerifyAPI(ctx context.Context, token, pin string) (*verifyThaiBulkSuccessResponse, error) {
 	vals := url.Values{}
 	vals.Set("key", s.cfg.OTP_APP_KEY)
 	vals.Set("secret", s.cfg.OTP_APP_SECRET)
 	vals.Set("token", token)
-	vals.Set("pin", req.Pin)
+	vals.Set("pin", pin)
 
 	payload := strings.NewReader(vals.Encode())
 
-	thaibulkReq, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OTP_APP_URL_VERIFY, payload)
+	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OTP_APP_URL_VERIFY, payload)
 	if err != nil {
-		log.Printf("OTPVerify: error when create new verify: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("creating request body: %v", err)
 	}
 
-	thaibulkReq.Header.Set("accept", "application/json")
-	thaibulkReq.Header.Set("content-type", "application/x-www-form-urlencoded")
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("content-type", "application/x-www-form-urlencoded")
 
-	res, err := s.httpClient.Do(thaibulkReq)
+	res, err := s.httpClient.Do(req)
 	if err != nil {
-		log.Printf("OTPVerify: provider request failed: tel=%s err=%v", req.Tel, err)
 		return nil, fmt.Errorf("%w: request failed: %v", ErrOTPProvider, err)
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("OTPVerify: error when read response body: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("OTPVerify: reading response body: %v", err)
 	}
 
 	//at this point success on calling thaibulk api
@@ -242,54 +281,20 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 	if res.StatusCode >= 200 && res.StatusCode < 300 {
 		var apiSuccess verifyThaiBulkSuccessResponse
 		if err := json.Unmarshal(body, &apiSuccess); err != nil {
-			log.Printf("OTPVerify: error when read unmarshal body: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("parsing success response: %w", err)
 		}
-
-		if apiSuccess.Status != "success" {
-			if err := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); err != nil {
-				log.Printf("OTPVerify: error when increase attempt: %v", err)
-				return nil, err
-			}
-			return nil, ErrInvalidOTP
-		}
-
-		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			userID, err := s.otpRepository.WithTx(tx).MarkOTPRequestUsed(ctx, req.Tel, req.RefNo)
-			if err != nil {
-				log.Printf("OTPVerify: error when save otp request: %v", err)
-
-				return err
-			}
-			return s.userRepository.WithTx(tx).CompleteUserValidation(ctx, int(userID), req.Tel)
-		})
-		if err != nil {
-			log.Printf("OTPVerify: error in commit transaction: %v", err)
-			return nil, err
-		}
-
-		return &VerifyOTPResponse{Status: apiSuccess.Status}, nil
+		return &apiSuccess, nil
 	}
 
-	//fail code
-	err = s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo)
-	if err != nil {
-		log.Printf("OTPVerify: error when increase attempt: %v", err)
-		return nil, err
-	}
-
+	//error response
 	var apiError thaiBulkErrorResponse
 	if err := json.Unmarshal(body, &apiError); err != nil {
-		log.Printf("OTPVerify: error when read unmarshal body: %v", err)
-		return nil, fmt.Errorf("%w: invalid error response: %v", ErrOTPProvider, err)
+		return nil, fmt.Errorf("%w: invalid error response (status=%d): %v", ErrOTPProvider, res.StatusCode, err)
 	}
 
 	errMsg := "unknown error"
 	if len(apiError.Errors) > 0 {
 		errMsg = apiError.Errors[0].Message
 	}
-
-	log.Printf("OTPVerify: error from api status fail: %v", errMsg)
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
-
 }
