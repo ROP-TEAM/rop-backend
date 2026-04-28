@@ -37,7 +37,7 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 		})
 	}
 
-	token, user, err := h.service.GoogleLogin(body.IDToken)
+	token, user, needOnboarding, err := h.service.GoogleLogin(body.IDToken)
 	if err != nil {
 		return c.Status(401).JSON(ErrorResponse{
 			Error: err.Error(),
@@ -46,7 +46,8 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	fmt.Printf("IDToken: %s, Token: %s, User: %+v", body.IDToken, token, user)
 
 	return c.JSON(LoginResponse{
-		Token: token,
-		User:  user,
+		Token:          token,
+		User:           user,
+		NeedOnboarding: needOnboarding,
 	})
 }

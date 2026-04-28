@@ -22,8 +22,12 @@ func (r *UserRepository) WithTx(tx *gorm.DB) *UserRepository {
 func (r *UserRepository) FindByGoogleID(googleID string) (*models.User, error) {
 	var user models.User
 	err := r.db.Where("google_id = ?", googleID).First(&user).Error
-	return &user, err
 
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func (r *UserRepository) Create(user *models.User) error {
@@ -57,4 +61,14 @@ func (r *UserRepository) CompleteUserValidation(ctx context.Context, id int, tel
 	}
 
 	return nil
+}
+
+func (r *UserRepository) FindByID(id uint) (*models.User, error) {
+	var user models.User
+	err := r.db.First(&user, id).Error
+	return &user, err
+}
+
+func (r *UserRepository) Update(user *models.User) error {
+	return r.db.Save(user).Error
 }
