@@ -30,13 +30,13 @@ const (
 )
 
 type RequestOTPRequest struct {
-	Tel    string `json:"tel"`
-	UserId uint   `json:"user_id"`
+	Tel    string `json:"tel" example:"0812345678"`
+	UserId uint   `json:"user_id" example:"1"`
 }
 
 type RequestOTPResponse struct {
-	RefNo  string `json:"refNo"`
-	Status string `json:"status"`
+	RefNo  string `json:"refNo" example:"ABC123"`
+	Status string `json:"status" example:"success"`
 }
 
 type requestThaiBulkSuccessResponse struct {
@@ -63,13 +63,13 @@ type thaiBulkErrorResponse struct {
 type StringOrArray []string
 
 type VerifyOTPRequest struct {
-	Pin   string `json:"pin"`
-	Tel   string `json:"tel"`
-	RefNo string `json:"refNo"`
+	Pin   string `json:"pin" example:"123456"`
+	Tel   string `json:"tel" example:"0812345678"`
+	RefNo string `json:"refNo" example:"ABC123"`
 }
 
 type VerifyOTPResponse struct {
-	Status string `json:"status"`
+	Status string `json:"status" example:"success"`
 }
 
 type OTPService struct {

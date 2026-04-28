@@ -1,11 +1,14 @@
 definitions:
-  gorm.DeletedAt:
+  handlers.APIResponse:
     properties:
-      time:
+      data: {}
+      message:
+        example: OTP sent successfully
         type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
+      status:
+        description: suc/fail/err
+        example: success
+        type: string
     type: object
   handlers.ErrorResponse:
     properties:
@@ -39,10 +42,6 @@ definitions:
         type: string
       alley:
         type: string
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       district:
         type: string
       id:
@@ -58,8 +57,6 @@ definitions:
       tel:
         type: string
       type:
-        type: string
-      updatedAt:
         type: string
     type: object
   models.OnboardingPayload:
@@ -98,23 +95,53 @@ definitions:
         $ref: '#/definitions/models.Company'
       companyID:
         type: integer
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       email:
         type: string
       google_id:
         type: string
-      id:
-        type: integer
       is_validated:
         type: boolean
       name:
         type: string
       tel:
         type: string
-      updatedAt:
+      tel_otp:
+        type: string
+    type: object
+  services.RequestOTPRequest:
+    properties:
+      tel:
+        example: "0812345678"
+        type: string
+      user_id:
+        example: 1
+        type: integer
+    type: object
+  services.RequestOTPResponse:
+    properties:
+      refNo:
+        example: ABC123
+        type: string
+      status:
+        example: success
+        type: string
+    type: object
+  services.VerifyOTPRequest:
+    properties:
+      pin:
+        example: "123456"
+        type: string
+      refNo:
+        example: ABC123
+        type: string
+      tel:
+        example: "0812345678"
+        type: string
+    type: object
+  services.VerifyOTPResponse:
+    properties:
+      status:
+        example: success
         type: string
     type: object
 info:
@@ -151,6 +178,94 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Login with Google
+      tags:
+      - auth
+  /api/auth/otp:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to a phone number and receive token + refno
+      parameters:
+      - description: Phone number payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.RequestOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.RequestOTPResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+      summary: Request OTP SMS
+      tags:
+      - auth
+  /api/auth/otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP pin using refNo and phone number. Handles expiration,
+        attempt limits, and reuse protection.
+      operationId: verify-otp
+      parameters:
+      - description: OTP verification payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP verified successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.VerifyOTPResponse'
+              type: object
+        "400":
+          description: Invalid request body or missing fields
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "401":
+          description: Invalid OTP PIN
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "409":
+          description: Expired / already used / max attempts reached
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.APIResponse'
+      summary: Verify OTP
       tags:
       - auth
   /api/onboarding:

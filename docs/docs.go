@@ -66,6 +66,147 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/otp": {
+            "post": {
+                "description": "Send OTP to a phone number and receive token + refno",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Request OTP SMS",
+                "parameters": [
+                    {
+                        "description": "Phone number payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.RequestOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handlers.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/services.RequestOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
+                "description": "Verify OTP pin using refNo and phone number. Handles expiration, attempt limits, and reuse protection.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify OTP",
+                "operationId": "verify-otp",
+                "parameters": [
+                    {
+                        "description": "OTP verification payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.VerifyOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP verified successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handlers.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/services.VerifyOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or missing fields",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid OTP PIN",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Expired / already used / max attempts reached",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/onboarding": {
             "post": {
                 "security": [
@@ -163,15 +304,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gorm.DeletedAt": {
+        "handlers.APIResponse": {
             "type": "object",
             "properties": {
-                "time": {
-                    "type": "string"
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "OTP sent successfully"
                 },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
+                "status": {
+                    "description": "suc/fail/err",
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },
@@ -225,12 +369,6 @@ const docTemplate = `{
                 "alley": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "district": {
                     "type": "string"
                 },
@@ -253,9 +391,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -310,20 +445,11 @@ const docTemplate = `{
                 "companyID": {
                     "type": "integer"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_validated": {
                     "type": "boolean"
@@ -334,8 +460,60 @@ const docTemplate = `{
                 "tel": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "tel_otp": {
                     "type": "string"
+                }
+            }
+        },
+        "services.RequestOTPRequest": {
+            "type": "object",
+            "properties": {
+                "tel": {
+                    "type": "string",
+                    "example": "0812345678"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "services.RequestOTPResponse": {
+            "type": "object",
+            "properties": {
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "services.VerifyOTPRequest": {
+            "type": "object",
+            "properties": {
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0812345678"
+                }
+            }
+        },
+        "services.VerifyOTPResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         }

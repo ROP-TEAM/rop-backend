@@ -22,8 +22,8 @@ type ErrorResponse struct {
 }
 
 type APIResponse struct {
-	Status  string      `json:"status"` //suc/fail/err
-	Message string      `json:"message"`
+	Status  string      `json:"status" example:"success"` //suc/fail/err
+	Message string      `json:"message" example:"OTP sent successfully"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
