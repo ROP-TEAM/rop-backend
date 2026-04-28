@@ -19,6 +19,6 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(&models.User{}, &models.OtpRequest{})
+	db.AutoMigrate(&models.User{}, &models.OtpRequest{}, &models.MockOTP{})
 	return db, nil
 }

@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"time"
 
 	"strings"
@@ -72,11 +73,12 @@ type VerifyOTPResponse struct {
 }
 
 type OTPService struct {
-	userRepository *repository.UserRepository
-	otpRepository  *repository.OTPRepository
-	cfg            *config.Config
-	httpClient     *http.Client
-	db             *gorm.DB
+	userRepository    *repository.UserRepository
+	otpRepository     *repository.OTPRepository
+	cfg               *config.Config
+	httpClient        *http.Client
+	db                *gorm.DB
+	mockOtpRepository *repository.MockOTPRepository
 }
 
 // helper function for ThaiBulkErrorResponse
@@ -101,6 +103,7 @@ func (s *StringOrArray) UnmarshalJSON(data []byte) error {
 func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 	userRepository := repository.NewUserRepository(db)
 	otpRepository := repository.NewOTPRepository(db)
+	mockOtpRepository := repository.NewMockOTPRepository(db)
 	return &OTPService{
 		userRepository: userRepository,
 		otpRepository:  otpRepository,
@@ -108,7 +111,8 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 		httpClient: &http.Client{
 			Timeout: 15 * time.Second,
 		},
-		db: db,
+		db:                db,
+		mockOtpRepository: mockOtpRepository,
 	}
 }
 
@@ -134,7 +138,12 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 		return nil, ErrPhoneNumberHasRecentRequest
 	}
 
-	apiRes, err := s.callThaiBulkRequestOTP(ctx, req.Tel)
+	// apiRes, err := s.callThaiBulkRequestOTP(ctx, req.Tel)
+
+	// mock for development
+
+	apiRes, err := s.callMockThaiBulkRequestOTP(ctx, req.Tel)
+
 	if err != nil {
 		log.Printf("OTPRequest: fetching thaibulk api : %v", err)
 		return nil, err
@@ -223,7 +232,12 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, fmt.Errorf("invalid OTP token format")
 	}
 
-	apiRes, err := s.callThaiBulkVerifyAPI(ctx, token, req.Pin)
+	// apiRes, err := s.callThaiBulkVerifyAPI(ctx, token, req.Pin)
+
+	// for testing
+
+	apiRes, err := s.callMockThaiBulkVerifyOTP(ctx, token, req.Pin)
+
 	if err != nil {
 		if incrErr := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); incrErr != nil {
 			log.Printf("OTPVerify: failed to increment attempt: %v", incrErr)
@@ -313,4 +327,57 @@ func (s *OTPService) callThaiBulkVerifyAPI(ctx context.Context, token, pin strin
 		errMsg = apiError.Errors[0].Message
 	}
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
+}
+
+//
+// mock for testing and development
+//
+
+var thaiTelRegex = regexp.MustCompile(`^(06|08|09)[0-9]{8}$`)
+
+func isValidThaiTel(tel string) bool {
+	return thaiTelRegex.MatchString(tel)
+}
+
+func (s *OTPService) callMockThaiBulkRequestOTP(ctx context.Context, tel string) (*requestThaiBulkSuccessResponse, error) {
+
+	if !isValidThaiTel(tel) {
+		return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, "Gateway response send sms fail.", 400)
+	}
+
+	otp, err := s.mockOtpRepository.CreateOTP(ctx, tel)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, "Gateway response send sms fail.", 400)
+	}
+
+	log.Printf("\nSOROUTETION OTP: %s\n(Ref: %s) Valid for %d mintutes.\n", otp.Pin, otp.RefNo, repository.OTPExpiredTime)
+	return &requestThaiBulkSuccessResponse{
+		Status: StatusSuccess,
+		Token:  otp.Token,
+		RefNo:  otp.RefNo,
+	}, nil
+}
+
+func (s *OTPService) callMockThaiBulkVerifyOTP(
+	ctx context.Context,
+	token string,
+	pin string,
+) (*verifyThaiBulkSuccessResponse, error) {
+
+	result, reason, err := s.mockOtpRepository.VerifyOTP(ctx, token, pin)
+	if err != nil {
+		return nil, err // real system error
+	}
+
+	if !result {
+		return &verifyThaiBulkSuccessResponse{
+			Status:  "fail",
+			Message: string(reason),
+		}, nil
+	}
+
+	return &verifyThaiBulkSuccessResponse{
+		Status:  "success",
+		Message: "OTP verified successfully",
+	}, nil
 }
