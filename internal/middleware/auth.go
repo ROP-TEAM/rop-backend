@@ -31,8 +31,21 @@ func Protected(cfg *config.Config) fiber.Handler {
 			return []byte(cfg.JWT_SECRET), nil
 		})
 
-		if err != nil || !token.Valid {
-			return c.Status(401).JSON(fiber.Map{"error": "Invalid Token"})
+		if err != nil {
+			switch err.Error() {
+			case jwt.ErrTokenExpired.Error():
+				return c.Status(401).JSON(fiber.Map{"error": "Token expired"})
+			case jwt.ErrTokenMalformed.Error():
+				return c.Status(401).JSON(fiber.Map{"error": "Token malformed"})
+			case jwt.ErrSignatureInvalid.Error():
+				return c.Status(401).JSON(fiber.Map{"error": "Invalid token signature"})
+			default:
+				return c.Status(401).JSON(fiber.Map{"error": "Invalid token"})
+			}
+		}
+
+		if !token.Valid {
+			return c.Status(401).JSON(fiber.Map{"error": "Token is not valid"})
 		}
 
 		c.Locals("claims", claims)

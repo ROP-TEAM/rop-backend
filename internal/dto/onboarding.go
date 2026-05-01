@@ -9,5 +9,4 @@ type OnboardingPayload struct {
 	Address     string  `json:"address" example:"123 ถนนสุขุมวิท"`
 	Alley       *string `json:"alley" example:"Soi 5"`
 	PostalCode  string  `json:"postalCode" example:"10330"`
-	Tel         string  `json:"tel" example:"0999999999"`
 }
