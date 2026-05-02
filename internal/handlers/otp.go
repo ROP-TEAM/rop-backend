@@ -43,18 +43,20 @@ func NewOTPHandler(service *services.OTPService) *OTPHandler {
 }
 
 // RequestOTP godoc
-// @Summary      Request OTP SMS
-// @Description  Send OTP to a phone number and receive token + refno
-// @Tags         auth
+// @Summary      Request OTP
+// @Description  Send an OTP SMS to the given phone number. Requires a valid JWT. Returns a refNo to use during verification.
+// @Tags         onboarding
 // @Accept       json
 // @Produce      json
-// @Param        request  body      services.RequestOTPRequest  true  "Phone number payload"
-// @Success      200      {object}  handlers.APIResponse{data=services.RequestOTPResponse}
-// @Failure      400      {object}  handlers.APIResponse
-// @Failure      409      {object}  handlers.APIResponse
-// @Failure      502      {object}  handlers.APIResponse
-// @Failure      500      {object}  handlers.APIResponse
-// @Router       /api/auth/otp [post]
+// @Param        request  body      models.RequestOTPRequest  true  "Phone number payload"
+// @Success      200      {object}  handlers.OTPResponse{data=models.RequestOTPResponse}  "OTP sent successfully"
+// @Failure      400      {object}  handlers.OTPResponse  "Missing/invalid tel field or malformed body"
+// @Failure      401      {object}  handlers.OTPResponse  "Missing or invalid JWT"
+// @Failure      409      {object}  handlers.OTPResponse  "Phone already verified / recent request exists / user exceeded request limit"
+// @Failure      502      {object}  handlers.OTPResponse  "Upstream OTP provider unavailable"
+// @Failure      500      {object}  handlers.OTPResponse  "Internal server error"
+// @Security     BearerAuth
+// @Router       /api/onboarding/otp [post]
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 	var body models.RequestOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
@@ -104,18 +106,17 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 
 // VerifyOTP godoc
 // @Summary      Verify OTP
-// @Description  Verify OTP pin using refNo and phone number. Handles expiration, attempt limits, and reuse protection.
-// @Tags         auth
-// @ID           verify-otp
+// @Description  Verify an OTP pin using the refNo and phone number from the request step. Increments attempt count on failure and marks the OTP as used on success.
+// @Tags         onboarding
 // @Accept       json
 // @Produce      json
-// @Param        request  body      services.VerifyOTPRequest  true  "OTP verification payload"
-// @Success      200  {object}  handlers.APIResponse{data=services.VerifyOTPResponse} "OTP verified successfully"
-// @Failure      400  {object}  handlers.APIResponse "Invalid request body or missing fields"
-// @Failure      401  {object}  handlers.APIResponse "Invalid OTP PIN"
-// @Failure      409  {object}  handlers.APIResponse "Expired / already used / max attempts reached"
-// @Failure      500  {object}  handlers.APIResponse "Internal server error"
-// @Router       /api/auth/otp/verify [post]
+// @Param        request  body      models.VerifyOTPRequest  true  "OTP verification payload"
+// @Success      200      {object}  handlers.OTPResponse{data=models.VerifyOTPResponse}  "OTP verified; user phone validated"
+// @Failure      400      {object}  handlers.OTPResponse  "Missing/invalid tel, pin, or refNo — or record not found"
+// @Failure      401      {object}  handlers.OTPResponse  "Incorrect OTP pin"
+// @Failure      409      {object}  handlers.OTPResponse  "OTP expired / already used / max attempts reached"
+// @Failure      500      {object}  handlers.OTPResponse  "Internal server error"
+// @Router       /api/onboarding/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 	var body models.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
