@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"ROP_Backend/internal/middleware"
+	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
 
@@ -37,7 +38,7 @@ func NewOTPHandler(service *services.OTPService) *OTPHandler {
 // @Failure      500      {object}  handlers.APIResponse
 // @Router       /api/auth/otp [post]
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
-	var body services.RequestOTPRequest
+	var body models.RequestOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid request body"))
 	}
@@ -52,12 +53,6 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 	if body.Tel == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("tel field is required"))
 	}
-
-	// if body.UserId == "" {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(ErrorResponse{
-	// 		Error: "user_id field is required",
-	// 	})
-	// }
 
 	if !phoneRegex.MatchString(body.Tel) {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid tel format"))
@@ -102,7 +97,7 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 // @Failure      500  {object}  handlers.APIResponse "Internal server error"
 // @Router       /api/auth/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
-	var body services.VerifyOTPRequest
+	var body models.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(Error("invalid request body"))
 	}

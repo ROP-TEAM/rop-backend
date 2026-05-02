@@ -15,29 +15,22 @@ import (
 	"strings"
 
 	"ROP_Backend/internal/config"
+	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
 
 	"gorm.io/gorm"
 )
 
-var ErrUsedPhoneNumber = errors.New("phone number already in use")
-var ErrOTPProvider = errors.New("otp provider error")
-var ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
-var ErrInvalidOTP = errors.New("invalid otp pin")
+var (
+	ErrUsedPhoneNumber             = errors.New("phone number already in use")
+	ErrOTPProvider                 = errors.New("otp provider error")
+	ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
+	ErrInvalidOTP                  = errors.New("invalid otp pin")
+)
 
 const (
 	StatusSuccess = "success"
 )
-
-type RequestOTPRequest struct {
-	Tel    string `json:"tel" example:"0812345678"`
-	UserId uint   `json:"user_id" example:"1"`
-}
-
-type RequestOTPResponse struct {
-	RefNo  string `json:"refNo" example:"ABC123"`
-	Status string `json:"status" example:"success"`
-}
 
 type requestThaiBulkSuccessResponse struct {
 	Status string `json:"status"`
@@ -61,16 +54,6 @@ type thaiBulkErrorResponse struct {
 }
 
 type StringOrArray []string
-
-type VerifyOTPRequest struct {
-	Pin   string `json:"pin" example:"123456"`
-	Tel   string `json:"tel" example:"0812345678"`
-	RefNo string `json:"refNo" example:"ABC123"`
-}
-
-type VerifyOTPResponse struct {
-	Status string `json:"status" example:"success"`
-}
 
 type OTPService struct {
 	userRepository    *repository.UserRepository
@@ -116,7 +99,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 	}
 }
 
-func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *RequestOTPRequest) (*RequestOTPResponse, error) {
+func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.RequestOTPRequest) (*models.RequestOTPResponse, error) {
 	user, err := s.userRepository.FindByPhone(ctx, req.Tel)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
@@ -152,7 +135,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *RequestOT
 	//at this point success on calling thaibulk api
 
 	if apiRes.Status != StatusSuccess {
-		return &RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
+		return &models.RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
 	}
 
 	err = s.otpRepository.CreateOTPRequest(ctx, &repository.CreateOTPRequest{
@@ -166,7 +149,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *RequestOT
 		return nil, err
 	}
 
-	return &RequestOTPResponse{RefNo: apiRes.RefNo, Status: apiRes.Status}, nil
+	return &models.RequestOTPResponse{RefNo: apiRes.RefNo, Status: apiRes.Status}, nil
 }
 
 func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*requestThaiBulkSuccessResponse, error) {
@@ -219,7 +202,7 @@ func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*r
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
 }
 
-func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*VerifyOTPResponse, error) {
+func (s *OTPService) VerifyOTP(ctx context.Context, req *models.VerifyOTPRequest) (*models.VerifyOTPResponse, error) {
 
 	token, err := s.otpRepository.IsOTPRequestMutable(ctx, req.Tel, req.RefNo)
 	if err != nil {
@@ -274,7 +257,7 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *VerifyOTPRequest) (*Ver
 		return nil, fmt.Errorf("completing verification: %w", err)
 	}
 
-	return &VerifyOTPResponse{Status: StatusSuccess}, nil
+	return &models.VerifyOTPResponse{Status: StatusSuccess}, nil
 
 }
 

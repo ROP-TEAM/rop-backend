@@ -9,9 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrReachMaxAttempt = errors.New("verification reach the maximum attempt")
-var ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
-var ErrUsedOTPRequest = errors.New("tel already be verified by otp pin")
+var (
+	ErrReachMaxAttempt   = errors.New("verification reach the maximum attempt")
+	ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
+	ErrUsedOTPRequest    = errors.New("tel already be verified by otp pin")
+)
 
 type OTPRepository struct {
 	db *gorm.DB

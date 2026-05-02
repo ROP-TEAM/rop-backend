@@ -17,3 +17,22 @@ type OtpRequest struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type RequestOTPRequest struct {
+	Tel string `json:"tel" example:"0812345678"`
+}
+
+type RequestOTPResponse struct {
+	RefNo  string `json:"refNo" example:"ABC123"`
+	Status string `json:"status" example:"success"`
+}
+
+type VerifyOTPRequest struct {
+	Pin   string `json:"pin" example:"123456"`
+	Tel   string `json:"tel" example:"0812345678"`
+	RefNo string `json:"refNo" example:"ABC123"`
+}
+
+type VerifyOTPResponse struct {
+	Status string `json:"status" example:"success"`
+}
