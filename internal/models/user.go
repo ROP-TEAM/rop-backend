@@ -10,6 +10,6 @@ type User struct {
 	IsValidated bool    `gorm:"default:false" json:"is_validated"`
 	Tel         string  `gorm:"type:varchar(10)" json:"tel"`
 	TelOTP      string  `gorm:"size:6" json:"tel_otp"`
-	CompanyID   *uint   `gorm:"column:user_company_fk;index;type:uuid"`
+	CompanyID   *uint   `gorm:"column:user_company_fk;index;"`
 	Company     Company `gorm:"foreignKey:CompanyID"`
 }

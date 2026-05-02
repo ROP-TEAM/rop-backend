@@ -3,6 +3,7 @@ package handlers
 import (
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/models"
+	"log"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -37,6 +38,8 @@ func (h *UserHandler) Onboarding(c fiber.Ctx) error {
 	}
 
 	userID := claims.UserID
+
+	log.Printf("user id pass claims jaa: %s", userID)
 
 	err := h.service.Onboarding(userID, body)
 	if err != nil {

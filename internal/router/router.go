@@ -33,21 +33,19 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	userService := services.NewUserService(db)
 	userHandler := handlers.NewUserHandler(userService)
-	api := app.Group("/api")
-
-	api.Post("/auth/google", authHandler.GoogleLogin)
 
 	otpService := services.NewOTPService(db, cfg)
 	otpHandler := handlers.NewOTPHandler(otpService)
-	api.Post("/auth/otp", otpHandler.RequestOTP)
-	api.Post("/auth/otp/verify", otpHandler.VerifyOTP)
+
+	api := app.Group("/api")
+	api.Post("/auth/google", authHandler.GoogleLogin)
+
+	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)
+
+	api.Post("/onboarding/otp", middleware.Protected(cfg), otpHandler.RequestOTP)
+	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), otpHandler.VerifyOTP)
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
-
-	api.Post("/onboarding",
-		middleware.Protected(cfg),
-		userHandler.Onboarding,
-	)
 
 	return app
 }

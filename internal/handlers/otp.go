@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
+	"log"
+
 	"context"
 	"errors"
 	"regexp"
@@ -40,6 +43,16 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid request body"))
 	}
 
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		log.Printf("cannot claim")
+
+		return c.Status(401).JSON(Error("unauthorized"))
+	}
+
+	userID := claims.UserID
+	log.Printf("crailm for user id via request api %d", userID)
+
 	if body.Tel == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("tel field is required"))
 	}
@@ -57,7 +70,7 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.service.RequestOTP(ctx, &body)
+	res, err := h.service.RequestOTP(ctx, userID, &body)
 	if err != nil {
 
 		if errors.Is(err, services.ErrUsedPhoneNumber) {

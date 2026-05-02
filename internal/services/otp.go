@@ -116,7 +116,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 	}
 }
 
-func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*RequestOTPResponse, error) {
+func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *RequestOTPRequest) (*RequestOTPResponse, error) {
 	user, err := s.userRepository.FindByPhone(ctx, req.Tel)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
@@ -159,7 +159,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, req *RequestOTPRequest) (*R
 		Tel:    req.Tel,
 		Token:  apiRes.Token,
 		RefNo:  apiRes.RefNo,
-		UserId: req.UserId,
+		UserId: userID,
 	})
 	if err != nil {
 		log.Printf("OTPRequest:  database saving otp request: %v", err)

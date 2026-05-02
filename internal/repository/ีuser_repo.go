@@ -31,7 +31,7 @@ func (r *UserRepository) FindByGoogleID(googleID string) (*models.User, error) {
 }
 
 func (r *UserRepository) Create(user *models.User) error {
-	return r.db.Create(user).Error
+	return r.db.Create(&user).Error
 }
 
 func (r *UserRepository) FindByPhone(ctx context.Context, tel string) (*models.User, error) {

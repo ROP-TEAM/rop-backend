@@ -39,7 +39,7 @@ func (s *UserService) Onboarding(userID uint, payload models.OnboardingPayload) 
 		user.CompanyID = &company.ID
 		user.IsValidated = false
 
-		if err := tx.Save(user).Error; err != nil {
+		if err := tx.Save(&user).Error; err != nil {
 			return err
 		}
 
