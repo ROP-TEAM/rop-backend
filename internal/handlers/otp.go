@@ -4,7 +4,6 @@ import (
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
-	"log"
 
 	"context"
 	"errors"
@@ -45,13 +44,10 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 
 	claims := middleware.GetUser(c)
 	if claims == nil {
-		log.Printf("cannot claim")
-
 		return c.Status(401).JSON(Error("unauthorized"))
 	}
 
 	userID := claims.UserID
-	log.Printf("crailm for user id via request api %d", userID)
 
 	if body.Tel == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(Fail("tel field is required"))
