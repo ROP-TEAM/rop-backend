@@ -21,30 +21,14 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type APIResponse struct {
-	Status  string      `json:"status" example:"success"` //suc/fail/err
-	Message string      `json:"message" example:"OTP sent successfully"`
-	Data    interface{} `json:"data,omitempty"`
+type OTPErrorInfo struct {
+	Code   string `json:"code"`
+	Detail string `json:"detail,omitempty"`
 }
 
-func Success(message string, data interface{}) APIResponse {
-	return APIResponse{
-		Status:  "success",
-		Message: message,
-		Data:    data,
-	}
-}
-
-func Fail(message string) APIResponse {
-	return APIResponse{
-		Status:  "fail",
-		Message: message,
-	}
-}
-
-func Error(message string) APIResponse {
-	return APIResponse{
-		Status:  "error",
-		Message: message,
-	}
+type OTPResponse struct {
+	Success bool          `json:"success"`
+	Message string        `json:"message"`
+	Data    interface{}   `json:"data,omitempty"`
+	Error   *OTPErrorInfo `json:"error,omitempty"`
 }

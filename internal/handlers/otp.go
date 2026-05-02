@@ -12,9 +12,27 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
 )
 
 var phoneRegex = regexp.MustCompile(`^\d{10}$`)
+
+func respondSuccess(c fiber.Ctx, status int, message string, data interface{}) error {
+	return c.Status(status).JSON(OTPResponse{
+		Success: true,
+		Message: message,
+		Data:    data,
+	})
+}
+
+func respondError(c fiber.Ctx, status int, message string, code string, data interface{}) error {
+	return c.Status(status).JSON(OTPResponse{
+		Success: false,
+		Message: message,
+		Data:    data,
+		Error:   &OTPErrorInfo{Code: code},
+	})
+}
 
 type OTPHandler struct {
 	service *services.OTPService
@@ -40,22 +58,22 @@ func NewOTPHandler(service *services.OTPService) *OTPHandler {
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 	var body models.RequestOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid request body"))
+		return respondError(c, fiber.StatusBadRequest, "invalid request body", "BAD_REQUEST", nil)
 	}
 
 	claims := middleware.GetUser(c)
 	if claims == nil {
-		return c.Status(401).JSON(Error("unauthorized"))
+		return respondError(c, fiber.StatusUnauthorized, "user unauthorized", "BAD_REQUEST", nil)
 	}
 
 	userID := claims.UserID
 
 	if body.Tel == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("tel field is required"))
+		return respondError(c, fiber.StatusBadRequest, "tel field is required", "BAD_REQUEST", nil)
 	}
 
 	if !phoneRegex.MatchString(body.Tel) {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid tel format"))
+		return respondError(c, fiber.StatusBadRequest, "invalid tel format", "BAD_REQUEST", nil)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -63,27 +81,25 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 
 	res, err := h.service.RequestOTP(ctx, userID, &body)
 	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrUsedPhoneNumber):
+			return respondError(c, fiber.StatusConflict, "tel already in used", "OTP_LIMITED", nil)
 
-		if errors.Is(err, services.ErrUsedPhoneNumber) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("tel already in use"))
+		case errors.Is(err, services.ErrPhoneNumberHasRecentRequest):
+			return respondError(c, fiber.StatusConflict, "phone has recently request for otp", "OTP_LIMITED", nil)
+
+		case errors.Is(err, services.ErrUserReachMaxRequest):
+			return respondError(c, fiber.StatusConflict, "user reach max request for OTP in the period", "OTP_LIMITED", nil)
+
+		case errors.Is(err, services.ErrOTPProvider):
+			return respondError(c, fiber.StatusBadGateway, "OTP service unavailable", "OTP_UNAVAILABLE", nil)
+
+		default:
+			return respondError(c, fiber.StatusInternalServerError, "internal server error", "INTERNAL_ERROR", nil)
 		}
-
-		if errors.Is(err, services.ErrPhoneNumberHasRecentRequest) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("tel recently request for OTP"))
-		}
-
-		if errors.Is(err, services.ErrUserReachMaxRequest) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("user reach max request for OTP in the period"))
-		}
-
-		if errors.Is(err, services.ErrOTPProvider) {
-			return c.Status(fiber.StatusBadGateway).JSON(Fail("OTP service unavailable"))
-		}
-
-		return c.Status(fiber.StatusInternalServerError).JSON(Error("internal server error"))
 	}
 
-	return c.JSON(Success("", res))
+	return respondSuccess(c, fiber.StatusOK, "successful request for otp", res)
 }
 
 // VerifyOTP godoc
@@ -103,23 +119,23 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 	var body models.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(Error("invalid request body"))
+		return respondError(c, fiber.StatusBadRequest, "invalid request body", "BAD_REQUEST", nil)
 	}
 
 	if body.Tel == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("tel field is required"))
+		return respondError(c, fiber.StatusBadRequest, "tel field is required", "BAD_REQUEST", nil)
 	}
 
 	if !phoneRegex.MatchString(body.Tel) {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("invalid tel format"))
+		return respondError(c, fiber.StatusBadRequest, "invalid tel format", "BAD_REQUEST", nil)
 	}
 
 	if body.Pin == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("Pin field is required"))
+		return respondError(c, fiber.StatusBadRequest, "pin field is required", "BAD_REQUEST", nil)
 	}
 
 	if body.RefNo == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(Fail("refNo field is required"))
+		return respondError(c, fiber.StatusBadRequest, "refNo field is required", "BAD_REQUEST", nil)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -127,23 +143,25 @@ func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 
 	res, err := h.service.VerifyOTP(ctx, &body)
 	if err != nil {
-		if errors.Is(err, repository.ErrReachMaxAttempt) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("number of attempt already reach the limit"))
-		}
+		switch {
+		case errors.Is(err, repository.ErrReachMaxAttempt):
+			return respondError(c, fiber.StatusConflict, "number of attempt already reach the limit", "OTP_LIMITED", nil)
 
-		if errors.Is(err, repository.ErrExpiredOTPRequest) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("OTP already expire for verification"))
-		}
+		case errors.Is(err, repository.ErrExpiredOTPRequest):
+			return respondError(c, fiber.StatusConflict, "OTP already expire for verification", "OTP_LIMITED", nil)
 
-		if errors.Is(err, repository.ErrUsedOTPRequest) {
-			return c.Status(fiber.StatusConflict).JSON(Fail("OTP verification already done"))
-		}
+		case errors.Is(err, repository.ErrUsedOTPRequest):
+			return respondError(c, fiber.StatusConflict, "OTP verification already done", "OTP_LIMITED", nil)
 
-		if errors.Is(err, services.ErrInvalidOTP) {
-			return c.Status(fiber.StatusUnauthorized).JSON(Fail("invalid OTP pin"))
-		}
+		case errors.Is(err, services.ErrInvalidOTP):
+			return respondError(c, fiber.StatusUnauthorized, "invalid OTP pin", "OTP_LIMITED", nil)
 
-		return c.Status(fiber.StatusInternalServerError).JSON(Error("internal server error"))
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return respondError(c, fiber.StatusUnauthorized, "record according to tel and refNo not found", "BAD_REQUEST", nil)
+
+		default:
+			return respondError(c, fiber.StatusInternalServerError, "internal server error", "INTERNAL_ERROR", nil)
+		}
 	}
-	return c.JSON(Success("", res))
+	return respondSuccess(c, fiber.StatusOK, "OTP verified successfully", res)
 }
