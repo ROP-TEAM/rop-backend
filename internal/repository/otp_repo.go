@@ -9,6 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	MaxRequestByUser        = 5
+	UserRequestWindowPeriod = 1 * time.Hour
+)
+
 var (
 	ErrReachMaxAttempt   = errors.New("verification reach the maximum attempt")
 	ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
@@ -95,7 +100,7 @@ func (r *OTPRepository) IncrOTPRequestAttempt(ctx context.Context, tel string, r
 	return nil
 }
 
-func (r *OTPRepository) HasRecentRequest(ctx context.Context, tel string) (bool, error) {
+func (r *OTPRepository) HasRecentRequestByTel(ctx context.Context, tel string) (bool, error) {
 	var count int64
 	threshold := time.Now().Add(-2 * time.Minute)
 
@@ -109,6 +114,22 @@ func (r *OTPRepository) HasRecentRequest(ctx context.Context, tel string) (bool,
 	}
 
 	return count > 0, nil
+}
+
+func (r *OTPRepository) IsUserExceedRequestLimit(ctx context.Context, userID uint) (bool, error) {
+	var count int64
+	threshold := time.Now().Add(-UserRequestWindowPeriod)
+
+	err := r.db.WithContext(ctx).
+		Model(&models.OtpRequest{}).
+		Where("user_id = ? AND created_at > ?", userID, threshold).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count >= MaxRequestByUser, nil
 }
 
 func (r *OTPRepository) MarkOTPRequestUsed(ctx context.Context, tel string, ref string) (uint, error) {

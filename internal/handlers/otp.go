@@ -72,6 +72,10 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 			return c.Status(fiber.StatusConflict).JSON(Fail("tel recently request for OTP"))
 		}
 
+		if errors.Is(err, services.ErrUserReachMaxRequest) {
+			return c.Status(fiber.StatusConflict).JSON(Fail("user reach max request for OTP in the period"))
+		}
+
 		if errors.Is(err, services.ErrOTPProvider) {
 			return c.Status(fiber.StatusBadGateway).JSON(Fail("OTP service unavailable"))
 		}

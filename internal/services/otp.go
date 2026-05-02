@@ -25,6 +25,7 @@ var (
 	ErrUsedPhoneNumber             = errors.New("phone number already in use")
 	ErrOTPProvider                 = errors.New("otp provider error")
 	ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
+	ErrUserReachMaxRequest         = errors.New("user reach max request")
 	ErrInvalidOTP                  = errors.New("invalid otp pin")
 )
 
@@ -111,7 +112,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 		return nil, ErrUsedPhoneNumber
 	}
 
-	hasRecentRequest, err := s.otpRepository.HasRecentRequest(ctx, req.Tel)
+	hasRecentRequest, err := s.otpRepository.HasRecentRequestByTel(ctx, req.Tel)
 	if err != nil {
 		log.Printf("OTPRequest: database error: %v", err)
 		return nil, err
@@ -119,6 +120,16 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 	if hasRecentRequest {
 		log.Printf("OTPRequest: phone has recent request : %v", req.Tel)
 		return nil, ErrPhoneNumberHasRecentRequest
+	}
+
+	isExceed, err := s.otpRepository.IsUserExceedRequestLimit(ctx, userID)
+	if err != nil {
+		log.Printf("OTPRequest: database error: %v", err)
+		return nil, err
+	}
+	if isExceed {
+		log.Printf("OTPRequest: user reach max request for OTP in the period: %v", userID)
+		return nil, ErrUserReachMaxRequest
 	}
 
 	// apiRes, err := s.callThaiBulkRequestOTP(ctx, req.Tel)
