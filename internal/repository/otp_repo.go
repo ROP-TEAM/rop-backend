@@ -12,6 +12,9 @@ import (
 const (
 	MaxRequestByUser        = 5
 	UserRequestWindowPeriod = 1 * time.Hour
+	TelRequestWindowPeriod  = 2 * time.Minute
+	MaxVerifyAttempts       = 5
+	OTPLife                 = 5 * time.Minute
 )
 
 var (
@@ -45,8 +48,8 @@ func (r *OTPRepository) CreateOTPRequest(ctx context.Context, req *CreateOTPRequ
 		Token:       req.Token,
 		UserID:      req.UserId,
 		RefNo:       req.RefNo,
-		MaxAttempts: 5,
-		ExpiresAt:   time.Now().Add(5 * time.Minute),
+		MaxAttempts: MaxVerifyAttempts,
+		ExpiresAt:   time.Now().Add(OTPLife),
 		IsUsed:      false,
 		Attempts:    0,
 	}
@@ -102,7 +105,7 @@ func (r *OTPRepository) IncrOTPRequestAttempt(ctx context.Context, tel string, r
 
 func (r *OTPRepository) HasRecentRequestByTel(ctx context.Context, tel string) (bool, error) {
 	var count int64
-	threshold := time.Now().Add(-2 * time.Minute)
+	threshold := time.Now().Add(-TelRequestWindowPeriod)
 
 	err := r.db.WithContext(ctx).
 		Model(&models.OtpRequest{}).
