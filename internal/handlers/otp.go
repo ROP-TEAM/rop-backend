@@ -15,7 +15,10 @@ import (
 	"gorm.io/gorm"
 )
 
-var phoneRegex = regexp.MustCompile(`^\d{10}$`)
+var (
+	phoneRegex       = regexp.MustCompile(`^\d{10}$`)
+	recentRequestErr *services.ErrPhoneNumberHasRecentRequest
+)
 
 func respondSuccess(c fiber.Ctx, status int, message string, data interface{}) error {
 	return c.Status(status).JSON(OTPResponse{
@@ -87,8 +90,8 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 		case errors.Is(err, services.ErrUsedPhoneNumber):
 			return respondError(c, fiber.StatusConflict, "tel already in used", "OTP_LIMITED", nil)
 
-		case errors.Is(err, services.ErrPhoneNumberHasRecentRequest):
-			return respondError(c, fiber.StatusConflict, "phone has recently request for otp", "OTP_LIMITED", nil)
+		case errors.As(err, &recentRequestErr):
+			return respondError(c, fiber.StatusConflict, "phone has recently request for otp", "OTP_LIMITED", map[string]any{"retry_after": recentRequestErr.RetryAfter})
 
 		case errors.Is(err, services.ErrUserReachMaxRequest):
 			return respondError(c, fiber.StatusConflict, "user reach max request for OTP in the period", "OTP_LIMITED", nil)

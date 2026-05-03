@@ -10,11 +10,8 @@ import (
 )
 
 const (
-	MaxRequestByUser        = 5
-	UserRequestWindowPeriod = 1 * time.Hour
-	TelRequestWindowPeriod  = 2 * time.Minute
-	MaxVerifyAttempts       = 5
-	OTPLife                 = 5 * time.Minute
+	MaxVerifyAttempts = 5
+	OTPLifeTime       = 5 * time.Minute
 )
 
 var (
@@ -42,23 +39,12 @@ func (r *OTPRepository) WithTx(tx *gorm.DB) *OTPRepository {
 	return &OTPRepository{db: tx}
 }
 
-func (r *OTPRepository) CreateOTPRequest(ctx context.Context, req *CreateOTPRequest) error {
-	otp := models.OtpRequest{
-		Tel:         req.Tel,
-		Token:       req.Token,
-		UserID:      req.UserId,
-		RefNo:       req.RefNo,
-		MaxAttempts: MaxVerifyAttempts,
-		ExpiresAt:   time.Now().Add(OTPLife),
-		IsUsed:      false,
-		Attempts:    0,
+func (r *OTPRepository) Create(ctx context.Context, req *models.OtpRequest) (*models.OtpRequest, error) {
+	err := r.db.WithContext(ctx).Create(&req).Error
+	if err != nil {
+		return nil, err
 	}
-
-	if err := r.db.WithContext(ctx).Create(&otp).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return req, nil
 }
 
 func (r *OTPRepository) IsOTPRequestMutable(ctx context.Context, tel string, ref string) (string, error) {
@@ -103,36 +89,26 @@ func (r *OTPRepository) IncrOTPRequestAttempt(ctx context.Context, tel string, r
 	return nil
 }
 
-func (r *OTPRepository) HasRecentRequestByTel(ctx context.Context, tel string) (bool, error) {
-	var count int64
-	threshold := time.Now().Add(-TelRequestWindowPeriod)
-
+func (r *OTPRepository) FindLatestByTelSince(ctx context.Context, tel string, since time.Time) (*models.OtpRequest, error) {
+	var otp models.OtpRequest
 	err := r.db.WithContext(ctx).
-		Model(&models.OtpRequest{}).
-		Where("tel = ? AND created_at > ?", tel, threshold).
-		Count(&count).Error
+		Where("tel = ? AND created_at > ?", tel, since).
+		Order("created_at DESC").
+		First(&otp).Error
 
-	if err != nil {
-		return false, err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
 	}
-
-	return count > 0, nil
+	return &otp, err
 }
 
-func (r *OTPRepository) IsUserExceedRequestLimit(ctx context.Context, userID uint) (bool, error) {
+func (r *OTPRepository) CountByUserIDSince(ctx context.Context, userID uint, since time.Time) (int64, error) {
 	var count int64
-	threshold := time.Now().Add(-UserRequestWindowPeriod)
-
 	err := r.db.WithContext(ctx).
 		Model(&models.OtpRequest{}).
-		Where("user_id = ? AND created_at > ?", userID, threshold).
+		Where("user_id = ? AND created_at > ?", userID, since).
 		Count(&count).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	return count >= MaxRequestByUser, nil
+	return count, err
 }
 
 func (r *OTPRepository) MarkOTPRequestUsed(ctx context.Context, tel string, ref string) (uint, error) {

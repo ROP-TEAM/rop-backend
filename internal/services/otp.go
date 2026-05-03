@@ -22,16 +22,28 @@ import (
 )
 
 var (
-	ErrUsedPhoneNumber             = errors.New("phone number already in use")
-	ErrOTPProvider                 = errors.New("otp provider error")
-	ErrPhoneNumberHasRecentRequest = errors.New("phone number has recent request")
-	ErrUserReachMaxRequest         = errors.New("user reach max request")
-	ErrInvalidOTP                  = errors.New("invalid otp pin")
+	ErrUsedPhoneNumber     = errors.New("phone number already in use")
+	ErrOTPProvider         = errors.New("otp provider error")
+	ErrUserReachMaxRequest = errors.New("user reach max request")
+	ErrInvalidOTP          = errors.New("invalid otp pin")
 )
 
 const (
-	StatusSuccess = "success"
+	StatusSuccess           = "success"
+	MaxRequestByUserPeriod  = 5
+	UserRequestWindowPeriod = 1 * time.Hour
+	TelRequestWindowPeriod  = 2 * time.Minute
+	MaxVerifyAttempts       = 5
+	OTPLifeTime             = 5 * time.Minute
 )
+
+type ErrPhoneNumberHasRecentRequest struct {
+	RetryAfter time.Time
+}
+
+func (e *ErrPhoneNumberHasRecentRequest) Error() string {
+	return "phone number has recent request"
+}
 
 type requestThaiBulkSuccessResponse struct {
 	Status string `json:"status"`
@@ -106,28 +118,28 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
 		return nil, err
 	}
-
 	if user != nil && user.IsValidated {
 		log.Printf("OTPRequest: database bad requests, phone already use: %v", req.Tel)
 		return nil, ErrUsedPhoneNumber
 	}
 
-	hasRecentRequest, err := s.otpRepository.HasRecentRequestByTel(ctx, req.Tel)
+	recentRequest, err := s.otpRepository.FindLatestByTelSince(ctx, req.Tel, time.Now().Add(-TelRequestWindowPeriod))
 	if err != nil {
 		log.Printf("OTPRequest: database error: %v", err)
 		return nil, err
 	}
-	if hasRecentRequest {
-		log.Printf("OTPRequest: phone has recent request : %v", req.Tel)
-		return nil, ErrPhoneNumberHasRecentRequest
+	if recentRequest != nil {
+		return nil, &ErrPhoneNumberHasRecentRequest{
+			RetryAfter: recentRequest.CreatedAt.Add(TelRequestWindowPeriod),
+		}
 	}
 
-	isExceed, err := s.otpRepository.IsUserExceedRequestLimit(ctx, userID)
+	isExceed, err := s.otpRepository.CountByUserIDSince(ctx, userID, time.Now().Add(-UserRequestWindowPeriod))
 	if err != nil {
 		log.Printf("OTPRequest: database error: %v", err)
 		return nil, err
 	}
-	if isExceed {
+	if isExceed > MaxRequestByUserPeriod {
 		log.Printf("OTPRequest: user reach max request for OTP in the period: %v", userID)
 		return nil, ErrUserReachMaxRequest
 	}
@@ -149,18 +161,30 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 		return &models.RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
 	}
 
-	err = s.otpRepository.CreateOTPRequest(ctx, &repository.CreateOTPRequest{
-		Tel:    req.Tel,
-		Token:  apiRes.Token,
-		RefNo:  apiRes.RefNo,
-		UserId: userID,
-	})
+	otp := &models.OtpRequest{
+		Tel:         req.Tel,
+		Token:       apiRes.Token,
+		RefNo:       apiRes.RefNo,
+		UserID:      userID,
+		MaxAttempts: MaxVerifyAttempts,
+		ExpiresAt:   time.Now().Add(OTPLifeTime),
+		IsUsed:      false,
+		Attempts:    0,
+	}
+	otp, err = s.otpRepository.Create(ctx, otp)
 	if err != nil {
 		log.Printf("OTPRequest:  database saving otp request: %v", err)
 		return nil, err
 	}
 
-	return &models.RequestOTPResponse{RefNo: apiRes.RefNo, Status: apiRes.Status}, nil
+	return &models.RequestOTPResponse{
+		RefNo:       otp.RefNo,
+		Status:      apiRes.Status,
+		Tel:         otp.Tel,
+		MaxAttempts: otp.MaxAttempts,
+		Attempts:    otp.Attempts,
+		ExpiresAt:   otp.ExpiresAt,
+	}, nil
 }
 
 func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*requestThaiBulkSuccessResponse, error) {

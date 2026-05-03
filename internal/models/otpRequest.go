@@ -23,8 +23,12 @@ type RequestOTPRequest struct {
 }
 
 type RequestOTPResponse struct {
-	RefNo  string `json:"refNo" example:"ABC123"`
-	Status string `json:"status" example:"success"`
+	RefNo       string    `json:"refNo" example:"ABC123"`
+	Status      string    `json:"status" example:"success"`
+	Tel         string    `json:"tel" example:"0999999999"`
+	MaxAttempts int       `json:"max_attempts" example:"5"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	Attempts    int       `json:"attempts" example:"0"`
 }
 
 type VerifyOTPRequest struct {
