@@ -24,11 +24,11 @@ func NewAuthService(db *gorm.DB, cfg *config.Config) *AuthService {
 	}
 }
 
-func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) {
+func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, bool, error) {
 	payload, err := idtoken.Validate(context.Background(), idToken, s.cfg.GOOGLE_CLIENT_ID)
-	// payload, err := idtoken.Validate(context.Background(), idToken, "") --test
+	// payload, err := idtoken.Validate(context.Background(), idToken, "")
 	if err != nil {
-		return "", nil, errors.New("invalid google token")
+		return "", nil, false, errors.New("invalid google token")
 	}
 
 	email, _ := payload.Claims["email"].(string)
@@ -36,32 +36,35 @@ func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) 
 	googleID := payload.Subject
 
 	if verified, ok := payload.Claims["email_verified"].(bool); !ok || !verified {
-		return "", nil, errors.New("email not verified")
+		return "", nil, false, errors.New("email not verified")
 	}
 
 	user, err := s.userRepository.FindByGoogleID(googleID)
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		newUser := models.User{
-			Name:     name,
-			Email:    email,
-			GoogleID: googleID,
+			Name:        name,
+			Email:       email,
+			GoogleID:    googleID,
+			IsValidated: false,
 		}
 
 		err = s.userRepository.Create(&newUser)
 		if err != nil {
-			return "", nil, err
+			return "", nil, false, err
 		}
 
 		user = &newUser
 	} else if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
+
+	needOnboarding := user.CompanyID == nil
 
 	token, err := s.makeToken(user.ID, user.Email)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
-	return token, user, nil
+	return token, user, needOnboarding, nil
 }
