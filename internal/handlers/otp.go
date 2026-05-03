@@ -3,7 +3,6 @@ package handlers
 import (
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/models"
-	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
 
 	"context"
@@ -148,13 +147,13 @@ func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 	res, err := h.service.VerifyOTP(ctx, &body)
 	if err != nil {
 		switch {
-		case errors.Is(err, repository.ErrReachMaxAttempt):
+		case errors.Is(err, services.ErrReachMaxAttempt):
 			return respondError(c, fiber.StatusConflict, "number of attempt already reach the limit", "OTP_LIMITED", nil)
 
-		case errors.Is(err, repository.ErrExpiredOTPRequest):
+		case errors.Is(err, services.ErrExpiredOTPRequest):
 			return respondError(c, fiber.StatusConflict, "OTP already expire for verification", "OTP_LIMITED", nil)
 
-		case errors.Is(err, repository.ErrUsedOTPRequest):
+		case errors.Is(err, services.ErrUsedOTPRequest):
 			return respondError(c, fiber.StatusConflict, "OTP verification already done", "OTP_LIMITED", nil)
 
 		case errors.Is(err, services.ErrInvalidOTP):

@@ -9,26 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-const (
-	MaxVerifyAttempts = 5
-	OTPLifeTime       = 5 * time.Minute
-)
-
 var (
-	ErrReachMaxAttempt   = errors.New("verification reach the maximum attempt")
-	ErrExpiredOTPRequest = errors.New("this otpRequest already expired")
-	ErrUsedOTPRequest    = errors.New("tel already be verified by otp pin")
+	ErrNoRowsAffected = errors.New("no rows affected")
 )
 
 type OTPRepository struct {
 	db *gorm.DB
-}
-
-type CreateOTPRequest struct {
-	Tel    string
-	Token  string
-	UserId uint
-	RefNo  string
 }
 
 func NewOTPRepository(db *gorm.DB) *OTPRepository {
@@ -47,43 +33,27 @@ func (r *OTPRepository) Create(ctx context.Context, req *models.OtpRequest) (*mo
 	return req, nil
 }
 
-func (r *OTPRepository) IsOTPRequestMutable(ctx context.Context, tel string, ref string) (string, error) {
+func (r *OTPRepository) FindByTelAndRef(ctx context.Context, tel string, ref string) (*models.OtpRequest, error) {
 	var otp models.OtpRequest
-
 	err := r.db.WithContext(ctx).
 		Where("tel = ? AND ref_no = ?", tel, ref).
 		Order("created_at DESC").
 		First(&otp).Error
 
-	if err != nil {
-		return "", err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
 	}
-
-	isExpired := time.Now().After(otp.ExpiresAt)
-	isExhausted := otp.Attempts >= otp.MaxAttempts
-	if otp.IsUsed {
-		return "", ErrUsedOTPRequest
-	} else if isExpired {
-		return "", ErrExpiredOTPRequest
-	} else if isExhausted {
-		return "", ErrReachMaxAttempt
-	}
-
-	return otp.Token, nil
+	return &otp, err
 }
 
-func (r *OTPRepository) IncrOTPRequestAttempt(ctx context.Context, tel string, ref string) error {
+func (r *OTPRepository) IncrAttemptByID(ctx context.Context, id uint) error {
 	result := r.db.WithContext(ctx).
 		Model(&models.OtpRequest{}).
-		Where("tel = ? AND ref_no = ? AND is_used = ?", tel, ref, false).
+		Where("id = ?", id).
 		Update("attempts", gorm.Expr("attempts + ?", 1))
 
 	if result.Error != nil {
 		return result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 
 	return nil
@@ -111,23 +81,19 @@ func (r *OTPRepository) CountByUserIDSince(ctx context.Context, userID uint, sin
 	return count, err
 }
 
-func (r *OTPRepository) MarkOTPRequestUsed(ctx context.Context, tel string, ref string) (uint, error) {
-	var otp models.OtpRequest
+func (r *OTPRepository) MarkUsedByID(ctx context.Context, id uint) error {
+	result := r.db.WithContext(ctx).
+		Model(&models.OtpRequest{}).
+		Where("id = ? AND is_used = false AND expires_at > ? AND attempts < max_attempts", id, time.Now()).
+		Update("is_used", true)
 
-	if err := r.db.WithContext(ctx).
-		Where("tel = ? AND ref_no = ? AND is_used = false AND expires_at > ? AND attempts < max_attempts", tel, ref, time.Now()).
-		First(&otp).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, ErrExpiredOTPRequest
-		}
-		return 0, err
+	if result.Error != nil {
+		return result.Error
 	}
 
-	if err := r.db.WithContext(ctx).
-		Model(&otp).
-		Update("is_used", true).Error; err != nil {
-		return 0, err
+	if result.RowsAffected == 0 {
+		return ErrNoRowsAffected
 	}
 
-	return otp.UserID, nil
+	return nil
 }

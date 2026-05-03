@@ -3,6 +3,7 @@ package repository
 import (
 	"ROP_Backend/internal/models"
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -38,6 +39,9 @@ func (r *UserRepository) FindByPhone(ctx context.Context, tel string) (*models.U
 	var user models.User
 	err := r.db.WithContext(ctx).Where("tel = ?", tel).First(&user).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &user, nil

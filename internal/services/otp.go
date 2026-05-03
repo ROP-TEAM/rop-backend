@@ -26,6 +26,10 @@ var (
 	ErrOTPProvider         = errors.New("otp provider error")
 	ErrUserReachMaxRequest = errors.New("user reach max request")
 	ErrInvalidOTP          = errors.New("invalid otp pin")
+	ErrOTPNotFound         = errors.New("there is no OTP request for this user and tel")
+	ErrReachMaxAttempt     = errors.New("verification reach the maximum attempt")
+	ErrExpiredOTPRequest   = errors.New("this otpRequest already expired")
+	ErrUsedOTPRequest      = errors.New("tel already be verified by otp pin")
 )
 
 const (
@@ -114,7 +118,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 
 func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.RequestOTPRequest) (*models.RequestOTPResponse, error) {
 	user, err := s.userRepository.FindByPhone(ctx, req.Tel)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
 		return nil, err
 	}
@@ -139,7 +143,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 		log.Printf("OTPRequest: database error: %v", err)
 		return nil, err
 	}
-	if isExceed > MaxRequestByUserPeriod {
+	if isExceed >= MaxRequestByUserPeriod {
 		log.Printf("OTPRequest: user reach max request for OTP in the period: %v", userID)
 		return nil, ErrUserReachMaxRequest
 	}
@@ -239,32 +243,35 @@ func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*r
 
 func (s *OTPService) VerifyOTP(ctx context.Context, req *models.VerifyOTPRequest) (*models.VerifyOTPResponse, error) {
 
-	token, err := s.otpRepository.IsOTPRequestMutable(ctx, req.Tel, req.RefNo)
+	otp, err := s.otpRepository.FindByTelAndRef(ctx, req.Tel, req.RefNo)
 	if err != nil {
 		log.Printf("OTPVerify: database pre-checkck: %v", err)
 		return nil, err
 	}
-
-	if token == "" {
+	if otp == nil {
 		log.Printf("OTPVerify: empty token retrieved for tel=%s ref=%s", req.Tel, req.RefNo)
-		return nil, fmt.Errorf("invalid OTP token format")
+		return nil, ErrOTPNotFound
+	}
+	switch {
+	case otp.IsUsed:
+		return nil, ErrUsedOTPRequest
+	case time.Now().After(otp.ExpiresAt):
+		return nil, ErrExpiredOTPRequest
+	case otp.Attempts >= otp.MaxAttempts:
+		return nil, ErrReachMaxAttempt
 	}
 
 	// apiRes, err := s.callThaiBulkVerifyAPI(ctx, token, req.Pin)
 
 	// for testing
 
-	apiRes, err := s.callMockThaiBulkVerifyOTP(ctx, token, req.Pin)
-
+	apiRes, err := s.callMockThaiBulkVerifyOTP(ctx, otp.Token, req.Pin)
 	if err != nil {
-		if incrErr := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); incrErr != nil {
-			log.Printf("OTPVerify: failed to increment attempt: %v", incrErr)
-		}
 		return nil, err
 	}
 
 	if apiRes.Status != StatusSuccess {
-		if err := s.otpRepository.IncrOTPRequestAttempt(ctx, req.Tel, req.RefNo); err != nil {
+		if err := s.otpRepository.IncrAttemptByID(ctx, otp.ID); err != nil {
 			log.Printf("OTPVerify: error when increase attempt after enter invalid pin: %v", err)
 			return nil, err
 		}
@@ -273,13 +280,16 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *models.VerifyOTPRequest
 
 	// success
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		userID, err := s.otpRepository.WithTx(tx).MarkOTPRequestUsed(ctx, req.Tel, req.RefNo)
+		err := s.otpRepository.WithTx(tx).MarkUsedByID(ctx, otp.ID)
 		if err != nil {
+			if errors.Is(err, repository.ErrNoRowsAffected) {
+				return ErrOTPNotFound
+			}
 			log.Printf("OTPVerify: failed to mark OTP as used: %v", err)
-			return fmt.Errorf("marking OTP as used: %w", err)
+			return err
 		}
 
-		if err := s.userRepository.WithTx(tx).CompleteUserValidation(ctx, int(userID), req.Tel); err != nil {
+		if err := s.userRepository.WithTx(tx).CompleteUserValidation(ctx, int(otp.UserID), req.Tel); err != nil {
 			log.Printf("OTPVerify: failed to complete user validation: %v", err)
 			return fmt.Errorf("completing user validation: %w", err)
 		}
