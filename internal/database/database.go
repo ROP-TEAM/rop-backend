@@ -37,28 +37,14 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	db.AutoMigrate(
 		&models.Company{},
 		&models.User{},
-		&models.DistributionPoint{},
-		&models.Car{},
+		&models.Vehicle{},
 		&models.TagSkill{},
-		&models.CarTagSkill{},
+		&models.VehicleTagSkill{},
 		&models.Order{},
 		&models.OrderTagSkill{},
-		&models.Client{},
 		&models.Plan{},
 		&models.Route{},
 		&models.Route{})
-
-	defaultSkills := []models.TagSkill{
-		{Name: "อาหารสด"},
-		{Name: "อาหารแช่แข็ง"},
-		{Name: "Fragile (สินค้าแตกหักง่าย)"},
-		{Name: "สินค้าขนาดใหญ่"},
-		{Name: "สารเคมี/วัตถุอันตราย"},
-	}
-
-	for _, skill := range defaultSkills {
-		db.Where(models.TagSkill{Name: skill.Name}).FirstOrCreate(&skill)
-	}
 
 	return db, nil
 }

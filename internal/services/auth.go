@@ -33,7 +33,6 @@ func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) 
 
 	email, _ := payload.Claims["email"].(string)
 	name, _ := payload.Claims["name"].(string)
-	picture, _ := payload.Claims["picture"].(string)
 	googleID := payload.Subject
 
 	if verified, ok := payload.Claims["email_verified"].(bool); !ok || !verified {
@@ -46,7 +45,6 @@ func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, error) 
 		newUser := models.User{
 			Name:     name,
 			Email:    email,
-			Pictures: picture,
 			GoogleID: googleID,
 		}
 
