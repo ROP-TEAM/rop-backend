@@ -24,3 +24,15 @@ type RequestOTPResponse struct {
 type VerifyOTPResponse struct {
 	Status string `json:"status" example:"success"`
 }
+
+type OTPErrorInfo struct {
+	Code   string `json:"code"`
+	Detail string `json:"detail,omitempty"`
+}
+
+type OTPResponse struct {
+	Success bool          `json:"success"`
+	Message string        `json:"message"`
+	Data    interface{}   `json:"data,omitempty"`
+	Error   *OTPErrorInfo `json:"error,omitempty"`
+}

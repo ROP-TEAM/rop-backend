@@ -18,7 +18,7 @@ var (
 )
 
 func respondSuccess(c fiber.Ctx, status int, message string, data interface{}) error {
-	return c.Status(status).JSON(OTPResponse{
+	return c.Status(status).JSON(dto.OTPResponse{
 		Success: true,
 		Message: message,
 		Data:    data,
@@ -26,11 +26,11 @@ func respondSuccess(c fiber.Ctx, status int, message string, data interface{}) e
 }
 
 func respondError(c fiber.Ctx, status int, message string, code string, data interface{}) error {
-	return c.Status(status).JSON(OTPResponse{
+	return c.Status(status).JSON(dto.OTPResponse{
 		Success: false,
 		Message: message,
 		Data:    data,
-		Error:   &OTPErrorInfo{Code: code},
+		Error:   &dto.OTPErrorInfo{Code: code},
 	})
 }
 
@@ -48,13 +48,13 @@ func NewOTPHandler(service *services.OTPService) *OTPHandler {
 // @Tags         onboarding
 // @Accept       json
 // @Produce      json
-// @Param        request  body      models.RequestOTPRequest  true  "Phone number payload"
-// @Success      200      {object}  handlers.OTPResponse{data=models.RequestOTPResponse}  "OTP sent successfully"
-// @Failure      400      {object}  handlers.OTPResponse  "Missing/invalid tel field or malformed body"
-// @Failure      401      {object}  handlers.OTPResponse  "Missing or invalid JWT"
-// @Failure      409      {object}  handlers.OTPResponse  "Phone already verified / recent request exists / user exceeded request limit"
-// @Failure      502      {object}  handlers.OTPResponse  "Upstream OTP provider unavailable"
-// @Failure      500      {object}  handlers.OTPResponse  "Internal server error"
+// @Param        request  body      dto.RequestOTPRequest  true  "Phone number payload"
+// @Success      200      {object}  dto.OTPResponse{data=dto.RequestOTPResponse}  "OTP sent successfully"
+// @Failure      400      {object}  dto.OTPResponse  "Missing/invalid tel field or malformed body"
+// @Failure      401      {object}  dto.OTPResponse  "Missing or invalid JWT"
+// @Failure      409      {object}  dto.OTPResponse  "Phone already verified / recent request exists / user exceeded request limit"
+// @Failure      502      {object}  dto.OTPResponse  "Upstream OTP provider unavailable"
+// @Failure      500      {object}  dto.OTPResponse  "Internal server error"
 // @Security     BearerAuth
 // @Router       /api/onboarding/otp [post]
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
@@ -110,12 +110,12 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 // @Tags         onboarding
 // @Accept       json
 // @Produce      json
-// @Param        request  body      models.VerifyOTPRequest  true  "OTP verification payload"
-// @Success      200      {object}  handlers.OTPResponse{data=models.VerifyOTPResponse}  "OTP verified; user phone validated"
-// @Failure      400      {object}  handlers.OTPResponse  "Missing/invalid tel, pin, or refNo — or record not found"
-// @Failure      401      {object}  handlers.OTPResponse  "Incorrect OTP pin"
-// @Failure      409      {object}  handlers.OTPResponse  "OTP expired / already used / max attempts reached"
-// @Failure      500      {object}  handlers.OTPResponse  "Internal server error"
+// @Param        request  body      dto.VerifyOTPRequest  true  "OTP verification payload"
+// @Success      200      {object}  dto.OTPResponse{data=dto.VerifyOTPResponse}  "OTP verified; user phone validated"
+// @Failure      400      {object}  dto.OTPResponse  "Missing/invalid tel, pin, or refNo — or record not found"
+// @Failure      401      {object}  dto.OTPResponse  "Incorrect OTP pin"
+// @Failure      409      {object}  dto.OTPResponse  "OTP expired / already used / max attempts reached"
+// @Failure      500      {object}  dto.OTPResponse  "Internal server error"
 // @Router       /api/onboarding/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 	var body dto.VerifyOTPRequest
