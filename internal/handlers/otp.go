@@ -1,21 +1,19 @@
 package handlers
 
 import (
+	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/middleware"
-	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/services"
+	"ROP_Backend/internal/utils"
 
 	"context"
 	"errors"
-	"regexp"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
-	"gorm.io/gorm"
 )
 
 var (
-	phoneRegex       = regexp.MustCompile(`^\d{10}$`)
 	recentRequestErr *services.ErrPhoneNumberHasRecentRequest
 )
 
@@ -60,9 +58,9 @@ func NewOTPHandler(service *services.OTPService) *OTPHandler {
 // @Security     BearerAuth
 // @Router       /api/onboarding/otp [post]
 func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
-	var body models.RequestOTPRequest
+	var body dto.RequestOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
-		return respondError(c, fiber.StatusBadRequest, "invalid request body", "BAD_REQUEST", nil)
+		return respondError(c, fiber.StatusBadRequest, "invalid request body", "BAD_REQUEST", map[string]any{"details": err})
 	}
 
 	claims := middleware.GetUser(c)
@@ -76,7 +74,7 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 		return respondError(c, fiber.StatusBadRequest, "tel field is required", "BAD_REQUEST", nil)
 	}
 
-	if !phoneRegex.MatchString(body.Tel) {
+	if !utils.IsThaiMobile(body.Tel) {
 		return respondError(c, fiber.StatusBadRequest, "invalid tel format", "BAD_REQUEST", nil)
 	}
 
@@ -120,7 +118,7 @@ func (h *OTPHandler) RequestOTP(c fiber.Ctx) error {
 // @Failure      500      {object}  handlers.OTPResponse  "Internal server error"
 // @Router       /api/onboarding/otp/verify [post]
 func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
-	var body models.VerifyOTPRequest
+	var body dto.VerifyOTPRequest
 	if err := c.Bind().Body(&body); err != nil {
 		return respondError(c, fiber.StatusBadRequest, "invalid request body", "BAD_REQUEST", nil)
 	}
@@ -129,7 +127,7 @@ func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 		return respondError(c, fiber.StatusBadRequest, "tel field is required", "BAD_REQUEST", nil)
 	}
 
-	if !phoneRegex.MatchString(body.Tel) {
+	if !utils.IsThaiMobile(body.Tel) {
 		return respondError(c, fiber.StatusBadRequest, "invalid tel format", "BAD_REQUEST", nil)
 	}
 
@@ -159,7 +157,7 @@ func (h *OTPHandler) VerifyOTP(c fiber.Ctx) error {
 		case errors.Is(err, services.ErrInvalidOTP):
 			return respondError(c, fiber.StatusUnauthorized, "invalid OTP pin", "OTP_LIMITED", nil)
 
-		case errors.Is(err, gorm.ErrRecordNotFound):
+		case errors.Is(err, services.ErrOTPNotFound):
 			return respondError(c, fiber.StatusUnauthorized, "record according to tel and refNo not found", "BAD_REQUEST", nil)
 
 		default:

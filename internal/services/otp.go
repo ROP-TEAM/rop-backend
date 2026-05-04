@@ -9,27 +9,17 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"regexp"
 	"time"
 
 	"strings"
 
 	"ROP_Backend/internal/config"
+	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
+	"ROP_Backend/internal/utils"
 
 	"gorm.io/gorm"
-)
-
-var (
-	ErrUsedPhoneNumber     = errors.New("phone number already in use")
-	ErrOTPProvider         = errors.New("otp provider error")
-	ErrUserReachMaxRequest = errors.New("user reach max request")
-	ErrInvalidOTP          = errors.New("invalid otp pin")
-	ErrOTPNotFound         = errors.New("there is no OTP request for this user and tel")
-	ErrReachMaxAttempt     = errors.New("verification reach the maximum attempt")
-	ErrExpiredOTPRequest   = errors.New("this otpRequest already expired")
-	ErrUsedOTPRequest      = errors.New("tel already be verified by otp pin")
 )
 
 const (
@@ -40,14 +30,6 @@ const (
 	MaxVerifyAttempts       = 5
 	OTPLifeTime             = 5 * time.Minute
 )
-
-type ErrPhoneNumberHasRecentRequest struct {
-	RetryAfter time.Time
-}
-
-func (e *ErrPhoneNumberHasRecentRequest) Error() string {
-	return "phone number has recent request"
-}
 
 type requestThaiBulkSuccessResponse struct {
 	Status string `json:"status"`
@@ -116,7 +98,7 @@ func NewOTPService(db *gorm.DB, cfg *config.Config) *OTPService {
 	}
 }
 
-func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.RequestOTPRequest) (*models.RequestOTPResponse, error) {
+func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *dto.RequestOTPRequest) (*dto.RequestOTPResponse, error) {
 	user, err := s.userRepository.FindByPhone(ctx, req.Tel)
 	if err != nil {
 		log.Printf("OTPRequest: database cannot find %v: %v", req.Tel, err)
@@ -162,10 +144,10 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 	//at this point success on calling thaibulk api
 
 	if apiRes.Status != StatusSuccess {
-		return &models.RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
+		return &dto.RequestOTPResponse{RefNo: "", Status: apiRes.Status}, nil
 	}
 
-	otp := &models.OtpRequest{
+	otp := &models.Otp{
 		Tel:         req.Tel,
 		Token:       apiRes.Token,
 		RefNo:       apiRes.RefNo,
@@ -181,7 +163,7 @@ func (s *OTPService) RequestOTP(ctx context.Context, userID uint, req *models.Re
 		return nil, err
 	}
 
-	return &models.RequestOTPResponse{
+	return &dto.RequestOTPResponse{
 		RefNo:       otp.RefNo,
 		Status:      apiRes.Status,
 		Tel:         otp.Tel,
@@ -241,7 +223,7 @@ func (s *OTPService) callThaiBulkRequestOTP(ctx context.Context, tel string) (*r
 	return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, errMsg, res.StatusCode)
 }
 
-func (s *OTPService) VerifyOTP(ctx context.Context, req *models.VerifyOTPRequest) (*models.VerifyOTPResponse, error) {
+func (s *OTPService) VerifyOTP(ctx context.Context, req *dto.VerifyOTPRequest) (*dto.VerifyOTPResponse, error) {
 
 	otp, err := s.otpRepository.FindByTelAndRef(ctx, req.Tel, req.RefNo)
 	if err != nil {
@@ -302,7 +284,7 @@ func (s *OTPService) VerifyOTP(ctx context.Context, req *models.VerifyOTPRequest
 		return nil, fmt.Errorf("completing verification: %w", err)
 	}
 
-	return &models.VerifyOTPResponse{Status: StatusSuccess}, nil
+	return &dto.VerifyOTPResponse{Status: StatusSuccess}, nil
 
 }
 
@@ -361,15 +343,9 @@ func (s *OTPService) callThaiBulkVerifyAPI(ctx context.Context, token, pin strin
 // mock for testing and development
 //
 
-var thaiTelRegex = regexp.MustCompile(`^(06|08|09)[0-9]{8}$`)
-
-func isValidThaiTel(tel string) bool {
-	return thaiTelRegex.MatchString(tel)
-}
-
 func (s *OTPService) callMockThaiBulkRequestOTP(ctx context.Context, tel string) (*requestThaiBulkSuccessResponse, error) {
 
-	if !isValidThaiTel(tel) {
+	if !utils.IsThaiMobile(tel) {
 		return nil, fmt.Errorf("%w: %s (status=%d)", ErrOTPProvider, "Gateway response send sms fail.", 400)
 	}
 

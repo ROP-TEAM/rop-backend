@@ -9,10 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrNoRowsAffected = errors.New("no rows affected")
-)
-
 type OTPRepository struct {
 	db *gorm.DB
 }
@@ -25,7 +21,7 @@ func (r *OTPRepository) WithTx(tx *gorm.DB) *OTPRepository {
 	return &OTPRepository{db: tx}
 }
 
-func (r *OTPRepository) Create(ctx context.Context, req *models.OtpRequest) (*models.OtpRequest, error) {
+func (r *OTPRepository) Create(ctx context.Context, req *models.Otp) (*models.Otp, error) {
 	err := r.db.WithContext(ctx).Create(&req).Error
 	if err != nil {
 		return nil, err
@@ -33,8 +29,8 @@ func (r *OTPRepository) Create(ctx context.Context, req *models.OtpRequest) (*mo
 	return req, nil
 }
 
-func (r *OTPRepository) FindByTelAndRef(ctx context.Context, tel string, ref string) (*models.OtpRequest, error) {
-	var otp models.OtpRequest
+func (r *OTPRepository) FindByTelAndRef(ctx context.Context, tel string, ref string) (*models.Otp, error) {
+	var otp models.Otp
 	err := r.db.WithContext(ctx).
 		Where("tel = ? AND ref_no = ?", tel, ref).
 		Order("created_at DESC").
@@ -48,7 +44,7 @@ func (r *OTPRepository) FindByTelAndRef(ctx context.Context, tel string, ref str
 
 func (r *OTPRepository) IncrAttemptByID(ctx context.Context, id uint) error {
 	result := r.db.WithContext(ctx).
-		Model(&models.OtpRequest{}).
+		Model(&models.Otp{}).
 		Where("id = ?", id).
 		Update("attempts", gorm.Expr("attempts + ?", 1))
 
@@ -59,8 +55,8 @@ func (r *OTPRepository) IncrAttemptByID(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *OTPRepository) FindLatestByTelSince(ctx context.Context, tel string, since time.Time) (*models.OtpRequest, error) {
-	var otp models.OtpRequest
+func (r *OTPRepository) FindLatestByTelSince(ctx context.Context, tel string, since time.Time) (*models.Otp, error) {
+	var otp models.Otp
 	err := r.db.WithContext(ctx).
 		Where("tel = ? AND created_at > ?", tel, since).
 		Order("created_at DESC").
@@ -75,7 +71,7 @@ func (r *OTPRepository) FindLatestByTelSince(ctx context.Context, tel string, si
 func (r *OTPRepository) CountByUserIDSince(ctx context.Context, userID uint, since time.Time) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
-		Model(&models.OtpRequest{}).
+		Model(&models.Otp{}).
 		Where("user_id = ? AND created_at > ?", userID, since).
 		Count(&count).Error
 	return count, err
@@ -83,7 +79,7 @@ func (r *OTPRepository) CountByUserIDSince(ctx context.Context, userID uint, sin
 
 func (r *OTPRepository) MarkUsedByID(ctx context.Context, id uint) error {
 	result := r.db.WithContext(ctx).
-		Model(&models.OtpRequest{}).
+		Model(&models.Otp{}).
 		Where("id = ? AND is_used = false AND expires_at > ? AND attempts < max_attempts", id, time.Now()).
 		Update("is_used", true)
 
