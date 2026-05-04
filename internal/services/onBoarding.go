@@ -14,10 +14,10 @@ func (s *UserService) Onboarding(userID uint, payload models.OnboardingPayload) 
 			return err
 		}
 
-		var alley *string
-		if payload.Alley != nil {
-			alley = payload.Alley
-		}
+		// var alley *string
+		// if payload.Alley != nil {
+		// 	alley = payload.Alley
+		// }
 
 		company := models.Company{
 			Name:        payload.CompanyName,
@@ -26,7 +26,6 @@ func (s *UserService) Onboarding(userID uint, payload models.OnboardingPayload) 
 			District:    payload.District,
 			SubDistrict: payload.SubDistrict,
 			Address:     payload.Address,
-			Alley:       alley,
 			PostalCode:  payload.PostalCode,
 			Tel:         payload.Tel,
 		}

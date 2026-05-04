@@ -68,140 +68,22 @@ const docTemplate = `{
         },
         "/api/auth/otp": {
             "post": {
-                "description": "Send OTP to a phone number and receive token + refno",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Use for testing OTP rate limiter (1 request per minute)",
                 "tags": [
-                    "auth"
+                    "otp"
                 ],
-                "summary": "Request OTP SMS",
-                "parameters": [
-                    {
-                        "description": "Phone number payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.RequestOTPRequest"
-                        }
-                    }
-                ],
+                "summary": "Test OTP endpoint",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/handlers.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/services.RequestOTPResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/handlers.OTPResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "429": {
+                        "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "502": {
-                        "description": "Bad Gateway",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/auth/otp/verify": {
-            "post": {
-                "description": "Verify OTP pin using refNo and phone number. Handles expiration, attempt limits, and reuse protection.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Verify OTP",
-                "operationId": "verify-otp",
-                "parameters": [
-                    {
-                        "description": "OTP verification payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/services.VerifyOTPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OTP verified successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/handlers.APIResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/services.VerifyOTPResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body or missing fields",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid OTP PIN",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Expired / already used / max attempts reached",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.APIResponse"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -341,7 +223,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.OnboardingResponse": {
+        "handlers.OTPResponse": {
             "type": "object",
             "properties": {
                 "message": {
