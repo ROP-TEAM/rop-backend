@@ -11,6 +11,10 @@ type OnboardingResponse struct {
 	Message string `json:"message"`
 }
 
+type VehicleCreateResponse struct {
+	Message string `json:"message"`
+}
+
 type LoginResponse struct {
 	Token          string       `json:"token"`
 	User           *models.User `json:"user"`

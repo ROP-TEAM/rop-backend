@@ -43,7 +43,6 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		&models.Order{},
 		&models.OrderTagSkill{},
 		&models.Plan{},
-		&models.Route{},
 		&models.Route{})
 
 	return db, nil

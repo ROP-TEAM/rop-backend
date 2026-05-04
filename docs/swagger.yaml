@@ -1,4 +1,42 @@
 definitions:
+  dto.CreateVehicle:
+    properties:
+      capacity:
+        type: number
+      daily_break_time_end:
+        type: integer
+      daily_break_time_start:
+        type: integer
+      daily_work_time_end:
+        type: integer
+      daily_work_time_start:
+        type: integer
+      end_latitude:
+        type: number
+      end_longitude:
+        type: number
+      max_task:
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      plate_number:
+        type: string
+      start_latitude:
+        type: number
+      start_longitude:
+        type: number
+    type: object
+  dto.GroupCreateVehicle:
+    properties:
+      plan_id:
+        type: string
+      vehicles:
+        items:
+          $ref: '#/definitions/dto.CreateVehicle'
+        type: array
+    type: object
   gorm.DeletedAt:
     properties:
       time:
@@ -37,6 +75,11 @@ definitions:
         type: string
       user_id:
         type: integer
+    type: object
+  handlers.VehicleCreateResponse:
+    properties:
+      message:
+        type: string
     type: object
   models.Company:
     properties:
@@ -221,4 +264,41 @@ paths:
       summary: Get current user
       tags:
       - user
+  /api/vehicles:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple vehicles
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupCreateVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VehicleCreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create vehicle list
+      tags:
+      - vehicle
 swagger: "2.0"
