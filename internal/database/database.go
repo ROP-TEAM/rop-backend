@@ -34,16 +34,19 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&models.Company{},
+		&models.Plan{},
 		&models.User{},
-		&models.Vehicle{},
 		&models.TagSkill{},
+		&models.Vehicle{},
 		&models.VehicleTagSkill{},
 		&models.Order{},
 		&models.OrderTagSkill{},
-		&models.Plan{},
-		&models.Route{})
+		&models.Route{},
+	); err != nil {
+		log.Fatal("AutoMigrate failed:", err)
+	}
 
 	return db, nil
 }
