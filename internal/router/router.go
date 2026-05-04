@@ -39,8 +39,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)
 
-	api.Post("/onboarding/otp", middleware.Protected(cfg), otpHandler.RequestOTP)
-	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), otpHandler.VerifyOTP)
+	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
+	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.VerifyOTP)
 
 	//test route
 
