@@ -42,16 +42,10 @@ definitions:
     properties:
       address:
         type: string
-      alley:
-        type: string
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       district:
         type: string
       id:
-        type: integer
+        type: string
       name:
         type: string
       postal_code:
@@ -64,16 +58,11 @@ definitions:
         type: string
       type:
         type: string
-      updatedAt:
-        type: string
     type: object
   models.OnboardingPayload:
     properties:
       address:
         example: 123 ถนนสุขุมวิท
-        type: string
-      alley:
-        example: Soi 5
         type: string
       companyName:
         example: ABC Co.
@@ -93,16 +82,13 @@ definitions:
       subDistrict:
         example: Lumphini
         type: string
-      tel:
-        example: "0999999999"
-        type: string
     type: object
   models.User:
     properties:
       company:
         $ref: '#/definitions/models.Company'
       companyID:
-        type: integer
+        type: string
       createdAt:
         type: string
       deletedAt:
@@ -113,6 +99,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_need_on_boarding:
+        type: boolean
       is_validated:
         type: boolean
       name:

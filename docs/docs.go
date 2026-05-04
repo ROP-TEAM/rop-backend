@@ -228,6 +228,14 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.OnboardingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.UserResponse": {
             "type": "object",
             "properties": {
@@ -245,20 +253,11 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
-                "alley": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "district": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -277,9 +276,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
                 }
             }
         },
@@ -289,10 +285,6 @@ const docTemplate = `{
                 "address": {
                     "type": "string",
                     "example": "123 ถนนสุขุมวิท"
-                },
-                "alley": {
-                    "type": "string",
-                    "example": "Soi 5"
                 },
                 "companyName": {
                     "type": "string",
@@ -317,10 +309,6 @@ const docTemplate = `{
                 "subDistrict": {
                     "type": "string",
                     "example": "Lumphini"
-                },
-                "tel": {
-                    "type": "string",
-                    "example": "0999999999"
                 }
             }
         },
@@ -331,7 +319,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Company"
                 },
                 "companyID": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -347,6 +335,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_need_on_boarding": {
+                    "type": "boolean"
                 },
                 "is_validated": {
                     "type": "boolean"
