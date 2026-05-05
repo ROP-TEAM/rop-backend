@@ -25,8 +25,8 @@ func NewAuthService(db *gorm.DB, cfg *config.Config) *AuthService {
 }
 
 func (s *AuthService) GoogleLogin(idToken string) (string, *models.User, bool, error) {
-	payload, err := idtoken.Validate(context.Background(), idToken, s.cfg.GOOGLE_CLIENT_ID)
-	// payload, err := idtoken.Validate(context.Background(), idToken, "")
+	// payload, err := idtoken.Validate(context.Background(), idToken, s.cfg.GOOGLE_CLIENT_ID)
+	payload, err := idtoken.Validate(context.Background(), idToken, "")
 	if err != nil {
 		return "", nil, false, errors.New("invalid google token")
 	}
