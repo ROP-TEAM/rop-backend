@@ -34,6 +34,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	vehicleService := services.NewVehicleService(db)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 
+	orderService := services.NewOrderService(db)
+	orderHandler := handlers.NewOrderHandler(orderService)
+
 	api := app.Group("/api")
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
@@ -44,6 +47,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	)
 
 	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
+	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
 
 	//test route
 

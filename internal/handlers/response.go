@@ -11,7 +11,7 @@ type OnboardingResponse struct {
 	Message string `json:"message"`
 }
 
-type VehicleCreateResponse struct {
+type CreateResponse struct {
 	Message string `json:"message"`
 }
 

@@ -25,7 +25,7 @@ func NewVehicleHandler(s *services.VehicleService) *VehicleHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.GroupCreateVehicle true "Vehicle list"
-// @Success 200 {object} handlers.VehicleCreateResponse
+// @Success 200 {object} handlers.CreateResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/vehicles [post]
