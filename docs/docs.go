@@ -186,15 +186,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gorm.DeletedAt": {
+        "handlers.APIResponse": {
             "type": "object",
             "properties": {
-                "time": {
-                    "type": "string"
+                "data": {},
+                "message": {
+                    "type": "string",
+                    "example": "OTP sent successfully"
                 },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
+                "status": {
+                    "description": "suc/fail/err",
+                    "type": "string",
+                    "example": "success"
                 }
             }
         },
@@ -248,12 +251,6 @@ const docTemplate = `{
                 "alley": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "district": {
                     "type": "string"
                 },
@@ -276,9 +273,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -333,20 +327,11 @@ const docTemplate = `{
                 "companyID": {
                     "type": "integer"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_validated": {
                     "type": "boolean"
@@ -357,8 +342,60 @@ const docTemplate = `{
                 "tel": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "tel_otp": {
                     "type": "string"
+                }
+            }
+        },
+        "services.RequestOTPRequest": {
+            "type": "object",
+            "properties": {
+                "tel": {
+                    "type": "string",
+                    "example": "0812345678"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "services.RequestOTPResponse": {
+            "type": "object",
+            "properties": {
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "services.VerifyOTPRequest": {
+            "type": "object",
+            "properties": {
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0812345678"
+                }
+            }
+        },
+        "services.VerifyOTPResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "success"
                 }
             }
         }
