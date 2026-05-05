@@ -5,6 +5,7 @@ import (
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/validators"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -23,6 +24,11 @@ func NewTagSkillService(db *gorm.DB) *TagSkillService {
 }
 
 func (s *TagSkillService) GroupCreate(req dto.GroupCreateTagSkill) error {
+
+	var plan models.Plan
+	if err := s.db.First(&plan, "id = ?", req.PlanID).Error; err != nil {
+		return errors.New("plan not found")
+	}
 
 	var skills []models.TagSkill
 
