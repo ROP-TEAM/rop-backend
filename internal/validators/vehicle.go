@@ -1,11 +1,11 @@
 package validators
 
 import (
-	"ROP_Backend/internal/dto"
+	"ROP_Backend/internal/models"
 	"errors"
 )
 
-func ValidateVehicle(v dto.CreateVehicle) error {
+func ValidateVehicle(v *models.Vehicle) error {
 
 	if v.PlateNumber == "" {
 		return errors.New("plate number required")

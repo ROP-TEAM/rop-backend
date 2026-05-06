@@ -18,13 +18,10 @@ func NewVehicleService(db *gorm.DB) *VehicleService {
 	return &VehicleService{repo: repo}
 }
 
-func (s *VehicleService) GroupCreate(userID uint, req dto.GroupCreateVehicle) error {
+func (s *VehicleService) GroupCreate(req dto.GroupCreateVehicle) error {
 	var vehicles []models.Vehicle
 
 	for _, v := range req.Vehicles {
-		if err := validators.ValidateVehicle(v); err != nil {
-			return err
-		}
 
 		vehicle := models.Vehicle{
 			PlateNumber: v.PlateNumber,
@@ -45,6 +42,11 @@ func (s *VehicleService) GroupCreate(userID uint, req dto.GroupCreateVehicle) er
 
 			PlanID: req.PlanID,
 		}
+
+		if err := validators.ValidateVehicle(&vehicle); err != nil {
+			return err
+		}
+
 		vehicles = append(vehicles, vehicle)
 	}
 	return s.repo.Create(vehicles)

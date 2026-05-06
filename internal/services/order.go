@@ -19,7 +19,7 @@ func NewOrderService(db *gorm.DB) *OrderService {
 	return &OrderService{repo: repo}
 }
 
-func (s *OrderService) GroupCreate(userID uint, req dto.GroupCreateOrder) error {
+func (s *OrderService) GroupCreate(req dto.GroupCreateOrder) error {
 	if len(req.Orders) == 0 {
 		return errors.New("orders is empty")
 	}
@@ -27,9 +27,6 @@ func (s *OrderService) GroupCreate(userID uint, req dto.GroupCreateOrder) error 
 	var orders []models.Order
 
 	for _, o := range req.Orders {
-		if err := validators.ValidateOrder(o); err != nil {
-			return err
-		}
 
 		order := models.Order{
 			Name: o.Name,
@@ -47,6 +44,10 @@ func (s *OrderService) GroupCreate(userID uint, req dto.GroupCreateOrder) error 
 			DesLongitude: &o.DesLongitude,
 
 			PlanID: req.PlanID,
+		}
+
+		if err := validators.ValidateOrder(&order); err != nil {
+			return err
 		}
 
 		orders = append(orders, order)

@@ -45,9 +45,7 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	userID := claims.UserID
-
-	if err := h.service.GroupCreate(userID, req); err != nil {
+	if err := h.service.GroupCreate(req); err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),
 		})

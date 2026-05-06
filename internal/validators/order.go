@@ -1,11 +1,11 @@
 package validators
 
 import (
-	"ROP_Backend/internal/dto"
+	"ROP_Backend/internal/models"
 	"errors"
 )
 
-func ValidateOrder(o dto.CreateOrder) error {
+func ValidateOrder(o *models.Order) error {
 
 	if o.Name == "" {
 		return errors.New("name required")
@@ -29,13 +29,16 @@ func ValidateOrder(o dto.CreateOrder) error {
 		}
 	}
 
-	if o.DesLatitude < -90 || o.DesLatitude > 90 {
+	if o.DesLatitude == nil || o.DesLongitude == nil {
+		return errors.New("destination required")
+	}
+
+	if *o.DesLatitude < -90 || *o.DesLatitude > 90 {
 		return errors.New("invalid latitude")
 	}
 
-	if o.DesLongitude < -180 || o.DesLongitude > 180 {
+	if *o.DesLongitude < -180 || *o.DesLongitude > 180 {
 		return errors.New("invalid longitude")
 	}
-
 	return nil
 }
