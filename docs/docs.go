@@ -300,6 +300,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/vehicle/skills": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Replace vehicle skills",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicle-skill"
+                ],
+                "summary": "Assign skills to vehicles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Vehicle skills",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GroupVehicleSkill"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/vehicles": {
             "post": {
                 "security": [
@@ -491,6 +549,34 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.CreateVehicle"
                     }
+                }
+            }
+        },
+        "dto.GroupVehicleSkill": {
+            "type": "object",
+            "properties": {
+                "plan_id": {
+                    "type": "string"
+                },
+                "vehicles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VehicleSkill"
+                    }
+                }
+            }
+        },
+        "dto.VehicleSkill": {
+            "type": "object",
+            "properties": {
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "vehicle_id": {
+                    "type": "integer"
                 }
             }
         },

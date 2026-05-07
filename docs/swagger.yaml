@@ -87,6 +87,24 @@ definitions:
           $ref: '#/definitions/dto.CreateVehicle'
         type: array
     type: object
+  dto.GroupVehicleSkill:
+    properties:
+      plan_id:
+        type: string
+      vehicles:
+        items:
+          $ref: '#/definitions/dto.VehicleSkill'
+        type: array
+    type: object
+  dto.VehicleSkill:
+    properties:
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
+      vehicle_id:
+        type: integer
+    type: object
   gorm.DeletedAt:
     properties:
       time:
@@ -388,6 +406,43 @@ paths:
       summary: Get current user
       tags:
       - user
+  /api/vehicle/skills:
+    post:
+      consumes:
+      - application/json
+      description: Replace vehicle skills
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle skills
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupVehicleSkill'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign skills to vehicles
+      tags:
+      - vehicle-skill
   /api/vehicles:
     post:
       consumes:

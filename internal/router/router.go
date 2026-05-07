@@ -40,6 +40,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	tagSkillService := services.NewTagSkillService(db)
 	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
 
+	vehicleSkillService := services.NewVehicleSkillService(db)
+	vehicleSkillHandler := handlers.NewVehicleSkillHandler(vehicleSkillService)
+
 	api := app.Group("/api")
 
 	api.Post("/auth/google", authHandler.GoogleLogin)
@@ -52,6 +55,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
 	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
+	app.Post("/api/vehicle/skills", middleware.Protected(cfg), vehicleSkillHandler.Assign)
 
 	//test route
 
