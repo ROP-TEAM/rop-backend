@@ -16,6 +16,10 @@ definitions:
         type: integer
       service_time:
         type: integer
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
       time_window_end:
         type: integer
       time_window_start:
@@ -102,11 +106,6 @@ definitions:
       valid:
         description: Valid is true if Time is not NULL
         type: boolean
-    type: object
-  handlers.CreateResponse:
-    properties:
-      message:
-        type: string
     type: object
   handlers.ErrorResponse:
     properties:
@@ -210,6 +209,27 @@ definitions:
         type: string
       updatedAt:
         type: string
+    type: object
+  response.OrderResponse:
+    properties:
+      capacity:
+        type: number
+      name:
+        type: string
+      note:
+        type: string
+      priority:
+        description: 0-3
+        type: integer
+      service_time:
+        type: integer
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
+      type:
+        description: 0=delivery,1=pickup
+        type: integer
     type: object
   response.TagSkillGroupResponse:
     properties:
@@ -344,11 +364,6 @@ paths:
       - application/json
       description: Create multiple orders
       parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       - description: Order list
         in: body
         name: body
@@ -361,7 +376,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CreateResponse'
+            $ref: '#/definitions/response.OrderResponse'
         "400":
           description: Bad Request
           schema:
@@ -370,8 +385,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
       summary: Create order list
       tags:
       - order

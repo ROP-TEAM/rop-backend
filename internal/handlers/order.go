@@ -25,7 +25,7 @@ func NewOrderHandler(s *services.OrderService) *OrderHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.GroupCreateOrder true "Order list"
-// @Success 200 {object} handlers.CreateResponse
+// @Success 200 {object} response.OrderResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/orders [post]
@@ -45,7 +45,9 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	if err := h.service.GroupCreate(req); err != nil {
+	data, err := h.service.GroupCreate(req)
+
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -53,5 +55,6 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "orders created",
+		"data":    data,
 	})
 }

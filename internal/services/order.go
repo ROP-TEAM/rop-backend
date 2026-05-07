@@ -2,6 +2,7 @@ package services
 
 import (
 	dto "ROP_Backend/internal/dto/request"
+	"ROP_Backend/internal/dto/response"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/validators"
@@ -19,16 +20,30 @@ func NewOrderService(db *gorm.DB) *OrderService {
 	return &OrderService{repo: repo}
 }
 
-func (s *OrderService) GroupCreate(req dto.GroupCreateOrder) error {
+func (s *OrderService) GroupCreate(
+	req dto.GroupCreateOrder) ([]response.OrderResponse, error) {
+	var responses []response.OrderResponse
+
+	var count int64
+
 	if len(req.Orders) == 0 {
-		return errors.New("orders is empty")
+		return nil, errors.New("orders is empty")
 	}
 
-	var orders []models.Order
+	if err := s.repo.CountByPlan(
+		req.PlanID,
+		&count,
+	); err != nil {
+		return nil, err
+	}
+
+	if count+int64(len(req.Orders)) > 200 {
+		return nil, errors.New("maximum 200 orders per plan")
+	}
 
 	for _, o := range req.Orders {
 
-		order := models.Order{
+		newOrder := models.Order{
 			Name: o.Name,
 			Note: o.Note,
 			Type: o.Type,
@@ -46,11 +61,43 @@ func (s *OrderService) GroupCreate(req dto.GroupCreateOrder) error {
 			PlanID: req.PlanID,
 		}
 
-		if err := validators.ValidateOrder(&order); err != nil {
-			return err
+		if err := validators.ValidateOrder(&newOrder); err != nil {
+			return nil, err
 		}
 
-		orders = append(orders, order)
+		if err := s.repo.Create(&newOrder); err != nil {
+			return nil, err
+		}
+
+		var skills []models.OrderTagSkill
+
+		for _, skillID := range o.TagSkillID {
+			skills = append(skills, models.OrderTagSkill{
+				OrderID:    newOrder.ID,
+				TagSkillID: skillID,
+			})
+		}
+
+		if len(skills) > 0 {
+			if err := s.repo.CreateSkills(skills); err != nil {
+				return nil, err
+			}
+		}
+
+		responses = append(responses, response.OrderResponse{
+			Name: newOrder.Name,
+			Note: newOrder.Note,
+
+			Type: newOrder.Type,
+
+			Capacity: newOrder.Capacity,
+
+			ServiceTime: newOrder.ServiceTime,
+			Priority:    newOrder.Priority,
+
+			TagSkillID: o.TagSkillID,
+		})
+
 	}
-	return s.repo.Create(orders)
+	return responses, nil
 }

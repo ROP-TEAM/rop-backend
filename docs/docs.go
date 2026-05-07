@@ -149,11 +149,6 @@ const docTemplate = `{
         },
         "/api/orders": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Create multiple orders",
                 "consumes": [
                     "application/json"
@@ -166,13 +161,6 @@ const docTemplate = `{
                 ],
                 "summary": "Create order list",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "Order list",
                         "name": "body",
@@ -187,7 +175,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateResponse"
+                            "$ref": "#/definitions/response.OrderResponse"
                         }
                     },
                     "400": {
@@ -391,6 +379,12 @@ const docTemplate = `{
                 "service_time": {
                     "type": "integer"
                 },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "time_window_end": {
                     "type": "integer"
                 },
@@ -521,14 +515,6 @@ const docTemplate = `{
                 "valid": {
                     "description": "Valid is true if Time is not NULL",
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.CreateResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
                 }
             }
         },
@@ -684,6 +670,37 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "response.OrderResponse": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "0-3",
+                    "type": "integer"
+                },
+                "service_time": {
+                    "type": "integer"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "description": "0=delivery,1=pickup",
+                    "type": "integer"
                 }
             }
         },
