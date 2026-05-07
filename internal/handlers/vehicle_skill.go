@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"ROP_Backend/internal/dto"
+	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/services"
 

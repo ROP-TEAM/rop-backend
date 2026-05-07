@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"ROP_Backend/internal/dto"
+	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/services"
 
@@ -25,7 +25,7 @@ func NewTagSkillHandler(s *services.TagSkillService) *TagSkillHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.GroupCreateTagSkill true "Skill list"
-// @Success 200 {object} handlers.CreateResponse
+// @Success 200 {array} response.TagSkillResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/skills [post]
@@ -45,13 +45,16 @@ func (h *TagSkillHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	if err := h.service.GroupCreate(req); err != nil {
+	data, err := h.service.GroupCreate(req)
+
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "skills created",
+		"message": "skills updated",
+		"data":    data,
 	})
 }

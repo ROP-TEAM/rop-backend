@@ -1,7 +1,7 @@
 package services
 
 import (
-	"ROP_Backend/internal/dto"
+	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/validators"

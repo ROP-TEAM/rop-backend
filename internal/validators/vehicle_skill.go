@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"ROP_Backend/internal/dto"
+	dto "ROP_Backend/internal/dto/request"
 	"errors"
 )
 

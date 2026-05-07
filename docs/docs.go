@@ -207,11 +207,6 @@ const docTemplate = `{
         },
         "/api/skills": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Create multiple skills by plan",
                 "consumes": [
                     "application/json"
@@ -224,13 +219,6 @@ const docTemplate = `{
                 ],
                 "summary": "Create skill list",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
                     {
                         "description": "Skill list",
                         "name": "body",
@@ -245,7 +233,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.TagSkillResponse"
+                            }
                         }
                     },
                     "400": {
@@ -460,6 +451,9 @@ const docTemplate = `{
             "properties": {
                 "color": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -752,6 +746,26 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "response.TagSkillResponse": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order_count": {
+                    "type": "integer"
+                },
+                "vehicle_count": {
+                    "type": "integer"
                 }
             }
         }
