@@ -25,7 +25,7 @@ func NewTagSkillHandler(s *services.TagSkillService) *TagSkillHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.GroupCreateTagSkill true "Skill list"
-// @Success 200 {array} response.TagSkillResponse
+// @Success 200 {array} response.TagSkillGroupResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/skills [post]

@@ -1,6 +1,7 @@
 package dto
 
 type CreateVehicle struct {
+	ProfileID   *int    `json:"profile_id"`
 	PlateNumber string  `json:"plate_number"`
 	Model       string  `json:"model"`
 	Name        string  `json:"name"`
@@ -16,6 +17,8 @@ type CreateVehicle struct {
 	StartLon *float64 `json:"start_longitude"`
 	EndLat   *float64 `json:"end_latitude"`
 	EndLon   *float64 `json:"end_longitude"`
+
+	TagSkillID []uint `json:"tag_skill_id"`
 }
 
 type GroupCreateVehicle struct {

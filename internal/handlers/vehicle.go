@@ -25,7 +25,7 @@ func NewVehicleHandler(s *services.VehicleService) *VehicleHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.GroupCreateVehicle true "Vehicle list"
-// @Success 200 {object} handlers.CreateResponse
+// @Success 200 {array} response.VehicleGroupResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/vehicles [post]
@@ -45,14 +45,16 @@ func (h *VehicleHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	if err := h.service.GroupCreate(req); err != nil {
+	data, err := h.service.GroupCreate(req)
+
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "vehicels created",
+		"message": "vehicles updated",
+		"data":    data,
 	})
-
 }

@@ -207,6 +207,11 @@ const docTemplate = `{
         },
         "/api/skills": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create multiple skills by plan",
                 "consumes": [
                     "application/json"
@@ -219,6 +224,13 @@ const docTemplate = `{
                 ],
                 "summary": "Create skill list",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Skill list",
                         "name": "body",
@@ -235,7 +247,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/response.TagSkillResponse"
+                                "$ref": "#/definitions/response.TagSkillGroupResponse"
                             }
                         }
                     },
@@ -291,64 +303,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/vehicle/skills": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Replace vehicle skills",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "vehicle-skill"
-                ],
-                "summary": "Assign skills to vehicles",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "Vehicle skills",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.GroupVehicleSkill"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CreateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/api/vehicles": {
             "post": {
                 "security": [
@@ -389,7 +343,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.VehicleGroupResponse"
+                            }
                         }
                     },
                     "400": {
@@ -496,11 +453,20 @@ const docTemplate = `{
                 "plate_number": {
                     "type": "string"
                 },
+                "profile_id": {
+                    "type": "integer"
+                },
                 "start_latitude": {
                     "type": "number"
                 },
                 "start_longitude": {
                     "type": "number"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -543,34 +509,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.CreateVehicle"
                     }
-                }
-            }
-        },
-        "dto.GroupVehicleSkill": {
-            "type": "object",
-            "properties": {
-                "plan_id": {
-                    "type": "string"
-                },
-                "vehicles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.VehicleSkill"
-                    }
-                }
-            }
-        },
-        "dto.VehicleSkill": {
-            "type": "object",
-            "properties": {
-                "tag_skill_id": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "vehicle_id": {
-                    "type": "integer"
                 }
             }
         },
@@ -749,22 +687,62 @@ const docTemplate = `{
                 }
             }
         },
-        "response.TagSkillResponse": {
+        "response.TagSkillGroupResponse": {
             "type": "object",
             "properties": {
-                "color": {
-                    "type": "string"
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleResponse"
+                    }
                 },
-                "id": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.VehicleGroupResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleResponse"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.VehicleResponse": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number"
+                },
+                "max_task": {
                     "type": "integer"
+                },
+                "model": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "order_count": {
+                "plate_number": {
+                    "type": "string"
+                },
+                "profile_id": {
                     "type": "integer"
                 },
-                "vehicle_count": {
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "vehicle_id": {
                     "type": "integer"
                 }
             }

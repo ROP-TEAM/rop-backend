@@ -57,10 +57,16 @@ definitions:
         type: string
       plate_number:
         type: string
+      profile_id:
+        type: integer
       start_latitude:
         type: number
       start_longitude:
         type: number
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
     type: object
   dto.GroupCreateOrder:
     properties:
@@ -88,24 +94,6 @@ definitions:
         items:
           $ref: '#/definitions/dto.CreateVehicle'
         type: array
-    type: object
-  dto.GroupVehicleSkill:
-    properties:
-      plan_id:
-        type: string
-      vehicles:
-        items:
-          $ref: '#/definitions/dto.VehicleSkill'
-        type: array
-    type: object
-  dto.VehicleSkill:
-    properties:
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-      vehicle_id:
-        type: integer
     type: object
   gorm.DeletedAt:
     properties:
@@ -223,17 +211,43 @@ definitions:
       updatedAt:
         type: string
     type: object
-  response.TagSkillResponse:
+  response.TagSkillGroupResponse:
     properties:
-      color:
+      data:
+        items:
+          $ref: '#/definitions/response.VehicleResponse'
+        type: array
+      message:
         type: string
-      id:
+    type: object
+  response.VehicleGroupResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.VehicleResponse'
+        type: array
+      message:
+        type: string
+    type: object
+  response.VehicleResponse:
+    properties:
+      capacity:
+        type: number
+      max_task:
         type: integer
+      model:
+        type: string
       name:
         type: string
-      order_count:
+      plate_number:
+        type: string
+      profile_id:
         type: integer
-      vehicle_count:
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
+      vehicle_id:
         type: integer
     type: object
 info:
@@ -367,6 +381,11 @@ paths:
       - application/json
       description: Create multiple skills by plan
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Skill list
         in: body
         name: body
@@ -380,7 +399,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/response.TagSkillResponse'
+              $ref: '#/definitions/response.TagSkillGroupResponse'
             type: array
         "400":
           description: Bad Request
@@ -390,6 +409,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create skill list
       tags:
       - skill
@@ -416,43 +437,6 @@ paths:
       summary: Get current user
       tags:
       - user
-  /api/vehicle/skills:
-    post:
-      consumes:
-      - application/json
-      description: Replace vehicle skills
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Vehicle skills
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.GroupVehicleSkill'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.CreateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Assign skills to vehicles
-      tags:
-      - vehicle-skill
   /api/vehicles:
     post:
       consumes:
@@ -476,7 +460,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CreateResponse'
+            items:
+              $ref: '#/definitions/response.VehicleGroupResponse'
+            type: array
         "400":
           description: Bad Request
           schema:
