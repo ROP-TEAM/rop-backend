@@ -20,30 +20,6 @@ func (r *VehicleRepository) Create(
 	return r.db.Create(vehicle).Error
 }
 
-func (r *VehicleRepository) Update(
-	vehicle *models.Vehicle,
-) error {
-	return r.db.Save(vehicle).Error
-}
-
-func (r *VehicleRepository) FindByIDAndPlan(
-	id uint,
-	planID string,
-) (*models.Vehicle, error) {
-
-	var vehicle models.Vehicle
-
-	err := r.db.
-		Where("id = ? AND vehicle_plan_fk = ?", id, planID).
-		First(&vehicle).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &vehicle, nil
-}
-
 func (r *VehicleRepository) CreateSkills(
 	skills []models.VehicleTagSkill,
 ) error {

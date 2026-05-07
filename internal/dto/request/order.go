@@ -16,6 +16,8 @@ type CreateOrder struct {
 
 	DesLatitude  float64 `json:"des_latitude"`
 	DesLongitude float64 `json:"des_longitude"`
+
+	TagSkillID []uint `json:"tag_skill_id"`
 }
 
 type GroupCreateOrder struct {
