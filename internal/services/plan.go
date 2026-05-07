@@ -63,6 +63,10 @@ func (s *PlanService) UpdateNameByID(ctx context.Context, planID string, userID 
 		return nil, err
 	}
 
+	if user.CompanyID == nil {
+		return nil, errors.New("user has no company")
+	}
+
 	updatedPlan, err := s.planRepository.UpdateByID(ctx, planID, *user.CompanyID, &models.Plan{Name: req.Name})
 	if err != nil {
 		return nil, err
@@ -74,6 +78,10 @@ func (s *PlanService) DeleteByID(ctx context.Context, planID string, userID uint
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
 		return err
+	}
+
+	if user.CompanyID == nil {
+		return errors.New("user has no company")
 	}
 
 	return s.planRepository.DeleteByID(ctx, planID, *user.CompanyID)
