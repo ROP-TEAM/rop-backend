@@ -34,13 +34,16 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	otpService := services.NewOTPService(db, cfg)
 	otpHandler := handlers.NewOTPHandler(otpService)
 
+	planService := services.NewPlanService(db, cfg)
+	planHandler := handlers.NewPlanHandler(planService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
 	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)
 
 	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
-	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.VerifyOTP)
+	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), otpHandler.VerifyOTP) //verifyมันฟรีไม่ต้องใส่limiter ??
 
 	//test route
 
@@ -52,6 +55,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 		middleware.Protected(cfg),
 		userHandler.Onboarding,
 	)
+
+	api.Post("/plan", middleware.Protected(cfg), planHandler.Create)
+	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
 
 	return app
 }

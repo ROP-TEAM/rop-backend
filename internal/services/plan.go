@@ -1,6 +1,7 @@
 package services
 
 import (
+	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
@@ -18,14 +19,16 @@ var (
 type PlanService struct {
 	planRepository *repository.PlanRepository
 	userRepository *repository.UserRepository
+	cfg            *config.Config
 }
 
-func NewPlanService(db *gorm.DB) *PlanService {
+func NewPlanService(db *gorm.DB, cfg *config.Config) *PlanService {
 	planRepo := repository.NewPlanRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	return &PlanService{
 		planRepository: planRepo,
 		userRepository: userRepo,
+		cfg:            cfg,
 	}
 }
 
@@ -38,7 +41,7 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 
 	plan, err := s.planRepository.Create(ctx, &models.Plan{
 		CompanyID: *user.CompanyID,
-		Name:      req.Name,
+		Name:      *req.Name,
 	})
 	if err != nil {
 		log.Printf("[planService]: creating plan: %v", err)
@@ -47,6 +50,17 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 	}
 
 	return &dto.CreatePlanResponse{
-		Name: plan.Name,
+		ID:        plan.ID,
+		Name:      plan.Name,
+		UpdatedAt: plan.UpdatedAt,
+		CreatedAt: plan.CreatedAt,
 	}, nil
+}
+
+func (s *PlanService) UpdateNameByID(ctx context.Context, id string, req *dto.UpdatePlanNameByIDRequest) (*dto.UpdatePlanNameByIDResponse, error) {
+	updatedPlan, err := s.planRepository.UpdateByID(ctx, id, &models.Plan{Name: req.Name})
+	if err != nil {
+		return nil, err
+	}
+	return &dto.UpdatePlanNameByIDResponse{Name: updatedPlan.Name, UpdatedAt: updatedPlan.UpdatedAt}, nil
 }
