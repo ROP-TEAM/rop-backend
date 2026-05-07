@@ -41,13 +41,6 @@ type UpdatePlanNameByIDResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type DeletePlanByIDRequest struct {
-	ID string `json:"id" example:"whatthehelpyouaskfor"`
-}
-
-type DeletePlanByIDResponse struct {
-}
-
 type GetPlanByIDRequest struct {
 	ID string `json:"id" example:"whatthehelpyouaskfor"`
 }

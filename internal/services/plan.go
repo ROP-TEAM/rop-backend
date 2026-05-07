@@ -57,10 +57,24 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 	}, nil
 }
 
-func (s *PlanService) UpdateNameByID(ctx context.Context, id string, req *dto.UpdatePlanNameByIDRequest) (*dto.UpdatePlanNameByIDResponse, error) {
-	updatedPlan, err := s.planRepository.UpdateByID(ctx, id, &models.Plan{Name: req.Name})
+func (s *PlanService) UpdateNameByID(ctx context.Context, planID string, userID uint, req *dto.UpdatePlanNameByIDRequest) (*dto.UpdatePlanNameByIDResponse, error) {
+	user, err := s.userRepository.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedPlan, err := s.planRepository.UpdateByID(ctx, planID, *user.CompanyID, &models.Plan{Name: req.Name})
 	if err != nil {
 		return nil, err
 	}
 	return &dto.UpdatePlanNameByIDResponse{Name: updatedPlan.Name, UpdatedAt: updatedPlan.UpdatedAt}, nil
+}
+
+func (s *PlanService) DeleteByID(ctx context.Context, planID string, userID uint) error {
+	user, err := s.userRepository.FindByID(userID)
+	if err != nil {
+		return err
+	}
+
+	return s.planRepository.DeleteByID(ctx, planID, *user.CompanyID)
 }

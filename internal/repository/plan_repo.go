@@ -23,9 +23,9 @@ func (r *PlanRepository) Create(ctx context.Context, req *models.Plan) (*models.
 	return req, err
 }
 
-func (r *PlanRepository) UpdateByID(ctx context.Context, id string, req *models.Plan) (*models.Plan, error) {
+func (r *PlanRepository) UpdateByID(ctx context.Context, planID string, companyID string, req *models.Plan) (*models.Plan, error) {
 	var plan models.Plan
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&plan).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ? AND plan_company_fk = ?", planID, companyID).First(&plan).Error; err != nil {
 		return nil, err
 	}
 
@@ -42,4 +42,20 @@ func (r *PlanRepository) UpdateByID(ctx context.Context, id string, req *models.
 	}
 
 	return &plan, nil
+}
+
+func (r *PlanRepository) DeleteByID(ctx context.Context, planID string, companyID string) error {
+	result := r.db.WithContext(ctx).
+		Where("id = ? AND plan_company_fk = ?", planID, companyID).
+		Delete(&models.Plan{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return ErrNoRowsAffected
+	}
+
+	return nil
 }

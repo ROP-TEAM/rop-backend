@@ -87,7 +87,7 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.service.UpdateNameByID(ctx, id, &body)
+	res, err := h.service.UpdateNameByID(ctx, id, claims.UserID, &body)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),
@@ -97,5 +97,36 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "name updated",
 		"data":    res,
+	})
+}
+
+func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "bad request",
+		})
+	}
+
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	err := h.service.DeleteByID(ctx, id, claims.UserID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "plan deleted",
+		// "data":    res,
 	})
 }
