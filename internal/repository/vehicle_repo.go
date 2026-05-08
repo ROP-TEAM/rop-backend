@@ -36,3 +36,66 @@ func (r *VehicleRepository) CountByPlan(
 		Count(count).
 		Error
 }
+
+func (r *VehicleRepository) Update(
+	vehicle *models.Vehicle,
+) error {
+	return r.db.Save(vehicle).Error
+}
+
+func (r *VehicleRepository) FindByIDAndPlan(
+	id uint,
+	planID string,
+) (*models.Vehicle, error) {
+
+	var vehicle models.Vehicle
+
+	if err := r.db.
+		Where(
+			"id = ? AND vehicle_plan_fk = ?",
+			id,
+			planID,
+		).
+		First(&vehicle).Error; err != nil {
+
+		return nil, err
+	}
+
+	return &vehicle, nil
+}
+
+func (r *VehicleRepository) DeleteSkills(
+	vehicleID uint,
+) error {
+
+	return r.db.
+		Where("vehicle_id = ?", vehicleID).
+		Delete(&models.VehicleTagSkill{}).
+		Error
+}
+
+func (r *VehicleRepository) FindByIDWithSkills(
+	id uint,
+) (*models.Vehicle, error) {
+
+	var vehicle models.Vehicle
+
+	if err := r.db.
+		Preload("Skills").
+		Where("id = ?", id).
+		First(&vehicle).Error; err != nil {
+
+		return nil, err
+	}
+
+	return &vehicle, nil
+}
+
+func (r *VehicleRepository) Delete(
+	id uint,
+) error {
+
+	return r.db.
+		Delete(&models.Vehicle{}, id).
+		Error
+}
