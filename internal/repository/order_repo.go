@@ -31,3 +31,60 @@ func (r *OrderRepository) CountByPlan(
 	return r.db.Model(&models.Order{}).Where("order_plan_fk = ?", planID).
 		Count(count).Error
 }
+
+func (r *OrderRepository) FindByIDAndPlan(
+	id uint,
+	planID string,
+) (*models.Order, error) {
+
+	var order models.Order
+
+	if err := r.db.
+		Where(
+			"id = ? AND order_plan_fk = ?",
+			id,
+			planID,
+		).
+		First(&order).Error; err != nil {
+
+		return nil, err
+	}
+
+	return &order, nil
+}
+
+func (r *OrderRepository) DeleteSkills(
+	orderID uint,
+) error {
+
+	return r.db.
+		Where("order_id = ?", orderID).
+		Delete(&models.OrderTagSkill{}).
+		Error
+}
+
+func (r *OrderRepository) FindByIDWithSkills(
+	id uint,
+) (*models.Order, error) {
+
+	var order models.Order
+
+	if err := r.db.
+		Preload("Skills").
+		Where("id = ?", id).
+		First(&order).Error; err != nil {
+
+		return nil, err
+	}
+
+	return &order, nil
+}
+
+func (r *OrderRepository) Delete(
+	id uint,
+) error {
+
+	return r.db.
+		Delete(&models.Order{}, id).
+		Error
+}

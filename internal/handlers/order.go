@@ -58,3 +58,50 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 		"data":    data,
 	})
 }
+
+// DeleteOrder godoc
+// @Summary Delete order list
+// @Description Delete multiple orders
+// @Tags order
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param body body dto.DeleteVehicle true "Order IDs"
+// @Success 200 {object} handlers.CreateResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/orders [delete]
+func (h *OrderHandler) Delete(c fiber.Ctx) error {
+
+	var req dto.DeleteOrder
+
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "invalid body",
+		})
+	}
+
+	if len(req.ID) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "id required",
+		})
+	}
+
+	// claims := middleware.GetUser(c)
+	// if claims == nil {
+	// 	return c.Status(401).JSON(fiber.Map{
+	// 		"error": "unauthorized",
+	// 	})
+	// }
+
+	if err := h.service.Delete(req); err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "orders deleted",
+	})
+}

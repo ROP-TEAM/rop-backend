@@ -24,3 +24,8 @@ type GroupCreateOrder struct {
 	PlanID string        `json:"plan_id"`
 	Orders []CreateOrder `json:"orders"`
 }
+
+type DeleteOrder struct {
+	PlanID string `json:"plan_id"`
+	ID     []uint `json:"id"`
+}

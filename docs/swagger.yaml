@@ -410,6 +410,35 @@ paths:
       tags:
       - user
   /api/orders:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple orders
+      parameters:
+      - description: Order IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete order list
+      tags:
+      - order
     post:
       consumes:
       - application/json
@@ -514,6 +543,11 @@ paths:
       - application/json
       description: Delete multiple vehicles
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Vehicle IDs
         in: body
         name: body
@@ -535,6 +569,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Delete vehicle list
       tags:
       - vehicle
