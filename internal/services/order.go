@@ -7,6 +7,7 @@ import (
 	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/validators"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -25,6 +26,7 @@ func (s *OrderService) GroupCreate(
 	var responses []response.OrderResponse
 
 	var count int64
+	const MaxOrders = 200
 
 	if len(req.Orders) == 0 {
 		return nil, errors.New("orders is empty")
@@ -37,8 +39,11 @@ func (s *OrderService) GroupCreate(
 		return nil, err
 	}
 
-	if count+int64(len(req.Orders)) > 200 {
-		return nil, errors.New("maximum 200 orders per plan")
+	if count+int64(len(req.Orders)) > MaxOrders {
+		return nil, fmt.Errorf(
+			"maximum %d orders per plan",
+			MaxOrders,
+		)
 	}
 
 	for _, o := range req.Orders {

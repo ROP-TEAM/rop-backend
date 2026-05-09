@@ -13,21 +13,18 @@ import (
 
 type TagSkillService struct {
 	repo *repository.TagSkillRepository
-	db   *gorm.DB
 }
 
 func NewTagSkillService(db *gorm.DB) *TagSkillService {
 	repo := repository.NewTagSkillRepository(db)
 	return &TagSkillService{
 		repo: repo,
-		db:   db,
 	}
 }
 
 func (s *TagSkillService) GroupCreate(req dto.GroupCreateTagSkill) ([]response.TagSkillResponse, error) {
 
-	var plan models.Plan
-	if err := s.db.First(&plan, "id = ?", req.PlanID).Error; err != nil {
+	if err := s.repo.CheckPlanExists(req.PlanID); err != nil {
 		return nil, errors.New("plan not found")
 	}
 
