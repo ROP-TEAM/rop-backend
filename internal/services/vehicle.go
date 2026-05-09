@@ -87,7 +87,7 @@ func (s *VehicleService) GroupCreate(
 			PlanID: req.PlanID,
 		}
 
-		if err := validators.ValidateVehicle(&newVehicle); err != nil {
+		if err := validators.ValidateVehicleCreate(&newVehicle); err != nil {
 			return nil, err
 		}
 

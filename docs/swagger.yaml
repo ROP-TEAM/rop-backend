@@ -1,161 +1,13 @@
 definitions:
-  dto.CreateOrder:
+  handlers.APIResponse:
     properties:
-      capacity:
-        type: number
-      des_latitude:
-        type: number
-      des_longitude:
-        type: number
-      name:
-        type: string
-      note:
-        type: string
-      priority:
-        description: 0-3
-        type: integer
-      service_time:
-        type: integer
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-      time_window_end:
-        type: integer
-      time_window_start:
-        type: integer
-      type:
-        description: 0=delivery,1=pickup
-        type: integer
-    type: object
-  dto.CreateTagSkill:
-    properties:
-      color:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-    type: object
-  dto.CreateVehicle:
-    properties:
-      capacity:
-        type: number
-      daily_break_time_end:
-        type: integer
-      daily_break_time_start:
-        type: integer
-      daily_work_time_end:
-        type: integer
-      daily_work_time_start:
-        type: integer
-      end_latitude:
-        type: number
-      end_longitude:
-        type: number
-      max_task:
-        type: integer
-      model:
-        type: string
-      name:
-        type: string
-      plate_number:
-        type: string
-      profile_id:
-        type: integer
-      start_latitude:
-        type: number
-      start_longitude:
-        type: number
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-    type: object
-  dto.DeleteVehicle:
-    properties:
-      id:
-        items:
-          type: integer
-        type: array
-      plan_id:
-        type: string
-    type: object
-  dto.GroupCreateOrder:
-    properties:
-      orders:
-        items:
-          $ref: '#/definitions/dto.CreateOrder'
-        type: array
-      plan_id:
-        type: string
-    type: object
-  dto.GroupCreateTagSkill:
-    properties:
-      plan_id:
-        type: string
-      skills:
-        items:
-          $ref: '#/definitions/dto.CreateTagSkill'
-        type: array
-    type: object
-  dto.GroupCreateVehicle:
-    properties:
-      plan_id:
-        type: string
-      vehicles:
-        items:
-          $ref: '#/definitions/dto.CreateVehicle'
-        type: array
-    type: object
-  dto.UpdateVehicle:
-    properties:
-      capacity:
-        type: number
-      daily_break_time_end:
-        type: integer
-      daily_break_time_start:
-        type: integer
-      daily_work_time_end:
-        type: integer
-      daily_work_time_start:
-        type: integer
-      end_latitude:
-        type: number
-      end_longitude:
-        type: number
-      max_task:
-        type: integer
-      model:
-        type: string
-      name:
-        type: string
-      plan_id:
-        type: string
-      plate_number:
-        type: string
-      profile_id:
-        type: integer
-      start_latitude:
-        type: number
-      start_longitude:
-        type: number
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-    type: object
-  gorm.DeletedAt:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
-    type: object
-  handlers.CreateResponse:
-    properties:
+      data: {}
       message:
+        example: OTP sent successfully
+        type: string
+      status:
+        description: suc/fail/err
+        example: success
         type: string
     type: object
   handlers.ErrorResponse:
@@ -192,6 +44,8 @@ definitions:
   models.Company:
     properties:
       address:
+        type: string
+      alley:
         type: string
       district:
         type: string
@@ -239,19 +93,11 @@ definitions:
       company:
         $ref: '#/definitions/models.Company'
       companyID:
-        type: string
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
+        type: integer
       email:
         type: string
       google_id:
         type: string
-      id:
-        type: integer
-      is_need_on_boarding:
-        type: boolean
       is_validated:
         type: boolean
       name:
@@ -260,66 +106,6 @@ definitions:
         type: string
       updatedAt:
         type: string
-    type: object
-  response.OrderResponse:
-    properties:
-      capacity:
-        type: number
-      name:
-        type: string
-      note:
-        type: string
-      priority:
-        description: 0-3
-        type: integer
-      service_time:
-        type: integer
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-      type:
-        description: 0=delivery,1=pickup
-        type: integer
-    type: object
-  response.TagSkillGroupResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/response.VehicleResponse'
-        type: array
-      message:
-        type: string
-    type: object
-  response.VehicleGroupResponse:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/response.VehicleResponse'
-        type: array
-      message:
-        type: string
-    type: object
-  response.VehicleResponse:
-    properties:
-      capacity:
-        type: number
-      max_task:
-        type: integer
-      model:
-        type: string
-      name:
-        type: string
-      plate_number:
-        type: string
-      profile_id:
-        type: integer
-      tag_skill_id:
-        items:
-          type: integer
-        type: array
-      vehicle_id:
-        type: integer
     type: object
 info:
   contact: {}

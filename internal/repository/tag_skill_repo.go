@@ -77,3 +77,9 @@ func (r *TagSkillRepository) CountVehicles(
 
 	return count, err
 }
+
+func (r *TagSkillRepository) CheckPlanExists(planID string) error {
+	var plan models.Plan
+
+	return r.db.First(&plan, "id = ?", planID).Error
+}
