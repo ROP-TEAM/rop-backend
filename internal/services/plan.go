@@ -86,5 +86,5 @@ func (s *PlanService) DeleteByID(ctx context.Context, planID string, userID uint
 		return errors.New("user has no company")
 	}
 
-	return s.planRepository.DeleteByID(ctx, planID, *user.CompanyID)
+	return s.planRepository.HardDeleteByID(ctx, planID, *user.CompanyID)
 }

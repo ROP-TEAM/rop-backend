@@ -131,6 +131,19 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	})
 }
 
+// DeletePlan godoc
+// @Summary Delete plan by plan id
+// @Description hard delete plan by id by attach plan id via url params, it will delte all its legacy
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param body body dto.DeletePlanByIDRequest true "plan"
+// @Success 200 {object} dto.DeletePlanByIDResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plan/:id [delete]
 func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
