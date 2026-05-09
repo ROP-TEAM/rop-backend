@@ -19,25 +19,21 @@ func (r *PlanRepository) Create(ctx context.Context, req *models.Plan) error {
 	return r.db.WithContext(ctx).Create(&req).Error
 }
 
-func (r *PlanRepository) UpdateByID(ctx context.Context, planID string, companyID string, req *models.Plan) (*models.Plan, error) {
-	var plan models.Plan
-	if err := r.db.WithContext(ctx).Where("id = ? AND plan_company_fk = ?", planID, companyID).First(&plan).Error; err != nil {
-		return nil, err
-	}
-
+func (r *PlanRepository) UpdateByID(ctx context.Context, planID string, companyID string, req *models.Plan) error {
 	result := r.db.WithContext(ctx).
-		Model(&plan).
+		Model(req).
+		Where("id = ? AND plan_company_fk = ?", planID, companyID).
 		Updates(req)
 
 	if result.Error != nil {
-		return nil, result.Error
+		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return nil, ErrNoRowsAffected
+		return ErrNoRowsAffected
 	}
 
-	return &plan, nil
+	return nil
 }
 
 func (r *PlanRepository) DeleteByID(ctx context.Context, planID string, companyID string) error {

@@ -72,6 +72,19 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 	})
 }
 
+// PatchPlan godoc
+// @Summary Patch plan name by plan id
+// @Description Patch a plan name by id by attach plan id via url params, and updated name by body
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param body body dto.UpdatePlanNameByIDRequest true "plan"
+// @Success 200 {object} dto.UpdatePlanNameByIDResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plan/:id [patch]
 func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -87,6 +100,12 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 		})
 	}
 
+	if body.Name == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "name field is required",
+		})
+	}
+
 	body.SetDefaults()
 
 	claims := middleware.GetUser(c)
@@ -95,7 +114,6 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 			"error": "unauthorized",
 		})
 	}
-	//ยังไม่เซฟเท่าไหร่ เพราะว่าขอแค่มีtoken แล้วรู้ไอดีของplanก็ใช้ได้เลยย
 
 	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
 	defer cancel()

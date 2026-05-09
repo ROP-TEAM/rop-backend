@@ -2,8 +2,17 @@ package dto
 
 import (
 	"ROP_Backend/internal/models"
+	"strings"
 	"time"
 )
+
+const (
+	DefautlPlanName = "untitle"
+)
+
+func isSpaceName(a *string) bool {
+	return a == nil || strings.TrimSpace(*a) == ""
+}
 
 type CreatePlanRequest struct {
 	Name     *string   `json:"name" example:"untangle"`
@@ -11,8 +20,8 @@ type CreatePlanRequest struct {
 }
 
 func (r *CreatePlanRequest) SetDefaults() {
-	if *r.Name == "" {
-		*r.Name = "untitle"
+	if isSpaceName(r.Name) {
+		*r.Name = DefautlPlanName
 	}
 	if r.PlanDate.IsZero() {
 		r.PlanDate = time.Now()
@@ -26,12 +35,12 @@ type CreatePlanResponse struct {
 }
 
 type UpdatePlanNameByIDRequest struct {
-	Name string `json:"name" example:"united in grief"`
+	Name *string `json:"name" example:"united in grief"`
 }
 
 func (r *UpdatePlanNameByIDRequest) SetDefaults() {
-	if r.Name == "" {
-		r.Name = "untitle"
+	if isSpaceName(r.Name) {
+		*r.Name = DefautlPlanName
 	}
 }
 

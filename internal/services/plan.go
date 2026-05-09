@@ -67,10 +67,12 @@ func (s *PlanService) UpdateNameByID(ctx context.Context, planID string, userID 
 		return nil, errors.New("user has no company")
 	}
 
-	updatedPlan, err := s.planRepository.UpdateByID(ctx, planID, *user.CompanyID, &models.Plan{Name: req.Name})
+	updatedPlan := models.Plan{Name: *req.Name}
+	err = s.planRepository.UpdateByID(ctx, planID, *user.CompanyID, &updatedPlan)
 	if err != nil {
 		return nil, err
 	}
+
 	return &dto.UpdatePlanNameByIDResponse{Name: updatedPlan.Name, UpdatedAt: updatedPlan.UpdatedAt}, nil
 }
 
