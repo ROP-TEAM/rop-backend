@@ -39,21 +39,21 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 		return nil, ErrInvalidUser
 	}
 
-	plan, err := s.planRepository.Create(ctx, &models.Plan{
+	newPlan := models.Plan{
 		CompanyID: *user.CompanyID,
 		Name:      *req.Name,
-	})
+		PlanDate:  req.PlanDate,
+	}
+	err = s.planRepository.Create(ctx, &newPlan)
 	if err != nil {
 		log.Printf("[planService]: creating plan: %v", err)
 		return nil, err
-		//internal error ไป
 	}
 
 	return &dto.CreatePlanResponse{
-		ID:        plan.ID,
-		Name:      plan.Name,
-		UpdatedAt: plan.UpdatedAt,
-		CreatedAt: plan.CreatedAt,
+		ID:        newPlan.ID,
+		Name:      newPlan.Name,
+		CreatedAt: newPlan.CreatedAt,
 	}, nil
 }
 

@@ -15,12 +15,8 @@ func NewPlanRepository(db *gorm.DB) *PlanRepository {
 	return &PlanRepository{db: db}
 }
 
-func (r *PlanRepository) Create(ctx context.Context, req *models.Plan) (*models.Plan, error) {
-	err := r.db.WithContext(ctx).Create(&req).Error
-	if err != nil {
-		return nil, err
-	}
-	return req, err
+func (r *PlanRepository) Create(ctx context.Context, req *models.Plan) error {
+	return r.db.WithContext(ctx).Create(&req).Error
 }
 
 func (r *PlanRepository) UpdateByID(ctx context.Context, planID string, companyID string, req *models.Plan) (*models.Plan, error) {

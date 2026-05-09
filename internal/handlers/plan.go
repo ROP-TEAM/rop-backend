@@ -18,6 +18,19 @@ func NewPlanHandler(service *services.PlanService) *PlanHandler {
 	return &PlanHandler{service: service}
 }
 
+// CreatePlan godoc
+// @Summary Create plan
+// @Description Create a plan
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param body body dto.CreatePlanRequest true "plan"
+// @Success 200 {object} dto.CreatePlanResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plan [post]
 func (h *PlanHandler) Create(c fiber.Ctx) error {
 	var body dto.CreatePlanRequest
 	if err := c.Bind().Body(&body); err != nil {
