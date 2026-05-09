@@ -16,7 +16,7 @@ func ValidateVehicleCreate(v *models.Vehicle) error {
 	}
 
 	if v.MaxTask != nil && *v.MaxTask < 0 {
-		return errors.New("max_task must be >= 0 (use 0 for unlimited)")
+		return errors.New("max_task must be >= 0")
 	}
 
 	if v.DailyWorkTimeStart == nil || v.DailyWorkTimeEnd == nil {
@@ -31,8 +31,7 @@ func ValidateVehicleCreate(v *models.Vehicle) error {
 		return errors.New("invalid work time (start >= end)")
 	}
 
-	if *v.DailyWorkTimeStart < 0 ||
-		*v.DailyWorkTimeEnd < 0 {
+	if *v.DailyWorkTimeStart < 0 || *v.DailyWorkTimeEnd < 0 {
 		return errors.New("work time out of range")
 	}
 

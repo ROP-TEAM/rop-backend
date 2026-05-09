@@ -57,7 +57,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	)
 
 	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
+	api.Patch("/vehicles/:id", middleware.Protected(cfg), vehicleHandler.Patch)
+	api.Delete("/vehicles", middleware.Protected(cfg), vehicleHandler.Delete)
 	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
+	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
 
 	//test route

@@ -196,11 +196,45 @@ paths:
       tags:
       - user
   /api/orders:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple orders
+      parameters:
+      - description: Order IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete order list
+      tags:
+      - order
     post:
       consumes:
       - application/json
       description: Create multiple orders
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: Order list
         in: body
         name: body
@@ -222,6 +256,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create order list
       tags:
       - order
@@ -288,6 +324,42 @@ paths:
       tags:
       - user
   /api/vehicles:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple vehicles
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete vehicle list
+      tags:
+      - vehicle
     post:
       consumes:
       - application/json
@@ -310,9 +382,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/response.VehicleGroupResponse'
-            type: array
+            $ref: '#/definitions/response.VehicleGroupResponse'
         "400":
           description: Bad Request
           schema:
@@ -324,6 +394,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Create vehicle list
+      tags:
+      - vehicle
+  /api/vehicles/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Patch vehicle by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vehicle update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.VehicleGroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update vehicle
       tags:
       - vehicle
 swagger: "2.0"

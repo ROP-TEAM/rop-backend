@@ -106,3 +106,30 @@ func (s *OrderService) GroupCreate(
 	}
 	return responses, nil
 }
+
+func (s *OrderService) Delete(req dto.DeleteOrder) error {
+	for _, id := range req.ID {
+		order, err := s.repo.FindByIDAndPlan(
+			id,
+			req.PlanID,
+		)
+
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.DeleteSkills(
+			order.ID,
+		); err != nil {
+			return err
+		}
+
+		if err := s.repo.Delete(
+			order.ID,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
