@@ -50,7 +50,7 @@ definitions:
       district:
         type: string
       id:
-        type: integer
+        type: string
       name:
         type: string
       postal_code:
@@ -68,9 +68,6 @@ definitions:
     properties:
       address:
         example: 123 ถนนสุขุมวิท
-        type: string
-      alley:
-        example: Soi 5
         type: string
       companyName:
         example: ABC Co.
@@ -90,9 +87,6 @@ definitions:
       subDistrict:
         example: Lumphini
         type: string
-      tel:
-        example: "0999999999"
-        type: string
     type: object
   models.User:
     properties:
@@ -110,43 +104,7 @@ definitions:
         type: string
       tel:
         type: string
-      tel_otp:
-        type: string
-    type: object
-  services.RequestOTPRequest:
-    properties:
-      tel:
-        example: "0812345678"
-        type: string
-      user_id:
-        example: 1
-        type: integer
-    type: object
-  services.RequestOTPResponse:
-    properties:
-      refNo:
-        example: ABC123
-        type: string
-      status:
-        example: success
-        type: string
-    type: object
-  services.VerifyOTPRequest:
-    properties:
-      pin:
-        example: "123456"
-        type: string
-      refNo:
-        example: ABC123
-        type: string
-      tel:
-        example: "0812345678"
-        type: string
-    type: object
-  services.VerifyOTPResponse:
-    properties:
-      status:
-        example: success
+      updatedAt:
         type: string
     type: object
 info:
@@ -237,6 +195,111 @@ paths:
       summary: User onboarding
       tags:
       - user
+  /api/orders:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple orders
+      parameters:
+      - description: Order IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Delete order list
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      description: Create multiple orders
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Order list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupCreateOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create order list
+      tags:
+      - order
+  /api/skills:
+    post:
+      consumes:
+      - application/json
+      description: Create multiple skills by plan
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Skill list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupCreateTagSkill'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.TagSkillGroupResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create skill list
+      tags:
+      - skill
   /api/test:
     get:
       description: Get user_id from JWT
@@ -260,4 +323,119 @@ paths:
       summary: Get current user
       tags:
       - user
+  /api/vehicles:
+    delete:
+      consumes:
+      - application/json
+      description: Delete multiple vehicles
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeleteVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete vehicle list
+      tags:
+      - vehicle
+    post:
+      consumes:
+      - application/json
+      description: Create multiple vehicles
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle list
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GroupCreateVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.VehicleGroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create vehicle list
+      tags:
+      - vehicle
+  /api/vehicles/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Patch vehicle by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vehicle update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateVehicle'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.VehicleGroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update vehicle
+      tags:
+      - vehicle
 swagger: "2.0"

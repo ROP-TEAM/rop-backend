@@ -34,6 +34,15 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	otpService := services.NewOTPService(db, cfg)
 	otpHandler := handlers.NewOTPHandler(otpService)
 
+	vehicleService := services.NewVehicleService(db)
+	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
+
+	orderService := services.NewOrderService(db)
+	orderHandler := handlers.NewOrderHandler(orderService)
+
+	tagSkillService := services.NewTagSkillService(db)
+	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
+
 	planService := services.NewPlanService(db, cfg)
 	planHandler := handlers.NewPlanHandler(planService)
 
@@ -45,20 +54,24 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
 	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), otpHandler.VerifyOTP) //verifyมันฟรีไม่ต้องใส่limiter ??
 
+	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
+	api.Patch("/vehicles/:id", middleware.Protected(cfg), vehicleHandler.Patch)
+	api.Delete("/vehicles", middleware.Protected(cfg), vehicleHandler.Delete)
+
+	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
+	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
+
+	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
+
+	api.Post("/plan", middleware.Protected(cfg), planHandler.Create)
+	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
+	api.Delete("/plan/name/:id", middleware.Protected(cfg), planHandler.DeleteByID)
+
 	//test route
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
 
 	api.Post("/auth/otp", middleware.OTPLimiter(), handlers.TestOTP)
-
-	api.Post("/onboarding",
-		middleware.Protected(cfg),
-		userHandler.Onboarding,
-	)
-
-	api.Post("/plan", middleware.Protected(cfg), planHandler.Create)
-	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
-	api.Delete("/plan/name/:id", middleware.Protected(cfg), planHandler.DeleteByID)
 
 	return app
 }

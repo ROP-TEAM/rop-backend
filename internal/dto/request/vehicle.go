@@ -1,0 +1,54 @@
+package dto
+
+type CreateVehicle struct {
+	ProfileID   *int    `json:"profile_id"`
+	PlateNumber string  `json:"plate_number"`
+	Model       string  `json:"model"`
+	Name        string  `json:"name"`
+	Capacity    float64 `json:"capacity"`
+	MaxTask     *int    `json:"max_task"`
+
+	DailyWorkTimeStart  *int `json:"daily_work_time_start"`
+	DailyWorkTimeEnd    *int `json:"daily_work_time_end"`
+	DailyBreakTimeStart *int `json:"daily_break_time_start"`
+	DailyBreakTimeEnd   *int `json:"daily_break_time_end"`
+
+	StartLat *float64 `json:"start_latitude"`
+	StartLon *float64 `json:"start_longitude"`
+	EndLat   *float64 `json:"end_latitude"`
+	EndLon   *float64 `json:"end_longitude"`
+
+	TagSkillID []uint `json:"tag_skill_id"`
+}
+
+type GroupCreateVehicle struct {
+	PlanID   string          `json:"plan_id"`
+	Vehicles []CreateVehicle `json:"vehicles"`
+}
+
+type UpdateVehicle struct {
+	PlanID      string   `json:"plan_id"`
+	ProfileID   *int     `json:"profile_id"`
+	PlateNumber *string  `json:"plate_number"`
+	Model       *string  `json:"model"`
+	Name        *string  `json:"name"`
+	Capacity    *float64 `json:"capacity"`
+	MaxTask     *int     `json:"max_task"`
+
+	DailyWorkTimeStart  *int `json:"daily_work_time_start"`
+	DailyWorkTimeEnd    *int `json:"daily_work_time_end"`
+	DailyBreakTimeStart *int `json:"daily_break_time_start"`
+	DailyBreakTimeEnd   *int `json:"daily_break_time_end"`
+
+	StartLat *float64 `json:"start_latitude"`
+	StartLon *float64 `json:"start_longitude"`
+	EndLat   *float64 `json:"end_latitude"`
+	EndLon   *float64 `json:"end_longitude"`
+
+	TagSkillID *[]uint `json:"tag_skill_id"`
+}
+
+type DeleteVehicle struct {
+	PlanID string `json:"plan_id"`
+	ID     []uint `json:"id"`
+}

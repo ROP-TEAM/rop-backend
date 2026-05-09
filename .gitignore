@@ -1,2 +1,2 @@
 .env*
-ROP_Backend.exe
+tmp/
