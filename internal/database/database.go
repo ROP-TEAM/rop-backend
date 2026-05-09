@@ -44,6 +44,8 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 		&models.Order{},
 		&models.OrderTagSkill{},
 		&models.Route{},
+		&models.Otp{},
+		models.MockOTP{},
 	); err != nil {
 		log.Fatal("AutoMigrate failed:", err)
 	}

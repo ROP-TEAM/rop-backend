@@ -31,6 +31,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	userService := services.NewUserService(db)
 	userHandler := handlers.NewUserHandler(userService)
 
+	otpService := services.NewOTPService(db, cfg)
+	otpHandler := handlers.NewOTPHandler(otpService)
+
 	vehicleService := services.NewVehicleService(db)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 
@@ -41,8 +44,12 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
 
 	api := app.Group("/api")
-
 	api.Post("/auth/google", authHandler.GoogleLogin)
+
+	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)
+
+	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
+	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.VerifyOTP)
 
 	api.Post("/onboarding",
 		middleware.Protected(cfg),
