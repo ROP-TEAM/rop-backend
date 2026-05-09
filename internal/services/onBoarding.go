@@ -27,14 +27,12 @@ func (s *UserService) Onboarding(userID uint, payload models.OnboardingPayload) 
 			SubDistrict: payload.SubDistrict,
 			Address:     payload.Address,
 			PostalCode:  payload.PostalCode,
-			Tel:         payload.Tel,
 		}
 
 		if err := tx.Create(&company).Error; err != nil {
 			return err
 		}
 
-		user.Tel = payload.Tel
 		user.CompanyID = &company.ID
 		user.IsValidated = false
 

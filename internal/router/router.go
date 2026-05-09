@@ -34,6 +34,15 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	otpService := services.NewOTPService(db, cfg)
 	otpHandler := handlers.NewOTPHandler(otpService)
 
+	vehicleService := services.NewVehicleService(db)
+	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
+
+	orderService := services.NewOrderService(db)
+	orderHandler := handlers.NewOrderHandler(orderService)
+
+	tagSkillService := services.NewTagSkillService(db)
+	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -42,16 +51,20 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
 	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.VerifyOTP)
 
+	api.Post("/onboarding",
+		middleware.Protected(cfg),
+		userHandler.Onboarding,
+	)
+
+	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
+	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
+	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
+
 	//test route
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
 
 	api.Post("/auth/otp", middleware.OTPLimiter(), handlers.TestOTP)
-
-	api.Post("/onboarding",
-		middleware.Protected(cfg),
-		userHandler.Onboarding,
-	)
 
 	return app
 }
