@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func ValidateVehicleCreate(v *models.Vehicle) error {
+func ValidateVehicle(v *models.Vehicle) error {
 
 	if v.PlateNumber == "" {
 		return errors.New("plate number required")
