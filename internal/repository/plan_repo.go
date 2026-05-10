@@ -3,12 +3,17 @@ package repository
 import (
 	"ROP_Backend/internal/models"
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 )
 
 type PlanRepository struct {
 	db *gorm.DB
+}
+
+func (r *PlanRepository) WithTx(tx *gorm.DB) *PlanRepository {
+	return &PlanRepository{db: tx}
 }
 
 func NewPlanRepository(db *gorm.DB) *PlanRepository {
@@ -88,4 +93,31 @@ func (r *PlanRepository) HardDeleteByID(ctx context.Context, planID string, comp
 
 		return nil
 	})
+}
+
+func (r *PlanRepository) FindByID(ctx context.Context, planID string, companyID string) (*models.Plan, error) {
+	var plan models.Plan
+	err := r.db.WithContext(ctx).
+		Preload("TagSkills").
+		Preload("Orders.Skills").
+		Preload("Vehicles.Skills").
+		Preload("Routes.Stops").
+		Where("id = ? AND plan_company_fk = ?", planID, companyID).
+		First(&plan).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrPlanNotFound
+	}
+	return &plan, err
+}
+
+func (r *PlanRepository) CountExistingNameCopies(ctx context.Context, companyID string, originalName string) (*int64, error) {
+	var count int64
+	pattern := originalName + " (Copy%"
+
+	err := r.db.WithContext(ctx).Model(&models.Plan{}).
+		Where("plan_company_fk = ? AND name LIKE ?", companyID, pattern).
+		Count(&count).Error
+
+	return &count, err
 }
