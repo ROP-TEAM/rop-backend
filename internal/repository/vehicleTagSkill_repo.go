@@ -11,6 +11,10 @@ type VehicleTagSkillRepository struct {
 	db *gorm.DB
 }
 
+func (r *VehicleTagSkillRepository) WithTx(tx *gorm.DB) *VehicleTagSkillRepository {
+	return &VehicleTagSkillRepository{db: tx}
+}
+
 func NewVehicleTagSkillRepository(db *gorm.DB) *VehicleTagSkillRepository {
 	return &VehicleTagSkillRepository{db: db}
 }

@@ -11,6 +11,10 @@ type VehicleRepository struct {
 	db *gorm.DB
 }
 
+func (r *VehicleRepository) WithTx(tx *gorm.DB) *VehicleRepository {
+	return &VehicleRepository{db: tx}
+}
+
 func NewVehicleRepository(db *gorm.DB) *VehicleRepository {
 	return &VehicleRepository{db: db}
 }

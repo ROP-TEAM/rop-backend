@@ -11,6 +11,10 @@ type OrderRepository struct {
 	db *gorm.DB
 }
 
+func (r *OrderRepository) WithTx(tx *gorm.DB) *OrderRepository {
+	return &OrderRepository{db: tx}
+}
+
 func NewOrderRepository(db *gorm.DB) *OrderRepository {
 	return &OrderRepository{db: db}
 }

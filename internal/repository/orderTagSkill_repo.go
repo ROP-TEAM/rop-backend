@@ -11,6 +11,10 @@ type OrderTagSkillRepository struct {
 	db *gorm.DB
 }
 
+func (r *OrderTagSkillRepository) WithTx(tx *gorm.DB) *OrderTagSkillRepository {
+	return &OrderTagSkillRepository{db: tx}
+}
+
 func NewOrderTagSkillRepository(db *gorm.DB) *OrderTagSkillRepository {
 	return &OrderTagSkillRepository{db: db}
 }

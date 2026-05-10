@@ -5,6 +5,7 @@ import (
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/services"
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -208,9 +209,28 @@ func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 
 	res, err := h.service.DuplicateByID(ctx, id, claims.UserID)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		switch {
+		case errors.Is(err, services.ErrUserNotFound),
+			errors.Is(err, services.ErrPlanNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+
+		case errors.Is(err, services.ErrCreatingOrder),
+			errors.Is(err, services.ErrCreatingVehicle),
+			errors.Is(err, services.ErrCreatingTagSkill),
+			errors.Is(err, services.ErrCreatingOrderSkill),
+			errors.Is(err, services.ErrCreatingVehicleSkill):
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":   "internal server error",
+				"details": err.Error(),
+			})
+
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
 	}
 
 	return c.JSON(fiber.Map{

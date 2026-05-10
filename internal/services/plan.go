@@ -18,7 +18,7 @@ var (
 )
 
 type PlanService struct {
-	db                        *gorm.DB //ข้ามเรื่องarchitecture ไปก่อน เตือนด้วยๆ
+	db                        *gorm.DB //dbนี่ใช้เปิดtransactionอย่างเดียวคคับ หยวนๆกันหน่อย
 	planRepository            *repository.PlanRepository
 	userRepository            *repository.UserRepository
 	tagSkillRepository        *repository.TagSkillRepository
@@ -108,24 +108,47 @@ func (s *PlanService) DeleteByID(ctx context.Context, planID string, userID uint
 	return s.planRepository.HardDeleteByID(ctx, planID, *user.CompanyID)
 }
 
-func (s *PlanService) duplicateTagSkills(ctx context.Context, skills []models.TagSkill, newPlanID string) (map[uint]uint, error) {
-	skillMap := make(map[uint]uint)
-	for _, sk := range skills {
-		created := models.TagSkill{
+func (s *PlanService) duplicateTagSkills(
+	ctx context.Context,
+	repo *repository.TagSkillRepository,
+	skills []models.TagSkill,
+	newPlanID string,
+) (map[uint]uint, error) {
+
+	if len(skills) == 0 {
+		return make(map[uint]uint), nil
+	}
+
+	created := make([]models.TagSkill, len(skills))
+	for i, sk := range skills {
+		created[i] = models.TagSkill{
 			Name:   sk.Name,
 			Color:  sk.Color,
 			PlanID: newPlanID,
 		}
-		err := s.tagSkillRepository.CreateWithContext(ctx, &created)
-		if err != nil {
-			return nil, err
-		}
-		skillMap[sk.ID] = created.ID
 	}
+
+	if err := repo.BatchCreate(ctx, created); err != nil {
+		return nil, ErrCreatingTagSkill
+	}
+
+	skillMap := make(map[uint]uint)
+	for i, sk := range skills {
+		skillMap[sk.ID] = created[i].ID
+	}
+
 	return skillMap, nil
 }
 
-func (s *PlanService) duplicateOrders(ctx context.Context, orders []models.Order, newPlanID string, skillMap map[uint]uint) (map[uint]uint, error) {
+func (s *PlanService) duplicateOrders(
+	ctx context.Context,
+	orderRepo *repository.OrderRepository,
+	orderTagSkillRepo *repository.OrderTagSkillRepository,
+	orders []models.Order,
+	newPlanID string,
+	skillMap map[uint]uint,
+) (map[uint]uint, error) {
+
 	newOrders := make([]models.Order, len(orders))
 	for i, o := range orders {
 		newOrders[i] = models.Order{
@@ -143,8 +166,8 @@ func (s *PlanService) duplicateOrders(ctx context.Context, orders []models.Order
 		}
 	}
 
-	if err := s.orderRepository.BatchCreate(ctx, newOrders); err != nil {
-		return nil, err
+	if err := orderRepo.BatchCreate(ctx, newOrders); err != nil {
+		return nil, ErrCreatingOrder
 	}
 
 	orderMap := make(map[uint]uint)
@@ -163,15 +186,23 @@ func (s *PlanService) duplicateOrders(ctx context.Context, orders []models.Order
 	}
 
 	if len(orderTagSkills) > 0 {
-		if err := s.orderTagSkillRepository.BatchCreate(ctx, orderTagSkills); err != nil {
-			return nil, err
+		if err := orderTagSkillRepo.BatchCreate(ctx, orderTagSkills); err != nil {
+			return nil, ErrCreatingOrderSkill
 		}
 	}
 
 	return orderMap, nil
 }
 
-func (s *PlanService) duplicateVehicles(ctx context.Context, vehicles []models.Vehicle, newPlanID string, skillMap map[uint]uint) (map[uint]uint, error) {
+func (s *PlanService) duplicateVehicles(
+	ctx context.Context,
+	vehicleRepo *repository.VehicleRepository,
+	vehicleTagSkillRepo *repository.VehicleTagSkillRepository,
+	vehicles []models.Vehicle,
+	newPlanID string,
+	skillMap map[uint]uint,
+) (map[uint]uint, error) {
+
 	newVehicles := make([]models.Vehicle, len(vehicles))
 	for i, v := range vehicles {
 		newVehicles[i] = models.Vehicle{
@@ -192,8 +223,8 @@ func (s *PlanService) duplicateVehicles(ctx context.Context, vehicles []models.V
 		}
 	}
 
-	if err := s.vehicleRepository.BatchCreate(ctx, newVehicles); err != nil {
-		return nil, err
+	if err := vehicleRepo.BatchCreate(ctx, newVehicles); err != nil {
+		return nil, ErrCreatingVehicle
 	}
 
 	vehicleMap := make(map[uint]uint)
@@ -212,32 +243,45 @@ func (s *PlanService) duplicateVehicles(ctx context.Context, vehicles []models.V
 	}
 
 	if len(vehicleTagSkills) > 0 {
-		if err := s.vehicleTagSkillRepository.BatchCreate(ctx, vehicleTagSkills); err != nil {
-			return nil, err
+		if err := vehicleTagSkillRepo.BatchCreate(ctx, vehicleTagSkills); err != nil {
+			return nil, ErrCreatingVehicleSkill
 		}
 	}
 
 	return vehicleMap, nil
 }
 
-func (s *PlanService) DuplicateByID(ctx context.Context, planID string, userID uint) (*dto.DuplicatePlanByIDResponse, error) {
+func (s *PlanService) DuplicateByID(
+	ctx context.Context,
+	planID string,
+	userID uint,
+) (*dto.DuplicatePlanByIDResponse, error) {
+
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
-		return nil, err
+		return nil, ErrUserNotFound
 	}
 
 	original, err := s.planRepository.FindByID(ctx, planID, *user.CompanyID)
 	if err != nil {
-		return nil, err
+		return nil, ErrPlanNotFound
 	}
+
 	if original == nil {
-		return nil, err
+		return nil, ErrPlanNotFound
 	}
 
 	var newPlan models.Plan
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 
-		count, err := s.planRepository.CountExistingCopies(ctx, *user.CompanyID, original.Name)
+		planRepository := s.planRepository.WithTx(tx)
+		skillRepo := s.tagSkillRepository.WithTx(tx)
+		orderRepo := s.orderRepository.WithTx(tx)
+		orderTagSkillRepo := s.orderTagSkillRepository.WithTx(tx)
+		vehicleRepo := s.vehicleRepository.WithTx(tx)
+		vehicleTagSkillRepo := s.vehicleTagSkillRepository.WithTx(tx)
+
+		count, err := planRepository.CountExistingNameCopies(ctx, *user.CompanyID, original.Name)
 		if err != nil {
 			return err
 		}
@@ -249,27 +293,25 @@ func (s *PlanService) DuplicateByID(ctx context.Context, planID string, userID u
 			Status:    "pending",
 		}
 
-		err = s.planRepository.Create(ctx, &newPlan)
+		err = planRepository.Create(ctx, &newPlan)
+		if err != nil {
+			return ErrCreatingPlan
+		}
+
+		skillMap, err := s.duplicateTagSkills(ctx, skillRepo, original.TagSkills, newPlan.ID)
 		if err != nil {
 			return err
 		}
 
-		skillMap, err := s.duplicateTagSkills(ctx, original.TagSkills, newPlan.ID)
+		_, err = s.duplicateVehicles(ctx, vehicleRepo, vehicleTagSkillRepo, original.Vehicles, newPlan.ID, skillMap)
 		if err != nil {
 			return err
 		}
 
-		_, err = s.duplicateVehicles(ctx, original.Vehicles, newPlan.ID, skillMap)
+		_, err = s.duplicateOrders(ctx, orderRepo, orderTagSkillRepo, original.Orders, newPlan.ID, skillMap)
 		if err != nil {
 			return err
 		}
-
-		_, err = s.duplicateOrders(ctx, original.Orders, newPlan.ID, skillMap)
-		if err != nil {
-			return err
-		}
-
-		// 6.duplicate route and stop
 
 		return nil
 	})

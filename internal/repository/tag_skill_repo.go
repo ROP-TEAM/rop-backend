@@ -11,6 +11,10 @@ type TagSkillRepository struct {
 	db *gorm.DB
 }
 
+func (r *TagSkillRepository) WithTx(tx *gorm.DB) *TagSkillRepository {
+	return &TagSkillRepository{db: tx}
+}
+
 func NewTagSkillRepository(db *gorm.DB) *TagSkillRepository {
 	return &TagSkillRepository{db: db}
 }
@@ -87,4 +91,8 @@ func (r *TagSkillRepository) CheckPlanExists(planID string) error {
 
 func (r *TagSkillRepository) CreateWithContext(ctx context.Context, skill *models.TagSkill) error {
 	return r.db.WithContext(ctx).Create(skill).Error
+}
+
+func (r *TagSkillRepository) BatchCreate(ctx context.Context, skills []models.TagSkill) error {
+	return r.db.WithContext(ctx).Create(&skills).Error
 }

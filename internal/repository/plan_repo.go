@@ -12,6 +12,10 @@ type PlanRepository struct {
 	db *gorm.DB
 }
 
+func (r *PlanRepository) WithTx(tx *gorm.DB) *PlanRepository {
+	return &PlanRepository{db: tx}
+}
+
 func NewPlanRepository(db *gorm.DB) *PlanRepository {
 	return &PlanRepository{db: db}
 }
@@ -102,12 +106,12 @@ func (r *PlanRepository) FindByID(ctx context.Context, planID string, companyID 
 		First(&plan).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+		return nil, ErrPlanNotFound
 	}
 	return &plan, err
 }
 
-func (r *PlanRepository) CountExistingCopies(ctx context.Context, companyID string, originalName string) (*int64, error) {
+func (r *PlanRepository) CountExistingNameCopies(ctx context.Context, companyID string, originalName string) (*int64, error) {
 	var count int64
 	pattern := originalName + " (Copy%"
 
