@@ -9,6 +9,6 @@ type TagSkillResponse struct {
 }
 
 type TagSkillGroupResponse struct {
-	Message string            `json:"message"`
-	Data    []VehicleResponse `json:"data"`
+	Message string             `json:"message"`
+	Data    []TagSkillResponse `json:"data"`
 }
