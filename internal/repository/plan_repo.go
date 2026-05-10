@@ -4,6 +4,7 @@ import (
 	"ROP_Backend/internal/models"
 	"context"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -46,49 +47,54 @@ func (r *PlanRepository) HardDeleteByID(ctx context.Context, planID string, comp
 		var plan models.Plan
 		err := tx.Unscoped().Where("id = ? AND plan_company_fk = ?", planID, companyID).
 			First(&plan).Error
+
 		if err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return ErrNoRowsAffected
+			}
+			return fmt.Errorf("finding plan: %w", err)
 		}
 
 		err = tx.Exec("DELETE FROM order_tag_skills WHERE order_id IN (SELECT id FROM orders WHERE order_plan_fk = ?)", planID).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting order_tag_skills: %w", err)
 		}
 
 		err = tx.Exec("DELETE FROM vehicle_tag_skills WHERE vehicle_id IN (SELECT id FROM vehicles WHERE vehicle_plan_fk = ?)", planID).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting vehicle_tag_skills: %w", err)
 		}
 
 		err = tx.Exec("DELETE FROM stops WHERE route_id IN (SELECT id FROM routes WHERE plan_id = ?)", planID).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting stop: %w", err)
 		}
 
 		// first child
 		err = tx.Unscoped().Where("plan_id = ?", planID).Delete(&models.Route{}).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting route: %w", err)
 		}
 
 		err = tx.Unscoped().Where("vehicle_plan_fk = ?", planID).Delete(&models.Vehicle{}).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting vehicle: %w", err)
 		}
 
 		err = tx.Unscoped().Where("order_plan_fk = ?", planID).Delete(&models.Order{}).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting order: %w", err)
+
 		}
 
 		err = tx.Unscoped().Where("tag_skill_plan_fk = ?", planID).Delete(&models.TagSkill{}).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting tag skill: %w", err)
 		}
 
 		err = tx.Unscoped().Delete(&plan).Error
 		if err != nil {
-			return err
+			return fmt.Errorf("deleting plan: %w", err)
 		}
 
 		return nil

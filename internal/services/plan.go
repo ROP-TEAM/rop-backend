@@ -54,8 +54,11 @@ func NewPlanService(db *gorm.DB, cfg *config.Config) *PlanService {
 func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.CreatePlanRequest) (*dto.CreatePlanResponse, error) {
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
-		log.Printf("[planService]: finding company id by user id: %v", err)
-		return nil, ErrInvalidUser
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("creating plan: %w", ErrInvalidUser)
+		}
+		log.Printf("[planService]: CreateByUserID finding company id by user id: %v", err)
+		return nil, fmt.Errorf("creating plan: %w", err)
 	}
 
 	newPlan := models.Plan{
@@ -65,8 +68,8 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 	}
 	err = s.planRepository.Create(ctx, &newPlan)
 	if err != nil {
-		log.Printf("[planService]: creating plan: %v", err)
-		return nil, err
+		log.Printf("[planService]: CreateByUserID creating plan: %v", err)
+		return nil, fmt.Errorf("creating plan: %w", err)
 	}
 
 	return &dto.CreatePlanResponse{
@@ -76,20 +79,33 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 	}, nil
 }
 
-func (s *PlanService) UpdateNameByID(ctx context.Context, planID string, userID uint, req *dto.UpdatePlanNameByIDRequest) (*dto.UpdatePlanNameByIDResponse, error) {
+func (s *PlanService) UpdateNameByID(ctx context.Context,
+	planID string,
+	userID uint,
+	req *dto.UpdatePlanNameByIDRequest,
+) (*dto.UpdatePlanNameByIDResponse, error) {
+
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
+		log.Printf("[planService] UpdateNameByID finding user %v", err)
+		return nil, fmt.Errorf("finding user: %w", err)
 	}
 
 	if user.CompanyID == nil {
-		return nil, errors.New("user has no company")
+		return nil, ErrUserHasNoCompany
 	}
 
 	updatedPlan := models.Plan{Name: *req.Name}
 	err = s.planRepository.UpdateByID(ctx, planID, *user.CompanyID, &updatedPlan)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, repository.ErrNoRowsAffected) {
+			return nil, ErrPlanNotFound
+		}
+		log.Printf("[planService] UpdateNameByID updating plan: %v", err)
+		return nil, fmt.Errorf("updating plan: %w", err)
 	}
 
 	return &dto.UpdatePlanNameByIDResponse{Name: updatedPlan.Name, UpdatedAt: updatedPlan.UpdatedAt}, nil
@@ -98,14 +114,27 @@ func (s *PlanService) UpdateNameByID(ctx context.Context, planID string, userID 
 func (s *PlanService) DeleteByID(ctx context.Context, planID string, userID uint) error {
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
-		return err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
+		}
+		log.Printf("[planService] DeleteByID finding user: %v", err)
+		return fmt.Errorf("finding user: %w", err)
 	}
 
 	if user.CompanyID == nil {
-		return errors.New("user has no company")
+		return ErrUserHasNoCompany
 	}
 
-	return s.planRepository.HardDeleteByID(ctx, planID, *user.CompanyID)
+	err = s.planRepository.HardDeleteByID(ctx, planID, *user.CompanyID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNoRowsAffected) {
+			return ErrPlanNotFound
+		}
+		log.Printf("[planService] DeleteByID deleting plan id=%s: %v", planID, err)
+		return fmt.Errorf("deleting plan: %w", err)
+	}
+
+	return nil
 }
 
 func (s *PlanService) duplicateTagSkills(

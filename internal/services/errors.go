@@ -17,6 +17,7 @@ var (
 	ErrUsedOTPRequest       = errors.New("tel already be verified by otp pin")
 	ErrUserNotFound         = errors.New("user not found")
 	ErrPlanNotFound         = errors.New("plan not found")
+	ErrUserHasNoCompany     = errors.New("user has not been employed yet")
 	ErrCreatingPlan         = errors.New("creating plan")
 	ErrCreatingTagSkill     = errors.New("creating tag skill")
 	ErrCreatingOrder        = errors.New("creating order")

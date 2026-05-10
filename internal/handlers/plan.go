@@ -62,9 +62,16 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 
 	res, err := h.service.CreateByUserID(ctx, userID, &body)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		switch {
+		case errors.Is(err, services.ErrInvalidUser):
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "invalid user",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
 	}
 
 	return c.JSON(fiber.Map{
@@ -121,9 +128,21 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 
 	res, err := h.service.UpdateNameByID(ctx, id, claims.UserID, &body)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		switch {
+		case errors.Is(err, services.ErrPlanNotFound),
+			errors.Is(err, services.ErrUserNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "user has no company",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
 	}
 
 	return c.JSON(fiber.Map{
@@ -165,9 +184,21 @@ func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 
 	err := h.service.DeleteByID(ctx, id, claims.UserID)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		switch {
+		case errors.Is(err, services.ErrPlanNotFound),
+			errors.Is(err, services.ErrUserNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "not found",
+			})
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "user has no company",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
 	}
 
 	return c.JSON(fiber.Map{
