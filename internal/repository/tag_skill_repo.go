@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ROP_Backend/internal/models"
+	"context"
 
 	"gorm.io/gorm"
 )
@@ -82,4 +83,8 @@ func (r *TagSkillRepository) CheckPlanExists(planID string) error {
 	var plan models.Plan
 
 	return r.db.First(&plan, "id = ?", planID).Error
+}
+
+func (r *TagSkillRepository) CreateWithContext(ctx context.Context, skill *models.TagSkill) error {
+	return r.db.WithContext(ctx).Create(skill).Error
 }

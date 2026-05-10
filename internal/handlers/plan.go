@@ -174,3 +174,47 @@ func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 		// "data":    res,
 	})
 }
+
+// DuplicatePlanByID godoc
+// @Summary DuplicatePlan and its legacy by id
+// @Description user has to be in the same company as target plan to allow duplicating it
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param body body dto.DuplicatePlanByIDRequest true "plan"
+// @Success 200 {object} dto.DuplicatePlanByIDResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plan/:id [post]
+func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "bad request",
+		})
+	}
+
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.service.DuplicateByID(ctx, id, claims.UserID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "plan duplicated",
+		"data":    res,
+	})
+}

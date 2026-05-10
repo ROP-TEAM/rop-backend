@@ -2,6 +2,7 @@ package repository
 
 import (
 	"ROP_Backend/internal/models"
+	"context"
 
 	"gorm.io/gorm"
 )
@@ -98,4 +99,8 @@ func (r *VehicleRepository) Delete(
 	return r.db.
 		Delete(&models.Vehicle{}, id).
 		Error
+}
+
+func (r *VehicleRepository) BatchCreate(ctx context.Context, vehicles []models.Vehicle) error {
+	return r.db.WithContext(ctx).CreateInBatches(vehicles, 100).Error
 }
