@@ -844,10 +844,10 @@
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
                 }
             }
@@ -1066,11 +1066,25 @@
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
+                }
+            }
+        },
+        "dto.VehicleTagSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1380,10 +1394,10 @@
                 "profile_id": {
                     "type": "integer"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/response.TagSkillResponse"
                     }
                 },
                 "vehicle_id": {

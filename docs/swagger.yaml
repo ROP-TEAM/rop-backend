@@ -67,9 +67,9 @@ definitions:
         type: number
       start_longitude:
         type: number
-      tag_skill_id:
+      tag_skills:
         items:
-          type: integer
+          $ref: '#/definitions/dto.VehicleTagSkill'
         type: array
     type: object
   dto.DeleteVehicle:
@@ -214,10 +214,19 @@ definitions:
         type: number
       start_longitude:
         type: number
-      tag_skill_id:
+      tag_skills:
         items:
-          type: integer
+          $ref: '#/definitions/dto.VehicleTagSkill'
         type: array
+    type: object
+  dto.VehicleTagSkill:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
     type: object
   dto.VerifyOTPRequest:
     properties:
@@ -423,9 +432,9 @@ definitions:
         type: string
       profile_id:
         type: integer
-      tag_skill_id:
+      tag_skills:
         items:
-          type: integer
+          $ref: '#/definitions/response.TagSkillResponse'
         type: array
       vehicle_id:
         type: integer

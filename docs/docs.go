@@ -855,10 +855,10 @@ const docTemplate = `{
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
                 }
             }
@@ -1077,11 +1077,25 @@ const docTemplate = `{
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
+                }
+            }
+        },
+        "dto.VehicleTagSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1391,10 +1405,10 @@ const docTemplate = `{
                 "profile_id": {
                     "type": "integer"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/response.TagSkillResponse"
                     }
                 },
                 "vehicle_id": {

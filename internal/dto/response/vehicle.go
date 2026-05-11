@@ -9,7 +9,7 @@ type VehicleResponse struct {
 	Capacity    float64 `json:"capacity"`
 	MaxTask     *int    `json:"max_task"`
 
-	TagSkillID []uint `json:"tag_skill_id"`
+	TagSkills []TagSkillResponse `json:"tag_skills"`
 }
 
 type VehicleGroupResponse struct {

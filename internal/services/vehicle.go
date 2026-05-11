@@ -20,16 +20,44 @@ func NewVehicleService(db *gorm.DB) *VehicleService {
 	return &VehicleService{repo: repo}
 }
 
-func mapVehicleResponse(
+func (s *VehicleService) mapVehicleResponse(
 	vehicle *models.Vehicle,
-) response.VehicleResponse {
+) (
+	response.VehicleResponse,
+	error,
+) {
 
-	var tagSkillIDs []uint
+	var tagSkills []response.TagSkillResponse
 
-	for _, s := range vehicle.Skills {
-		tagSkillIDs = append(
-			tagSkillIDs,
-			s.ID,
+	for _, skill := range vehicle.Skills {
+
+		orderCount, err :=
+			s.repo.CountOrders(
+				skill.ID,
+			)
+
+		if err != nil {
+			return response.VehicleResponse{}, err
+		}
+
+		vehicleCount, err :=
+			s.repo.CountVehicles(
+				skill.ID,
+			)
+
+		if err != nil {
+			return response.VehicleResponse{}, err
+		}
+
+		tagSkills = append(
+			tagSkills,
+			response.TagSkillResponse{
+				ID:           skill.ID,
+				Name:         skill.Name,
+				Color:        skill.Color,
+				OrderCount:   orderCount,
+				VehicleCount: vehicleCount,
+			},
 		)
 	}
 
@@ -41,8 +69,8 @@ func mapVehicleResponse(
 		Name:        vehicle.Name,
 		Capacity:    vehicle.Capacity,
 		MaxTask:     vehicle.MaxTask,
-		TagSkillID:  tagSkillIDs,
-	}
+		TagSkills:   tagSkills,
+	}, nil
 }
 
 func (s *VehicleService) GroupCreate(
@@ -97,12 +125,49 @@ func (s *VehicleService) GroupCreate(
 
 		var skills []models.VehicleTagSkill
 
-		for _, skillID := range v.TagSkillID {
+		for _, tag := range v.TagSkills {
 
-			skills = append(skills, models.VehicleTagSkill{
-				VehicleID:  newVehicle.ID,
-				TagSkillID: skillID,
-			})
+			var tagSkillID uint
+
+			if tag.ID != nil {
+
+				tagSkillID = *tag.ID
+
+			} else {
+
+				existing, err :=
+					s.repo.FindTagSkillByName(
+						tag.Name,
+					)
+
+				if err == nil {
+
+					tagSkillID = existing.ID
+
+				} else {
+
+					newTag := models.TagSkill{
+						Name:  tag.Name,
+						Color: tag.Color,
+					}
+
+					if err := s.repo.CreateTagSkill(
+						&newTag,
+					); err != nil {
+						return nil, err
+					}
+
+					tagSkillID = newTag.ID
+				}
+			}
+
+			skills = append(
+				skills,
+				models.VehicleTagSkill{
+					VehicleID:  newVehicle.ID,
+					TagSkillID: tagSkillID,
+				},
+			)
 		}
 
 		if len(skills) > 0 {
@@ -111,16 +176,28 @@ func (s *VehicleService) GroupCreate(
 			}
 		}
 
-		responses = append(responses, response.VehicleResponse{
-			VehicleID:   newVehicle.ID,
-			ProfileID:   newVehicle.ProfileID,
-			PlateNumber: newVehicle.PlateNumber,
-			Model:       newVehicle.Model,
-			Name:        newVehicle.Name,
-			Capacity:    newVehicle.Capacity,
-			MaxTask:     newVehicle.MaxTask,
-			TagSkillID:  v.TagSkillID,
-		})
+		createdVehicle, err :=
+			s.repo.FindByIDWithSkills(
+				newVehicle.ID,
+			)
+
+		if err != nil {
+			return nil, err
+		}
+
+		responseData, err :=
+			s.mapVehicleResponse(
+				createdVehicle,
+			)
+
+		if err != nil {
+			return nil, err
+		}
+
+		responses = append(
+			responses,
+			responseData,
+		)
 	}
 
 	return responses, nil
@@ -204,25 +281,66 @@ func (s *VehicleService) Update(
 		return nil, err
 	}
 
-	if req.TagSkillID != nil {
+	if req.TagSkills != nil {
 
-		if err := s.repo.DeleteSkills(vehicle.ID); err != nil {
+		if err := s.repo.DeleteSkills(
+			vehicle.ID,
+		); err != nil {
 			return nil, err
 		}
 
 		var skills []models.VehicleTagSkill
 
-		for _, skillID := range *req.TagSkillID {
+		for _, tag := range *req.TagSkills {
 
-			skills = append(skills, models.VehicleTagSkill{
-				VehicleID:  vehicle.ID,
-				TagSkillID: skillID,
-			})
+			var tagSkillID uint
+
+			if tag.ID != nil {
+
+				tagSkillID = *tag.ID
+
+			} else {
+
+				existing, err :=
+					s.repo.FindTagSkillByName(
+						tag.Name,
+					)
+
+				if err == nil {
+
+					tagSkillID = existing.ID
+
+				} else {
+
+					newTag := models.TagSkill{
+						Name:  tag.Name,
+						Color: tag.Color,
+					}
+
+					if err := s.repo.CreateTagSkill(
+						&newTag,
+					); err != nil {
+						return nil, err
+					}
+
+					tagSkillID = newTag.ID
+				}
+			}
+
+			skills = append(
+				skills,
+				models.VehicleTagSkill{
+					VehicleID:  vehicle.ID,
+					TagSkillID: tagSkillID,
+				},
+			)
 		}
 
 		if len(skills) > 0 {
 
-			if err := s.repo.CreateSkills(skills); err != nil {
+			if err := s.repo.CreateSkills(
+				skills,
+			); err != nil {
 				return nil, err
 			}
 		}
@@ -236,7 +354,14 @@ func (s *VehicleService) Update(
 		return nil, err
 	}
 
-	responseData := mapVehicleResponse(updatedVehicle)
+	responseData, err :=
+		s.mapVehicleResponse(
+			updatedVehicle,
+		)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &responseData, nil
 }
