@@ -53,6 +53,12 @@ func (r *OrderRepository) FindByIDAndPlan(
 	return &order, nil
 }
 
+func (r *OrderRepository) Update(
+	order *models.Order,
+) error {
+	return r.db.Save(order).Error
+}
+
 func (r *OrderRepository) DeleteSkills(
 	orderID uint,
 ) error {

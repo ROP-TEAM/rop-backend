@@ -4,6 +4,7 @@ import (
 	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/middleware"
 	"ROP_Backend/internal/services"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -55,6 +56,61 @@ func (h *OrderHandler) Create(c fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "orders created",
+		"data":    data,
+	})
+}
+
+// PatchOrder godoc
+// @Summary Update order
+// @Description Patch order by id
+// @Tags order
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path int true "Order ID"
+// @Param body body dto.UpdateOrder true "Order update"
+// @Success 200 {object} response.OrderResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/orders/{id} [patch]
+func (h *OrderHandler) Patch(c fiber.Ctx) error {
+
+	var req dto.UpdateOrder
+
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "invalid order id",
+		})
+	}
+
+	if err := c.Bind().Body(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "invalid body",
+		})
+	}
+
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	data, err := h.service.Update(
+		uint(id),
+		req,
+	)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "order updated",
 		"data":    data,
 	})
 }
