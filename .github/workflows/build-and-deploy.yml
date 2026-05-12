@@ -1,3 +1,5 @@
+# Release flow — pins rop-algorithm to latest GitHub Release tag.
+# rop-algorithm must be public, or set GOPRIVATE + PAT in Docker build.
 name: Build and Deploy
 
 on:
@@ -23,6 +25,27 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get latest rop-algorithm release tag
+        id: algotag
+        run: |
+          TAG=$(gh api repos/ROP-TEAM/rop-algorithm/releases/latest --jq .tag_name 2>/dev/null || echo "")
+          if [ -z "$TAG" ]; then
+            echo "No release found — falling back to replace directive"
+            echo "tag=" >> $GITHUB_OUTPUT
+          else
+            echo "Using rop-algorithm $TAG"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pin rop-algorithm version in go.mod
+        if: steps.algotag.outputs.tag != ''
+        run: |
+          go mod edit -require "github.com/ROP-TEAM/rop-algorithm@${{ steps.algotag.outputs.tag }}"
+          go mod edit -dropreplace "github.com/ROP-TEAM/rop-algorithm"
+          go mod tidy
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
