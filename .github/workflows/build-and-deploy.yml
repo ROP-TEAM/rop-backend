@@ -26,6 +26,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure Go private module access
+        run: git config --global url."https://x-access-token:${{ secrets.ALGO_PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Set GOPRIVATE
+        run: echo "GOPRIVATE=github.com/ROP-TEAM/rop-algorithm" >> $GITHUB_ENV
+
       - name: Get latest rop-algorithm release tag
         id: algotag
         run: |
@@ -38,7 +44,7 @@ jobs:
             echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ALGO_PAT }}
 
       - name: Pin rop-algorithm version in go.mod
         if: steps.algotag.outputs.tag != ''
@@ -55,7 +61,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.ALGO_PAT }}
 
       - name: Extract metadata
         id: meta

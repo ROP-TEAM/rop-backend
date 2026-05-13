@@ -23,6 +23,7 @@ jobs:
         with:
           repository: ROP-TEAM/rop-algorithm
           path: rop-algorithm
+          token: ${{ secrets.ALGO_PAT }}
 
       - uses: actions/setup-go@v5
         with:
