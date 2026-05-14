@@ -256,6 +256,35 @@ definitions:
       user_id:
         type: integer
     type: object
+  handlers.locationInput:
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+    type: object
+  handlers.matrixTestRequest:
+    properties:
+      locations:
+        items:
+          $ref: '#/definitions/handlers.locationInput'
+        type: array
+    type: object
+  handlers.matrixTestResponse:
+    properties:
+      distances:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+      durations:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+    type: object
   models.Company:
     properties:
       address:
@@ -452,6 +481,44 @@ paths:
       summary: Test OTP endpoint
       tags:
       - otp
+  /api/matrix/test:
+    post:
+      consumes:
+      - application/json
+      description: Build an n×n distance matrix from a list of lat/lng locations.
+        Durations in minutes, distances in meters.
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: List of locations (min 2)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.matrixTestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.matrixTestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Test distance matrix
+      tags:
+      - matrix
   /api/onboarding:
     post:
       consumes:

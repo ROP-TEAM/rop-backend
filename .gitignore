@@ -2,3 +2,5 @@
 tmp/
 
 *.local.md  # local note
+
+*.exe

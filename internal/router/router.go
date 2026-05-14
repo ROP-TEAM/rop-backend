@@ -63,6 +63,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
 
+	matrixHandler := handlers.NewMatrixHandler(cfg)
+	api.Post("/matrix/test", middleware.Protected(cfg), matrixHandler.Test)
+
 	//test route
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)

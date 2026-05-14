@@ -16,6 +16,11 @@ type Claims struct {
 
 func Protected(cfg *config.Config) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		if cfg.DISABLE_AUTH {
+			c.Locals("claims", &Claims{UserID: 0, Email: "dev@local"})
+			return c.Next()
+		}
+
 		header := c.Get("Authorization")
 		if header == "" {
 			return c.Status(401).JSON(fiber.Map{"error": "Missing Token"})
