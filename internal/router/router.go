@@ -43,6 +43,12 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	tagSkillService := services.NewTagSkillService(db)
 	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
 
+	matrixService, err := services.NewMatrixService(cfg)
+	if err != nil {
+		panic(err)
+	}
+	matrixHandler := handlers.NewMatrixHandler(matrixService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -63,7 +69,6 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
 
-	matrixHandler := handlers.NewMatrixHandler(cfg)
 	api.Post("/matrix/test", middleware.Protected(cfg), matrixHandler.Test)
 
 	//test route

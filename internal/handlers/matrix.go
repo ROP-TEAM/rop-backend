@@ -1,35 +1,18 @@
 package handlers
 
 import (
-	"context"
-
-	"ROP_Backend/internal/config"
+	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/services"
 
-	"github.com/ROP-TEAM/rop-algorithm/model"
 	"github.com/gofiber/fiber/v3"
 )
 
 type MatrixHandler struct {
-	cfg *config.Config
+	service *services.MatrixService
 }
 
-func NewMatrixHandler(cfg *config.Config) *MatrixHandler {
-	return &MatrixHandler{cfg: cfg}
-}
-
-type matrixTestRequest struct {
-	Locations []locationInput `json:"locations"`
-}
-
-type locationInput struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
-}
-
-type matrixTestResponse struct {
-	Durations [][]int `json:"durations"`
-	Distances [][]int `json:"distances"`
+func NewMatrixHandler(s *services.MatrixService) *MatrixHandler {
+	return &MatrixHandler{service: s}
 }
 
 // TestMatrix godoc
@@ -40,13 +23,13 @@ type matrixTestResponse struct {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
-// @Param body body matrixTestRequest true "List of locations (min 2)"
+// @Param body body dto.MatrixTestRequest true "List of locations (min 2)"
 // @Success 200 {object} matrixTestResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/matrix/test [post]
 func (h *MatrixHandler) Test(c fiber.Ctx) error {
-	var req matrixTestRequest
+	var req dto.MatrixTestRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "invalid body"})
 	}
@@ -55,23 +38,14 @@ func (h *MatrixHandler) Test(c fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "at least 2 locations required"})
 	}
 
-	dm, err := services.NewDistanceMatrix(h.cfg)
+	result, err := h.service.BuildMatrix(req.Locations)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	locs := make([]model.Location, len(req.Locations))
-	for i, l := range req.Locations {
-		locs[i] = model.NewLatLngLocation(l.Lat, l.Lng)
-	}
-
-	durations, distances, err := dm.BuildMatrix(context.Background(), locs, model.MatrixOptions{})
-	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
-	}
-
-	return c.JSON(matrixTestResponse{
-		Durations: durations,
-		Distances: distances,
+	return c.JSON(fiber.Map{
+		"message": "matrix Built ",
+		"node":    len(req.Locations),
+		"result":  result,
 	})
 }
