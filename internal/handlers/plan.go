@@ -67,6 +67,11 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid user",
 			})
+
+		case errors.Is(err, services.ErrPlanHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "user has no company",
+			})
 		default:
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "internal server error",

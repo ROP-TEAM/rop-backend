@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	ErrInvalidUser = errors.New("invalid user or user not found ")
+	ErrInvalidUser      = errors.New("invalid user or user not found ")
+	ErrPlanHasNoCompany = errors.New("user has no company")
 )
 
 type PlanService struct {
@@ -59,6 +60,10 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 		}
 		log.Printf("[planService]: CreateByUserID finding company id by user id: %v", err)
 		return nil, fmt.Errorf("creating plan: %w", err)
+	}
+
+	if user.CompanyID == nil {
+		return nil, ErrPlanHasNoCompany
 	}
 
 	newPlan := models.Plan{

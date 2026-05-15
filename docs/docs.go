@@ -147,6 +147,157 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/onboarding/otp": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Send an OTP SMS to the given phone number. Requires a valid JWT. Returns a refNo to use during verification.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "onboarding"
+                ],
+                "summary": "Request OTP",
+                "parameters": [
+                    {
+                        "description": "Phone number payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RequestOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.OTPResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.RequestOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Missing/invalid tel field or malformed body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid JWT",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Phone already verified / recent request exists / user exceeded request limit",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Upstream OTP provider unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/onboarding/otp/verify": {
+            "post": {
+                "description": "Verify an OTP pin using the refNo and phone number from the request step. Increments attempt count on failure and marks the OTP as used on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "onboarding"
+                ],
+                "summary": "Verify OTP",
+                "parameters": [
+                    {
+                        "description": "OTP verification payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP verified; user phone validated",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.OTPResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.VerifyOTPResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Missing/invalid tel, pin, or refNo — or record not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Incorrect OTP pin",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "OTP expired / already used / max attempts reached",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.OTPResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/orders": {
             "post": {
                 "security": [
@@ -205,6 +356,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete multiple orders",
                 "consumes": [
                     "application/json"
@@ -217,6 +373,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete order list",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Order IDs",
                         "name": "body",
@@ -232,6 +395,234 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/plan": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a plan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Create plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "plan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePlanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/plan/:id": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "user has to be in the same company as target plan to allow duplicating it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "DuplicatePlan and its legacy by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "plan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DuplicatePlanByIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DuplicatePlanByIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "hard delete plan by id by attach plan id via url params, it will delte all its legacy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Delete plan by plan id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "plan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeletePlanByIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeletePlanByIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Patch a plan name by id by attach plan id via url params, and updated name by body",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Patch plan name by plan id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "plan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePlanNameByIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePlanNameByIDResponse"
                         }
                     },
                     "400": {
@@ -387,10 +778,128 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.VehicleGroupResponse"
-                            }
+                            "$ref": "#/definitions/response.VehicleGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete multiple vehicles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicle"
+                ],
+                "summary": "Delete vehicle list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Vehicle IDs",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteVehicle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/vehicles/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Patch vehicle by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicle"
+                ],
+                "summary": "Update vehicle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Vehicle update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateVehicle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.VehicleGroupResponse"
                         }
                     },
                     "400": {
@@ -410,18 +919,413 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.APIResponse": {
+        "dto.CreateOrder": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number"
+                },
+                "des_latitude": {
+                    "type": "number"
+                },
+                "des_longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "0-3",
+                    "type": "integer"
+                },
+                "service_time": {
+                    "type": "integer"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time_window_end": {
+                    "type": "integer"
+                },
+                "time_window_start": {
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "0=delivery,1=pickup",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreatePlanRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "untangle"
+                },
+                "plan_date": {
+                    "type": "string",
+                    "example": "2026-05-05 15:44:09.523069+00"
+                }
+            }
+        },
+        "dto.CreatePlanResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-05-05 15:44:09.523069+00"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "whatthehell"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "what"
+                }
+            }
+        },
+        "dto.CreateTagSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateVehicle": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number"
+                },
+                "daily_break_time_end": {
+                    "type": "integer"
+                },
+                "daily_break_time_start": {
+                    "type": "integer"
+                },
+                "daily_work_time_end": {
+                    "type": "integer"
+                },
+                "daily_work_time_start": {
+                    "type": "integer"
+                },
+                "end_latitude": {
+                    "type": "number"
+                },
+                "end_longitude": {
+                    "type": "number"
+                },
+                "max_task": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plate_number": {
+                    "type": "string"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "start_latitude": {
+                    "type": "number"
+                },
+                "start_longitude": {
+                    "type": "number"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "dto.DeletePlanByIDRequest": {
+            "type": "object"
+        },
+        "dto.DeletePlanByIDResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "plan deleted"
+                }
+            }
+        },
+        "dto.DeleteVehicle": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "plan_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DuplicatePlanByIDRequest": {
+            "type": "object"
+        },
+        "dto.DuplicatePlanByIDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "whatthehell"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "vhkp9^,lvo0y[0bh'0dsojvp]"
+                }
+            }
+        },
+        "dto.GroupCreateOrder": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateOrder"
+                    }
+                },
+                "plan_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GroupCreateTagSkill": {
+            "type": "object",
+            "properties": {
+                "plan_id": {
+                    "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateTagSkill"
+                    }
+                }
+            }
+        },
+        "dto.GroupCreateVehicle": {
+            "type": "object",
+            "properties": {
+                "plan_id": {
+                    "type": "string"
+                },
+                "vehicles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateVehicle"
+                    }
+                }
+            }
+        },
+        "dto.OTPErrorInfo": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OTPResponse": {
             "type": "object",
             "properties": {
                 "data": {},
+                "error": {
+                    "$ref": "#/definitions/dto.OTPErrorInfo"
+                },
                 "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.RequestOTPRequest": {
+            "type": "object",
+            "required": [
+                "tel"
+            ],
+            "properties": {
+                "tel": {
                     "type": "string",
-                    "example": "OTP sent successfully"
+                    "example": "0812345678"
+                }
+            }
+        },
+        "dto.RequestOTPResponse": {
+            "type": "object",
+            "properties": {
+                "attempts": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "max_attempts": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
                 },
                 "status": {
-                    "description": "suc/fail/err",
                     "type": "string",
                     "example": "success"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0999999999"
+                }
+            }
+        },
+        "dto.UpdatePlanNameByIDRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "united in grief"
+                }
+            }
+        },
+        "dto.UpdatePlanNameByIDResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "united in grief"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateVehicle": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number"
+                },
+                "daily_break_time_end": {
+                    "type": "integer"
+                },
+                "daily_break_time_start": {
+                    "type": "integer"
+                },
+                "daily_work_time_end": {
+                    "type": "integer"
+                },
+                "daily_work_time_start": {
+                    "type": "integer"
+                },
+                "end_latitude": {
+                    "type": "number"
+                },
+                "end_longitude": {
+                    "type": "number"
+                },
+                "max_task": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "plate_number": {
+                    "type": "string"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "start_latitude": {
+                    "type": "number"
+                },
+                "start_longitude": {
+                    "type": "number"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "dto.VerifyOTPRequest": {
+            "type": "object",
+            "required": [
+                "pin",
+                "refNo",
+                "tel"
+            ],
+            "properties": {
+                "pin": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "refNo": {
+                    "type": "string",
+                    "example": "ABC123"
+                },
+                "tel": {
+                    "type": "string",
+                    "example": "0812345678"
+                }
+            }
+        },
+        "dto.VerifyOTPResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         },
@@ -486,9 +1390,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
-                },
-                "alley": {
                     "type": "string"
                 },
                 "district": {
@@ -557,7 +1458,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Company"
                 },
                 "companyID": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -571,6 +1472,12 @@ const docTemplate = `{
                 "google_id": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "integer"
+                },
+                "is_need_on_boarding": {
+                    "type": "boolean"
+                },
                 "is_validated": {
                     "type": "boolean"
                 },
@@ -580,60 +1487,99 @@ const docTemplate = `{
                 "tel": {
                     "type": "string"
                 },
-                "tel_otp": {
+                "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "services.RequestOTPRequest": {
+        "response.OrderResponse": {
             "type": "object",
             "properties": {
-                "tel": {
-                    "type": "string",
-                    "example": "0812345678"
+                "capacity": {
+                    "type": "number"
                 },
-                "user_id": {
-                    "type": "integer",
-                    "example": 1
+                "name": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "0-3",
+                    "type": "integer"
+                },
+                "service_time": {
+                    "type": "integer"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "description": "0=delivery,1=pickup",
+                    "type": "integer"
                 }
             }
         },
-        "services.RequestOTPResponse": {
+        "response.TagSkillGroupResponse": {
             "type": "object",
             "properties": {
-                "refNo": {
-                    "type": "string",
-                    "example": "ABC123"
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleResponse"
+                    }
                 },
-                "status": {
-                    "type": "string",
-                    "example": "success"
+                "message": {
+                    "type": "string"
                 }
             }
         },
-        "services.VerifyOTPRequest": {
+        "response.VehicleGroupResponse": {
             "type": "object",
             "properties": {
-                "pin": {
-                    "type": "string",
-                    "example": "123456"
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleResponse"
+                    }
                 },
-                "refNo": {
-                    "type": "string",
-                    "example": "ABC123"
-                },
-                "tel": {
-                    "type": "string",
-                    "example": "0812345678"
+                "message": {
+                    "type": "string"
                 }
             }
         },
-        "services.VerifyOTPResponse": {
+        "response.VehicleResponse": {
             "type": "object",
             "properties": {
-                "status": {
-                    "type": "string",
-                    "example": "success"
+                "capacity": {
+                    "type": "number"
+                },
+                "max_task": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plate_number": {
+                    "type": "string"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "vehicle_id": {
+                    "type": "integer"
                 }
             }
         }
