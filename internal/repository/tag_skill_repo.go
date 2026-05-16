@@ -96,3 +96,21 @@ func (r *TagSkillRepository) CreateWithContext(ctx context.Context, skill *model
 func (r *TagSkillRepository) BatchCreate(ctx context.Context, skills []models.TagSkill) error {
 	return r.db.WithContext(ctx).Create(&skills).Error
 }
+
+func (r *TagSkillRepository) FindByName(
+	name string,
+) (*models.TagSkill, error) {
+
+	var skill models.TagSkill
+
+	err := r.db.
+		Where("name = ?", name).
+		First(&skill).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &skill, nil
+}

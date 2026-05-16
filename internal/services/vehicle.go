@@ -12,12 +12,14 @@ import (
 )
 
 type VehicleService struct {
-	repo *repository.VehicleRepository
+	repo         *repository.VehicleRepository
+	tagSkillRepo *repository.TagSkillRepository
 }
 
 func NewVehicleService(db *gorm.DB) *VehicleService {
 	repo := repository.NewVehicleRepository(db)
-	return &VehicleService{repo: repo}
+	tagSkillRepo := repository.NewTagSkillRepository(db)
+	return &VehicleService{repo: repo, tagSkillRepo: tagSkillRepo}
 }
 
 func (s *VehicleService) mapVehicleResponse(
@@ -32,7 +34,7 @@ func (s *VehicleService) mapVehicleResponse(
 	for _, skill := range vehicle.Skills {
 
 		orderCount, err :=
-			s.repo.CountOrders(
+			s.tagSkillRepo.CountOrders(
 				skill.ID,
 			)
 
@@ -41,7 +43,7 @@ func (s *VehicleService) mapVehicleResponse(
 		}
 
 		vehicleCount, err :=
-			s.repo.CountVehicles(
+			s.tagSkillRepo.CountVehicles(
 				skill.ID,
 			)
 
@@ -136,7 +138,7 @@ func (s *VehicleService) GroupCreate(
 			} else {
 
 				existing, err :=
-					s.repo.FindTagSkillByName(
+					s.tagSkillRepo.FindByName(
 						tag.Name,
 					)
 
@@ -151,7 +153,7 @@ func (s *VehicleService) GroupCreate(
 						Color: tag.Color,
 					}
 
-					if err := s.repo.CreateTagSkill(
+					if err := s.tagSkillRepo.Create(
 						&newTag,
 					); err != nil {
 						return nil, err
@@ -302,7 +304,7 @@ func (s *VehicleService) Update(
 			} else {
 
 				existing, err :=
-					s.repo.FindTagSkillByName(
+					s.tagSkillRepo.FindByName(
 						tag.Name,
 					)
 
@@ -317,7 +319,7 @@ func (s *VehicleService) Update(
 						Color: tag.Color,
 					}
 
-					if err := s.repo.CreateTagSkill(
+					if err := s.tagSkillRepo.Create(
 						&newTag,
 					); err != nil {
 						return nil, err

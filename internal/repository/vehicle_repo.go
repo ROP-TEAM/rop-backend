@@ -96,33 +96,6 @@ func (r *VehicleRepository) FindByIDWithSkills(
 	return &vehicle, nil
 }
 
-// กันส่งชื่อที่มีแล้วอีกทีเพื่อความชัวร์
-func (r *VehicleRepository) FindTagSkillByName(
-	name string,
-) (*models.TagSkill, error) {
-
-	var tag models.TagSkill
-
-	err := r.db.
-		Where(
-			"name = ?",
-			name,
-		).
-		First(&tag).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &tag, nil
-}
-
-func (r *VehicleRepository) CreateTagSkill(
-	tag *models.TagSkill,
-) error {
-	return r.db.Create(tag).Error
-}
-
 func (r *VehicleRepository) Delete(
 	id uint,
 ) error {
@@ -134,40 +107,4 @@ func (r *VehicleRepository) Delete(
 
 func (r *VehicleRepository) BatchCreate(ctx context.Context, vehicles []models.Vehicle) error {
 	return r.db.WithContext(ctx).CreateInBatches(vehicles, 100).Error
-}
-
-func (r *VehicleRepository) CountOrders(
-	tagSkillID uint,
-) (int64, error) {
-
-	var count int64
-
-	err := r.db.
-		Model(&models.OrderTagSkill{}).
-		Where(
-			"tag_skill_id = ?",
-			tagSkillID,
-		).
-		Count(&count).
-		Error
-
-	return count, err
-}
-
-func (r *VehicleRepository) CountVehicles(
-	tagSkillID uint,
-) (int64, error) {
-
-	var count int64
-
-	err := r.db.
-		Model(&models.VehicleTagSkill{}).
-		Where(
-			"tag_skill_id = ?",
-			tagSkillID,
-		).
-		Count(&count).
-		Error
-
-	return count, err
 }
