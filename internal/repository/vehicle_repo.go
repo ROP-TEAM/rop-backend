@@ -99,3 +99,14 @@ func (r *VehicleRepository) Delete(
 		Delete(&models.Vehicle{}, id).
 		Error
 }
+
+func (r *VehicleRepository) FindByPlanWithSkills(planID string) ([]models.Vehicle, error) {
+	var vehicles []models.Vehicle
+	if err := r.db.
+		Preload("Skills").
+		Where("vehicle_plan_fk = ?", planID).
+		Find(&vehicles).Error; err != nil {
+		return nil, err
+	}
+	return vehicles, nil
+}

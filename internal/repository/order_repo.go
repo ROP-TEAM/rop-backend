@@ -88,3 +88,14 @@ func (r *OrderRepository) Delete(
 		Delete(&models.Order{}, id).
 		Error
 }
+
+func (r *OrderRepository) FindByPlanWithSkills(planID string) ([]models.Order, error) {
+	var orders []models.Order
+	if err := r.db.
+		Preload("Skills").
+		Where("order_plan_fk = ?", planID).
+		Find(&orders).Error; err != nil {
+		return nil, err
+	}
+	return orders, nil
+}

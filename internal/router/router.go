@@ -1,6 +1,8 @@
 package router
 
 import (
+	"log"
+
 	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/handlers"
 	"ROP_Backend/internal/middleware"
@@ -8,6 +10,9 @@ import (
 
 	_ "ROP_Backend/docs"
 
+	"github.com/ROP-TEAM/rop-algorithm/solver"
+	grpcsolver "github.com/ROP-TEAM/rop-algorithm/solver/grpc"
+	solverprocess "github.com/ROP-TEAM/rop-algorithm/solver/process"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -49,6 +54,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	}
 	matrixHandler := handlers.NewMatrixHandler(matrixService)
 
+	slvr := newSolver(cfg)
+	planningService := services.NewPlanningService(db, matrixService, slvr)
+	planHandler := handlers.NewPlanHandler(planningService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -71,11 +80,30 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
 
+	api.Post("/plans", middleware.Protected(cfg), planHandler.Create)
+	api.Post("/plans/:id/solve", middleware.Protected(cfg), planHandler.Solve)
+	api.Get("/plans/:id", middleware.Protected(cfg), planHandler.GetByID)
+	api.Get("/plans", middleware.Protected(cfg), planHandler.List)
+
 	//test route
-
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
-
 	api.Post("/auth/otp", middleware.OTPLimiter(), handlers.TestOTP)
 
 	return app
+}
+
+func newSolver(cfg *config.Config) solver.Solver {
+	if cfg.SOLVER_BINARY_PATH == "" {
+		log.Println("SOLVER_BINARY_PATH not set — using StubSolver")
+		return solver.NewStub()
+	}
+
+	handle, err := solverprocess.Start(cfg.SOLVER_BINARY_PATH)
+	if err != nil {
+		log.Printf("solver process start failed: %v — falling back to StubSolver", err)
+		return solver.NewStub()
+	}
+
+	log.Printf("solver process started: %s", cfg.SOLVER_BINARY_PATH)
+	return grpcsolver.New(handle.Conn)
 }
