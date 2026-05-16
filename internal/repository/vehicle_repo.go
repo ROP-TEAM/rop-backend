@@ -2,12 +2,17 @@ package repository
 
 import (
 	"ROP_Backend/internal/models"
+	"context"
 
 	"gorm.io/gorm"
 )
 
 type VehicleRepository struct {
 	db *gorm.DB
+}
+
+func (r *VehicleRepository) WithTx(tx *gorm.DB) *VehicleRepository {
+	return &VehicleRepository{db: tx}
 }
 
 func NewVehicleRepository(db *gorm.DB) *VehicleRepository {
@@ -125,6 +130,10 @@ func (r *VehicleRepository) Delete(
 	return r.db.
 		Delete(&models.Vehicle{}, id).
 		Error
+}
+
+func (r *VehicleRepository) BatchCreate(ctx context.Context, vehicles []models.Vehicle) error {
+	return r.db.WithContext(ctx).CreateInBatches(vehicles, 100).Error
 }
 
 func (r *VehicleRepository) CountOrders(

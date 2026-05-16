@@ -43,26 +43,31 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	tagSkillService := services.NewTagSkillService(db)
 	tagSkillHandler := handlers.NewTagSkillHandler(tagSkillService)
 
+	planService := services.NewPlanService(db, cfg)
+	planHandler := handlers.NewPlanHandler(planService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
 	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)
 
 	api.Post("/onboarding/otp", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.RequestOTP)
-	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), middleware.OTPLimiter(), otpHandler.VerifyOTP)
-
-	api.Post("/onboarding",
-		middleware.Protected(cfg),
-		userHandler.Onboarding,
-	)
+	api.Post("/onboarding/otp/verify", middleware.Protected(cfg), otpHandler.VerifyOTP) //verifyมันฟรีไม่ต้องใส่limiter ??
 
 	api.Post("/vehicles", middleware.Protected(cfg), vehicleHandler.Create)
 	api.Patch("/vehicles/:id", middleware.Protected(cfg), vehicleHandler.Patch)
 	api.Delete("/vehicles", middleware.Protected(cfg), vehicleHandler.Delete)
+
 	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
 	api.Patch("/orders/:id", middleware.Protected(cfg), orderHandler.Patch)
 	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
+
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
+
+	api.Post("/plan", middleware.Protected(cfg), planHandler.Create)
+	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
+	api.Delete("/plan/:id", middleware.Protected(cfg), planHandler.DeleteByID)
+	api.Post("/plan/:id", middleware.Protected(cfg), planHandler.DuplicateByID)
 
 	//test route
 
