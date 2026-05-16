@@ -68,7 +68,7 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 				"error": "invalid user",
 			})
 
-		case errors.Is(err, services.ErrPlanHasNoCompany):
+		case errors.Is(err, services.ErrUserHasNoCompany):
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "user has no company",
 			})
