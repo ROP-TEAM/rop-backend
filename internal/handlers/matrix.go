@@ -2,6 +2,7 @@ package handlers
 
 import (
 	dto "ROP_Backend/internal/dto/request"
+	"ROP_Backend/internal/dto/response"
 	"ROP_Backend/internal/services"
 
 	"github.com/gofiber/fiber/v3"
@@ -24,7 +25,7 @@ func NewMatrixHandler(s *services.MatrixService) *MatrixHandler {
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
 // @Param body body dto.MatrixRequest true "List of locations (min 2)"
-// @Success 200 {object} matrixResponse
+// @Success 200 {object} response.BuildMatrixResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Router /api/matrix [post]
@@ -38,14 +39,15 @@ func (h *MatrixHandler) BuildMatrix(c fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "at least 2 locations required"})
 	}
 
-	result, err := h.service.BuildMatrix(req.Locations)
+	result, err := h.service.BuildMatrix(c.Context(), req.Locations)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "matrix Built ",
-		"node":    len(req.Locations),
-		"result":  result,
+	return c.JSON(response.BuildMatrixResponse{
+		Message:  "matrix built",
+		Node:     len(req.Locations),
+		Provider: h.service.Provider(),
+		Result:   result,
 	})
 }

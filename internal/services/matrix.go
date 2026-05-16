@@ -14,7 +14,8 @@ import (
 )
 
 type MatrixService struct {
-	dm gmap.DistanceMatrix
+	dm       gmap.DistanceMatrix
+	provider string
 }
 
 func NewMatrixService(cfg *config.Config) (*MatrixService, error) {
@@ -22,15 +23,23 @@ func NewMatrixService(cfg *config.Config) (*MatrixService, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &MatrixService{dm: dm}, nil
+	provider := cfg.DISTANCE_MATRIX_PROVIDER
+	if provider == "" {
+		provider = "google"
+	}
+	return &MatrixService{dm: dm, provider: provider}, nil
 }
 
-func (s *MatrixService) BuildMatrix(locs []dto.LocationInput) (response.MatrixResponse, error) {
+func (s *MatrixService) Provider() string {
+	return s.provider
+}
+
+func (s *MatrixService) BuildMatrix(ctx context.Context, locs []dto.LocationInput) (response.MatrixResponse, error) {
 	modelLocs := make([]model.Location, len(locs))
 	for i, l := range locs {
 		modelLocs[i] = model.NewLatLngLocation(l.Lat, l.Lng)
 	}
-	durations, distances, err := s.dm.BuildMatrix(context.Background(), modelLocs, model.MatrixOptions{})
+	durations, distances, err := s.dm.BuildMatrix(ctx, modelLocs, model.MatrixOptions{})
 	if err != nil {
 		return response.MatrixResponse{}, err
 	}
