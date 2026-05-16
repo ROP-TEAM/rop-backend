@@ -412,184 +412,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/plan": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a plan",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plan"
-                ],
-                "summary": "Create plan",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "plan",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePlanRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePlanResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/plan/:id": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "user has to be in the same company as target plan to allow duplicating it",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plan"
-                ],
-                "summary": "DuplicatePlan and its legacy by id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "plan",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DuplicatePlanByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.DuplicatePlanByIDResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "hard delete plan by id by attach plan id via url params, it will delte all its legacy",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plan"
-                ],
-                "summary": "Delete plan by plan id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "plan",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DeletePlanByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.DeletePlanByIDResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            },
+        "/api/orders/{id}": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Patch a plan name by id by attach plan id via url params, and updated name by body",
+                "description": "Patch order by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -597,9 +427,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "plan"
+                    "order"
                 ],
-                "summary": "Patch plan name by plan id",
+                "summary": "Update order",
                 "parameters": [
                     {
                         "type": "string",
@@ -609,12 +439,19 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "plan",
+                        "type": "integer",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Order update",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdatePlanNameByIDRequest"
+                            "$ref": "#/definitions/dto.UpdateOrder"
                         }
                     }
                 ],
@@ -622,7 +459,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdatePlanNameByIDResponse"
+                            "$ref": "#/definitions/response.OrderResponse"
                         }
                     },
                     "400": {
@@ -680,10 +517,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.TagSkillGroupResponse"
-                            }
+                            "$ref": "#/definitions/response.TagSkillGroupResponse"
                         }
                     },
                     "400": {
@@ -916,6 +750,71 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/vehicles/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Patch vehicle by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "vehicle"
+                ],
+                "summary": "Update vehicle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Vehicle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Vehicle update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateVehicle"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.VehicleGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -959,36 +858,6 @@ const docTemplate = `{
                 "type": {
                     "description": "0=delivery,1=pickup",
                     "type": "integer"
-                }
-            }
-        },
-        "dto.CreatePlanRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "untangle"
-                },
-                "plan_date": {
-                    "type": "string",
-                    "example": "2026-05-05 15:44:09.523069+00"
-                }
-            }
-        },
-        "dto.CreatePlanResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2026-05-05 15:44:09.523069+00"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "whatthehell"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "what"
                 }
             }
         },
@@ -1051,23 +920,11 @@ const docTemplate = `{
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
-                }
-            }
-        },
-        "dto.DeletePlanByIDRequest": {
-            "type": "object"
-        },
-        "dto.DeletePlanByIDResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "plan deleted"
                 }
             }
         },
@@ -1082,22 +939,6 @@ const docTemplate = `{
                 },
                 "plan_id": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.DuplicatePlanByIDRequest": {
-            "type": "object"
-        },
-        "dto.DuplicatePlanByIDResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "whatthehell"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "vhkp9^,lvo0y[0bh'0dsojvp]"
                 }
             }
         },
@@ -1209,24 +1050,47 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdatePlanNameByIDRequest": {
+        "dto.UpdateOrder": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "united in grief"
-                }
-            }
-        },
-        "dto.UpdatePlanNameByIDResponse": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "united in grief"
+                "capacity": {
+                    "type": "number"
                 },
-                "updated_at": {
+                "des_latitude": {
+                    "type": "number"
+                },
+                "des_longitude": {
+                    "type": "number"
+                },
+                "name": {
                     "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "service_time": {
+                    "type": "integer"
+                },
+                "tag_skill_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time_window_end": {
+                    "type": "integer"
+                },
+                "time_window_start": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
                 }
             }
         },
@@ -1278,11 +1142,25 @@ const docTemplate = `{
                 "start_longitude": {
                     "type": "number"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
+                }
+            }
+        },
+        "dto.VehicleTagSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -1529,11 +1407,31 @@ const docTemplate = `{
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.VehicleResponse"
+                        "$ref": "#/definitions/response.TagSkillResponse"
                     }
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "response.TagSkillResponse": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order_count": {
+                    "type": "integer"
+                },
+                "vehicle_count": {
+                    "type": "integer"
                 }
             }
         },
@@ -1572,10 +1470,10 @@ const docTemplate = `{
                 "profile_id": {
                     "type": "integer"
                 },
-                "tag_skill_id": {
+                "tag_skills": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/response.TagSkillResponse"
                     }
                 },
                 "vehicle_id": {

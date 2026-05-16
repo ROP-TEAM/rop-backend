@@ -59,6 +59,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Delete("/vehicles", middleware.Protected(cfg), vehicleHandler.Delete)
 
 	api.Post("/orders", middleware.Protected(cfg), orderHandler.Create)
+	api.Patch("/orders/:id", middleware.Protected(cfg), orderHandler.Patch)
 	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
 
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
