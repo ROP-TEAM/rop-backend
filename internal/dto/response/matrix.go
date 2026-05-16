@@ -6,7 +6,8 @@ type MatrixResponse struct {
 }
 
 type BuildMatrixResponse struct {
-	Message string         `json:"message"`
-	Node    int            `json:"node"`
-	Result  MatrixResponse `json:"result"`
+	Message  string         `json:"message"`
+	Node     int            `json:"node"`
+	Provider string         `json:"provider"`
+	Result   MatrixResponse `json:"result"`
 }

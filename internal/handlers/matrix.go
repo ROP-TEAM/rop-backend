@@ -45,8 +45,9 @@ func (h *MatrixHandler) BuildMatrix(c fiber.Ctx) error {
 	}
 
 	return c.JSON(response.BuildMatrixResponse{
-		Message: "matrix built",
-		Node:    len(req.Locations),
-		Result:  result,
+		Message:  "matrix built",
+		Node:     len(req.Locations),
+		Provider: h.service.Provider(),
+		Result:   result,
 	})
 }
