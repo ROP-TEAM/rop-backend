@@ -153,6 +153,35 @@ definitions:
         example: "0999999999"
         type: string
     type: object
+  dto.UpdateOrder:
+    properties:
+      capacity:
+        type: number
+      des_latitude:
+        type: number
+      des_longitude:
+        type: number
+      name:
+        type: string
+      note:
+        type: string
+      plan_id:
+        type: string
+      priority:
+        type: integer
+      service_time:
+        type: integer
+      tag_skill_id:
+        items:
+          type: integer
+        type: array
+      time_window_end:
+        type: integer
+      time_window_start:
+        type: integer
+      type:
+        type: integer
+    type: object
   dto.UpdateVehicle:
     properties:
       capacity:
@@ -655,6 +684,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Create order list
+      tags:
+      - order
+  /api/orders/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Patch order by id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Order update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateOrder'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update order
       tags:
       - order
   /api/skills:

@@ -107,6 +107,125 @@ func (s *OrderService) GroupCreate(
 	return responses, nil
 }
 
+func (s *OrderService) Update(
+	orderID uint,
+	req dto.UpdateOrder,
+) (*response.OrderResponse, error) {
+
+	order, err := s.repo.FindByIDAndPlan(
+		orderID,
+		req.PlanID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Name != nil {
+		order.Name = *req.Name
+	}
+
+	if req.Note != nil {
+		order.Note = *req.Note
+	}
+
+	if req.Type != nil {
+		order.Type = *req.Type
+	}
+
+	if req.Capacity != nil {
+		order.Capacity = *req.Capacity
+	}
+
+	if req.ServiceTime != nil {
+		order.ServiceTime = req.ServiceTime
+	}
+
+	if req.Priority != nil {
+		order.Priority = *req.Priority
+	}
+
+	if req.TimeWindowStart != nil {
+		order.TimeWindowStart = req.TimeWindowStart
+	}
+
+	if req.TimeWindowEnd != nil {
+		order.TimeWindowEnd = req.TimeWindowEnd
+	}
+
+	if req.DesLatitude != nil {
+		order.DesLatitude = req.DesLatitude
+	}
+
+	if req.DesLongitude != nil {
+		order.DesLongitude = req.DesLongitude
+	}
+
+	if err := validators.ValidateOrder(order); err != nil {
+		return nil, err
+	}
+
+	if err := s.repo.Update(order); err != nil {
+		return nil, err
+	}
+
+	if req.TagSkillID != nil {
+
+		if err := s.repo.DeleteSkills(order.ID); err != nil {
+			return nil, err
+		}
+
+		var skills []models.OrderTagSkill
+
+		for _, skillID := range *req.TagSkillID {
+
+			skills = append(skills, models.OrderTagSkill{
+				OrderID:    order.ID,
+				TagSkillID: skillID,
+			})
+		}
+
+		if len(skills) > 0 {
+			if err := s.repo.CreateSkills(skills); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	updatedOrder, err := s.repo.FindByIDWithSkills(
+		order.ID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var tagSkillIDs []uint
+
+	for _, s := range updatedOrder.Skills {
+		tagSkillIDs = append(
+			tagSkillIDs,
+			s.ID,
+		)
+	}
+
+	responseData := response.OrderResponse{
+		Name: updatedOrder.Name,
+		Note: updatedOrder.Note,
+
+		Type: updatedOrder.Type,
+
+		Capacity: updatedOrder.Capacity,
+
+		ServiceTime: updatedOrder.ServiceTime,
+		Priority:    updatedOrder.Priority,
+
+		TagSkillID: tagSkillIDs,
+	}
+
+	return &responseData, nil
+}
+
 func (s *OrderService) Delete(req dto.DeleteOrder) error {
 	for _, id := range req.ID {
 		order, err := s.repo.FindByIDAndPlan(
