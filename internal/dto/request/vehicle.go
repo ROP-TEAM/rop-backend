@@ -18,7 +18,7 @@ type CreateVehicle struct {
 	EndLat   *float64 `json:"end_latitude"`
 	EndLon   *float64 `json:"end_longitude"`
 
-	TagSkillID []uint `json:"tag_skill_id"`
+	TagSkills []VehicleTagSkill `json:"tag_skills"`
 }
 
 type GroupCreateVehicle struct {
@@ -45,10 +45,16 @@ type UpdateVehicle struct {
 	EndLat   *float64 `json:"end_latitude"`
 	EndLon   *float64 `json:"end_longitude"`
 
-	TagSkillID *[]uint `json:"tag_skill_id"`
+	TagSkills *[]VehicleTagSkill `json:"tag_skills"`
 }
 
 type DeleteVehicle struct {
 	PlanID string `json:"plan_id"`
 	ID     []uint `json:"id"`
+}
+
+type VehicleTagSkill struct {
+	ID    *uint  `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
 }
