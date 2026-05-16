@@ -108,6 +108,20 @@ definitions:
           $ref: '#/definitions/dto.CreateVehicle'
         type: array
     type: object
+  dto.LocationInput:
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+    type: object
+  dto.MatrixRequest:
+    properties:
+      locations:
+        items:
+          $ref: '#/definitions/dto.LocationInput'
+        type: array
+    type: object
   dto.OTPErrorInfo:
     properties:
       code:
@@ -256,35 +270,6 @@ definitions:
       user_id:
         type: integer
     type: object
-  handlers.locationInput:
-    properties:
-      lat:
-        type: number
-      lng:
-        type: number
-    type: object
-  handlers.matrixRequest:
-    properties:
-      locations:
-        items:
-          $ref: '#/definitions/handlers.locationInput'
-        type: array
-    type: object
-  handlers.matrixResponse:
-    properties:
-      distances:
-        items:
-          items:
-            type: integer
-          type: array
-        type: array
-      durations:
-        items:
-          items:
-            type: integer
-          type: array
-        type: array
-    type: object
   models.Company:
     properties:
       address:
@@ -356,6 +341,30 @@ definitions:
         type: string
       updatedAt:
         type: string
+    type: object
+  response.BuildMatrixResponse:
+    properties:
+      message:
+        type: string
+      node:
+        type: integer
+      result:
+        $ref: '#/definitions/response.MatrixResponse'
+    type: object
+  response.MatrixResponse:
+    properties:
+      distances:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+      durations:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
     type: object
   response.OrderResponse:
     properties:
@@ -481,7 +490,7 @@ paths:
       summary: Test OTP endpoint
       tags:
       - otp
-  /api/matrix/test:
+  /api/matrix:
     post:
       consumes:
       - application/json
@@ -498,14 +507,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.matrixRequest'
+          $ref: '#/definitions/dto.MatrixRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.matrixResponse'
+            $ref: '#/definitions/response.BuildMatrixResponse'
         "400":
           description: Bad Request
           schema:
@@ -516,7 +525,7 @@ paths:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Test distance matrix
+      summary: Build distance matrix
       tags:
       - matrix
   /api/onboarding:

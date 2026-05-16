@@ -89,7 +89,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/matrix/test": {
+        "/api/matrix": {
             "post": {
                 "security": [
                     {
@@ -106,7 +106,7 @@ const docTemplate = `{
                 "tags": [
                     "matrix"
                 ],
-                "summary": "Test distance matrix",
+                "summary": "Build distance matrix",
                 "parameters": [
                     {
                         "type": "string",
@@ -121,7 +121,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixRequest"
+                            "$ref": "#/definitions/dto.MatrixRequest"
                         }
                     }
                 ],
@@ -129,7 +129,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixResponse"
+                            "$ref": "#/definitions/response.BuildMatrixResponse"
                         }
                     },
                     "400": {
@@ -912,6 +912,28 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.LocationInput": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "lng": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.MatrixRequest": {
+            "type": "object",
+            "properties": {
+                "locations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.LocationInput"
+                    }
+                }
+            }
+        },
         "dto.OTPErrorInfo": {
             "type": "object",
             "properties": {
@@ -1134,51 +1156,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.locationInput": {
-            "type": "object",
-            "properties": {
-                "lat": {
-                    "type": "number"
-                },
-                "lng": {
-                    "type": "number"
-                }
-            }
-        },
-        "handlers.matrixRequest": {
-            "type": "object",
-            "properties": {
-                "locations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.locationInput"
-                    }
-                }
-            }
-        },
-        "handlers.matrixResponse": {
-            "type": "object",
-            "properties": {
-                "distances": {
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "durations": {
-                    "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
         "models.Company": {
             "type": "object",
             "properties": {
@@ -1282,6 +1259,43 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "response.BuildMatrixResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "node": {
+                    "type": "integer"
+                },
+                "result": {
+                    "$ref": "#/definitions/response.MatrixResponse"
+                }
+            }
+        },
+        "response.MatrixResponse": {
+            "type": "object",
+            "properties": {
+                "distances": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "durations": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
                 }
             }
         },
