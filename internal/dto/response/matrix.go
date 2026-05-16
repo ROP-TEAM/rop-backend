@@ -1,6 +1,6 @@
 package response
 
-type MatrixTestResponse struct {
+type MatrixResponse struct {
 	Durations [][]int `json:"durations"`
 	Distances [][]int `json:"distances"`
 }

@@ -1,6 +1,6 @@
 package dto
 
-type MatrixTestRequest struct {
+type MatrixRequest struct {
 	Locations []LocationInput `json:"locations"`
 }
 

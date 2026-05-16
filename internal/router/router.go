@@ -69,7 +69,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Delete("/orders", middleware.Protected(cfg), orderHandler.Delete)
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
 
-	api.Post("/matrix/test", middleware.Protected(cfg), matrixHandler.Test)
+	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
 
 	//test route
 

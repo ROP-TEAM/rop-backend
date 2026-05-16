@@ -263,14 +263,14 @@ definitions:
       lng:
         type: number
     type: object
-  handlers.matrixTestRequest:
+  handlers.matrixRequest:
     properties:
       locations:
         items:
           $ref: '#/definitions/handlers.locationInput'
         type: array
     type: object
-  handlers.matrixTestResponse:
+  handlers.matrixResponse:
     properties:
       distances:
         items:
@@ -498,14 +498,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/handlers.matrixTestRequest'
+          $ref: '#/definitions/handlers.matrixRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.matrixTestResponse'
+            $ref: '#/definitions/handlers.matrixResponse'
         "400":
           description: Bad Request
           schema:

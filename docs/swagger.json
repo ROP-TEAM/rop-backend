@@ -110,7 +110,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixTestRequest"
+                            "$ref": "#/definitions/handlers.matrixRequest"
                         }
                     }
                 ],
@@ -118,7 +118,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixTestResponse"
+                            "$ref": "#/definitions/handlers.matrixResponse"
                         }
                     },
                     "400": {
@@ -1134,7 +1134,7 @@
                 }
             }
         },
-        "handlers.matrixTestRequest": {
+        "handlers.matrixRequest": {
             "type": "object",
             "properties": {
                 "locations": {
@@ -1145,7 +1145,7 @@
                 }
             }
         },
-        "handlers.matrixTestResponse": {
+        "handlers.matrixResponse": {
             "type": "object",
             "properties": {
                 "distances": {

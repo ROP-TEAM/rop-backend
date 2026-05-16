@@ -25,16 +25,16 @@ func NewMatrixService(cfg *config.Config) (*MatrixService, error) {
 	return &MatrixService{dm: dm}, nil
 }
 
-func (s *MatrixService) BuildMatrix(locs []dto.LocationInput) (response.MatrixTestResponse, error) {
+func (s *MatrixService) BuildMatrix(locs []dto.LocationInput) (response.MatrixResponse, error) {
 	modelLocs := make([]model.Location, len(locs))
 	for i, l := range locs {
 		modelLocs[i] = model.NewLatLngLocation(l.Lat, l.Lng)
 	}
 	durations, distances, err := s.dm.BuildMatrix(context.Background(), modelLocs, model.MatrixOptions{})
 	if err != nil {
-		return response.MatrixTestResponse{}, err
+		return response.MatrixResponse{}, err
 	}
-	return response.MatrixTestResponse{Durations: durations, Distances: distances}, nil
+	return response.MatrixResponse{Durations: durations, Distances: distances}, nil
 }
 
 func newDistanceMatrix(cfg *config.Config) (gmap.DistanceMatrix, error) {

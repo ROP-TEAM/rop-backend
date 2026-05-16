@@ -15,21 +15,21 @@ func NewMatrixHandler(s *services.MatrixService) *MatrixHandler {
 	return &MatrixHandler{service: s}
 }
 
-// TestMatrix godoc
-// @Summary Test distance matrix
+// BuildMatrix godoc
+// @Summary Build distance matrix
 // @Description Build an n×n distance matrix from a list of lat/lng locations. Durations in minutes, distances in meters.
 // @Tags matrix
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
-// @Param body body dto.MatrixTestRequest true "List of locations (min 2)"
-// @Success 200 {object} matrixTestResponse
+// @Param body body dto.MatrixRequest true "List of locations (min 2)"
+// @Success 200 {object} matrixResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/matrix/test [post]
-func (h *MatrixHandler) Test(c fiber.Ctx) error {
-	var req dto.MatrixTestRequest
+// @Router /api/matrix [post]
+func (h *MatrixHandler) BuildMatrix(c fiber.Ctx) error {
+	var req dto.MatrixRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "invalid body"})
 	}

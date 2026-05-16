@@ -121,7 +121,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixTestRequest"
+                            "$ref": "#/definitions/handlers.matrixRequest"
                         }
                     }
                 ],
@@ -129,7 +129,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.matrixTestResponse"
+                            "$ref": "#/definitions/handlers.matrixResponse"
                         }
                     },
                     "400": {
@@ -1145,7 +1145,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.matrixTestRequest": {
+        "handlers.matrixRequest": {
             "type": "object",
             "properties": {
                 "locations": {
@@ -1156,7 +1156,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.matrixTestResponse": {
+        "handlers.matrixResponse": {
             "type": "object",
             "properties": {
                 "distances": {
