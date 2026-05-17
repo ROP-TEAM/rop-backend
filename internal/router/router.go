@@ -21,7 +21,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	app.Use(middleware.RateLimiter())
 
-	app.Get("/swagger/*", adaptor.HTTPHandler(
+	app.Get("/api/swagger/*", adaptor.HTTPHandler(
 		httpSwagger.WrapHandler,
 	))
 
