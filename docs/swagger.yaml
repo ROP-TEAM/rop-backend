@@ -28,6 +28,27 @@ definitions:
         description: 0=delivery,1=pickup
         type: integer
     type: object
+  dto.CreatePlanRequest:
+    properties:
+      name:
+        example: untangle
+        type: string
+      plan_date:
+        example: 2026-05-05 15:44:09.523069+00
+        type: string
+    type: object
+  dto.CreatePlanResponse:
+    properties:
+      created_at:
+        example: 2026-05-05 15:44:09.523069+00
+        type: string
+      id:
+        example: whatthehell
+        type: string
+      name:
+        example: what
+        type: string
+    type: object
   dto.CreateTagSkill:
     properties:
       color:
@@ -72,6 +93,14 @@ definitions:
           $ref: '#/definitions/dto.VehicleTagSkill'
         type: array
     type: object
+  dto.DeletePlanByIDRequest:
+    type: object
+  dto.DeletePlanByIDResponse:
+    properties:
+      message:
+        example: plan deleted
+        type: string
+    type: object
   dto.DeleteVehicle:
     properties:
       id:
@@ -79,6 +108,17 @@ definitions:
           type: integer
         type: array
       plan_id:
+        type: string
+    type: object
+  dto.DuplicatePlanByIDRequest:
+    type: object
+  dto.DuplicatePlanByIDResponse:
+    properties:
+      id:
+        example: whatthehell
+        type: string
+      name:
+        example: vhkp9^,lvo0y[0bh'0dsojvp]
         type: string
     type: object
   dto.GroupCreateOrder:
@@ -181,6 +221,20 @@ definitions:
         type: integer
       type:
         type: integer
+    type: object
+  dto.UpdatePlanNameByIDRequest:
+    properties:
+      name:
+        example: united in grief
+        type: string
+    type: object
+  dto.UpdatePlanNameByIDResponse:
+    properties:
+      name:
+        example: united in grief
+        type: string
+      updated_at:
+        type: string
     type: object
   dto.UpdateVehicle:
     properties:
@@ -737,6 +791,155 @@ paths:
       summary: Update order
       tags:
       - order
+  /api/plan:
+    post:
+      consumes:
+      - application/json
+      description: Create a plan
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreatePlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create plan
+      tags:
+      - plan
+  /api/plan/:id:
+    delete:
+      consumes:
+      - application/json
+      description: hard delete plan by id by attach plan id via url params, it will
+        delte all its legacy
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DeletePlanByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DeletePlanByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete plan by plan id
+      tags:
+      - plan
+    patch:
+      consumes:
+      - application/json
+      description: Patch a plan name by id by attach plan id via url params, and updated
+        name by body
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePlanNameByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdatePlanNameByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Patch plan name by plan id
+      tags:
+      - plan
+    post:
+      consumes:
+      - application/json
+      description: user has to be in the same company as target plan to allow duplicating
+        it
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DuplicatePlanByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DuplicatePlanByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: DuplicatePlan and its legacy by id
+      tags:
+      - plan
   /api/skills:
     post:
       consumes:
