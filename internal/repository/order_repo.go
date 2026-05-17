@@ -2,12 +2,17 @@ package repository
 
 import (
 	"ROP_Backend/internal/models"
+	"context"
 
 	"gorm.io/gorm"
 )
 
 type OrderRepository struct {
 	db *gorm.DB
+}
+
+func (r *OrderRepository) WithTx(tx *gorm.DB) *OrderRepository {
+	return &OrderRepository{db: tx}
 }
 
 func NewOrderRepository(db *gorm.DB) *OrderRepository {
@@ -53,6 +58,12 @@ func (r *OrderRepository) FindByIDAndPlan(
 	return &order, nil
 }
 
+func (r *OrderRepository) Update(
+	order *models.Order,
+) error {
+	return r.db.Save(order).Error
+}
+
 func (r *OrderRepository) DeleteSkills(
 	orderID uint,
 ) error {
@@ -87,4 +98,8 @@ func (r *OrderRepository) Delete(
 	return r.db.
 		Delete(&models.Order{}, id).
 		Error
+}
+
+func (r *OrderRepository) BatchCreate(ctx context.Context, orders []models.Order) error {
+	return r.db.WithContext(ctx).CreateInBatches(orders, 100).Error
 }

@@ -5,4 +5,5 @@ import "errors"
 
 var (
 	ErrNoRowsAffected = errors.New("no rows affected")
+	ErrPlanNotFound   = errors.New("target plan not found")
 )
