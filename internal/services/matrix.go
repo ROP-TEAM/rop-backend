@@ -7,10 +7,10 @@ import (
 	"ROP_Backend/internal/config"
 	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/dto/response"
+	"ROP_Backend/internal/models"
 
-	"github.com/ROP-TEAM/rop-algorithm/gmap"
-	"github.com/ROP-TEAM/rop-algorithm/model"
-	"github.com/ROP-TEAM/rop-algorithm/osrm"
+	"ROP_Backend/internal/providers/gmap"
+	"ROP_Backend/internal/providers/osrm"
 )
 
 type MatrixService struct {
@@ -35,11 +35,11 @@ func (s *MatrixService) Provider() string {
 }
 
 func (s *MatrixService) BuildMatrix(ctx context.Context, locs []dto.LocationInput) (response.MatrixResponse, error) {
-	modelLocs := make([]model.Location, len(locs))
+	modelLocs := make([]models.Location, len(locs))
 	for i, l := range locs {
-		modelLocs[i] = model.NewLatLngLocation(l.Lat, l.Lng)
+		modelLocs[i] = models.NewLatLngLocation(l.Lat, l.Lng)
 	}
-	durations, distances, err := s.dm.BuildMatrix(ctx, modelLocs, model.MatrixOptions{})
+	durations, distances, err := s.dm.BuildMatrix(ctx, modelLocs, models.MatrixOptions{})
 	if err != nil {
 		return response.MatrixResponse{}, err
 	}
