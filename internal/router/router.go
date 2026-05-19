@@ -46,6 +46,12 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	planService := services.NewPlanService(db, cfg)
 	planHandler := handlers.NewPlanHandler(planService)
 
+	matrixService, err := services.NewMatrixService(cfg)
+	if err != nil {
+		panic(err)
+	}
+	matrixHandler := handlers.NewMatrixHandler(matrixService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -68,6 +74,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
 	api.Delete("/plan/:id", middleware.Protected(cfg), planHandler.DeleteByID)
 	api.Post("/plan/:id", middleware.Protected(cfg), planHandler.DuplicateByID)
+
+	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
 
 	//test route
 

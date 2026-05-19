@@ -1,2 +1,6 @@
 .env*
 tmp/
+
+*.local.md  # local note
+
+*.exe

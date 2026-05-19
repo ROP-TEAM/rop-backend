@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout rop-backend
+        uses: actions/checkout@v4
+        with:
+          path: rop-backend
+
+      - name: Checkout rop-algorithm
+        uses: actions/checkout@v4
+        with:
+          repository: ROP-TEAM/rop-algorithm
+          path: rop-algorithm
+          token: ${{ secrets.ALGO_PAT }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build
+        working-directory: rop-backend
+        run: go build ./...

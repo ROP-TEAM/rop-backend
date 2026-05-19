@@ -148,6 +148,20 @@ definitions:
           $ref: '#/definitions/dto.CreateVehicle'
         type: array
     type: object
+  dto.LocationInput:
+    properties:
+      lat:
+        type: number
+      lng:
+        type: number
+    type: object
+  dto.MatrixRequest:
+    properties:
+      locations:
+        items:
+          $ref: '#/definitions/dto.LocationInput'
+        type: array
+    type: object
   dto.OTPErrorInfo:
     properties:
       code:
@@ -420,6 +434,30 @@ definitions:
       updatedAt:
         type: string
     type: object
+  response.BuildMatrixResponse:
+    properties:
+      message:
+        type: string
+      node:
+        type: integer
+      result:
+        $ref: '#/definitions/response.MatrixResponse'
+    type: object
+  response.MatrixResponse:
+    properties:
+      distances:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+      durations:
+        items:
+          items:
+            type: integer
+          type: array
+        type: array
+    type: object
   response.OrderResponse:
     properties:
       capacity:
@@ -544,6 +582,44 @@ paths:
       summary: Test OTP endpoint
       tags:
       - otp
+  /api/matrix:
+    post:
+      consumes:
+      - application/json
+      description: Build an n×n distance matrix from a list of lat/lng locations.
+        Durations in minutes, distances in meters.
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: List of locations (min 2)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MatrixRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.BuildMatrixResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Build distance matrix
+      tags:
+      - matrix
   /api/onboarding:
     post:
       consumes:
