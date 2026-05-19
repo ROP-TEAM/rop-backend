@@ -69,9 +69,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha
+            type=sha,prefix=dev-,format=short
             type=raw,value=latest
-            type=semver,pattern={{version}}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -109,7 +108,7 @@ jobs:
 
       - name: Deploy
         run: |
-          IMAGE_TAG=$(echo "${{ needs.build.outputs.image }}" | head -n 1)
-          echo "Deploying image: $IMAGE_TAG"
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ github.repository }}:${{ needs.build.outputs.image_tag }}"
+          echo "Deploying unique image: $IMAGE_TAG"
           kubectl set image deployment/rop-backend rop-backend=$IMAGE_TAG -n rop
           kubectl rollout status deployment/rop-backend -n rop --timeout=300s
