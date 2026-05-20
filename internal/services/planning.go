@@ -91,6 +91,7 @@ func (s *PlanningService) Optimize(
 		return nil, err
 	}
 
+	// begin persis to company
 	plan := &models.Plan{
 		CompanyID: "c5c5cfc5-d97e-4ade-ae2f-7abec89c6f12",
 	}
@@ -221,6 +222,7 @@ func (s *PlanningService) Optimize(
 	if err := s.orderRepo.BatchCreate(ctx, orders); err != nil {
 		return nil, err
 	}
+	// end of persis to company
 
 	locations := buildOptimizeLocations(req)
 

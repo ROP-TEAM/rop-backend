@@ -52,7 +52,7 @@ func (h *PlanningHandler) Optimize(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
 	}
 
-	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Context(), 60*time.Second) // extend timer cuz add ALNS
 	defer cancel()
 
 	result, err := h.planningService.Optimize(ctx, req)
