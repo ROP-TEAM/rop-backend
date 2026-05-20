@@ -28,6 +28,18 @@ definitions:
         description: 0=delivery,1=pickup
         type: integer
     type: object
+  dto.CreatePlan:
+    properties:
+      depot_lat:
+        type: number
+      depot_lon:
+        type: number
+      name:
+        type: string
+      plan_date:
+        description: '"2006-01-02"'
+        type: string
+    type: object
   dto.CreateTagSkill:
     properties:
       color:
@@ -348,6 +360,8 @@ definitions:
         type: string
       node:
         type: integer
+      provider:
+        type: string
       result:
         $ref: '#/definitions/response.MatrixResponse'
     type: object
@@ -385,6 +399,55 @@ definitions:
         type: array
       type:
         description: 0=delivery,1=pickup
+        type: integer
+    type: object
+  response.PlanResponse:
+    properties:
+      created_at:
+        type: string
+      depot_lat:
+        type: number
+      depot_lon:
+        type: number
+      id:
+        type: string
+      name:
+        type: string
+      plan_date:
+        type: string
+      routes:
+        items:
+          $ref: '#/definitions/response.RouteResponse'
+        type: array
+      status:
+        type: string
+    type: object
+  response.RouteResponse:
+    properties:
+      id:
+        type: integer
+      stops:
+        items:
+          $ref: '#/definitions/response.StopResponse'
+        type: array
+      total_distance:
+        type: number
+      total_time:
+        type: integer
+      vehicle_id:
+        type: integer
+    type: object
+  response.StopResponse:
+    properties:
+      arrival_min:
+        type: integer
+      depart_min:
+        type: integer
+      id:
+        type: integer
+      order_id:
+        type: integer
+      sequence_number:
         type: integer
     type: object
   response.TagSkillGroupResponse:
@@ -733,6 +796,129 @@ paths:
       summary: Create order list
       tags:
       - order
+  /api/plans:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.PlanResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all plans for the current user's company
+      tags:
+      - plan
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePlan'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.PlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new plan
+      tags:
+      - plan
+  /api/plans/{id}:
+    get:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlanResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get plan by ID with routes and stops
+      tags:
+      - plan
+  /api/plans/{id}/solve:
+    post:
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Trigger solver for a plan
+      tags:
+      - plan
   /api/skills:
     post:
       consumes:

@@ -470,6 +470,201 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/plans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "List all plans for the current user's company",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.PlanResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Create a new plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Plan details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePlan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.PlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/plans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Get plan by ID with routes and stops",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PlanResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/plans/{id}/solve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Trigger solver for a plan",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PlanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/skills": {
             "post": {
                 "security": [
@@ -786,6 +981,24 @@ const docTemplate = `{
                 "type": {
                     "description": "0=delivery,1=pickup",
                     "type": "integer"
+                }
+            }
+        },
+        "dto.CreatePlan": {
+            "type": "object",
+            "properties": {
+                "depot_lat": {
+                    "type": "number"
+                },
+                "depot_lon": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plan_date": {
+                    "description": "\"2006-01-02\"",
+                    "type": "string"
                 }
             }
         },
@@ -1271,6 +1484,9 @@ const docTemplate = `{
                 "node": {
                     "type": "integer"
                 },
+                "provider": {
+                    "type": "string"
+                },
                 "result": {
                     "$ref": "#/definitions/response.MatrixResponse"
                 }
@@ -1326,6 +1542,81 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "0=delivery,1=pickup",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PlanResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "depot_lat": {
+                    "type": "number"
+                },
+                "depot_lon": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plan_date": {
+                    "type": "string"
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RouteResponse"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RouteResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "stops": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.StopResponse"
+                    }
+                },
+                "total_distance": {
+                    "type": "number"
+                },
+                "total_time": {
+                    "type": "integer"
+                },
+                "vehicle_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.StopResponse": {
+            "type": "object",
+            "properties": {
+                "arrival_min": {
+                    "type": "integer"
+                },
+                "depart_min": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "sequence_number": {
                     "type": "integer"
                 }
             }
