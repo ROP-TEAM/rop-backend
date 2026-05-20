@@ -70,10 +70,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/skills", middleware.Protected(cfg), tagSkillHandler.Create)
 
-	api.Post("/plan", middleware.Protected(cfg), planHandler.Create)
-	api.Patch("/plan/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
-	api.Delete("/plan/:id", middleware.Protected(cfg), planHandler.DeleteByID)
-	api.Post("/plan/:id", middleware.Protected(cfg), planHandler.DuplicateByID)
+	api.Post("/plans", middleware.Protected(cfg), planHandler.Create)
+	api.Patch("/plans/name/:id", middleware.Protected(cfg), planHandler.UpdateNameByID)
+	api.Delete("/plans/:id", middleware.Protected(cfg), planHandler.DeleteByID)
+	api.Post("/plans/:id", middleware.Protected(cfg), planHandler.DuplicateByID)
 	api.Get("/plans/:id", middleware.Protected(cfg), planHandler.GetByID)
 	api.Get("/plans/", middleware.Protected(cfg), planHandler.GetPlans)
 

@@ -1049,7 +1049,37 @@ paths:
       summary: Update order
       tags:
       - order
-  /api/plan:
+  /api/plans:
+    get:
+      consumes:
+      - application/json
+      description: all plans metadata in user's company
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetPlansResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get Plans meta data
+      tags:
+      - plan
     post:
       consumes:
       - application/json
@@ -1086,7 +1116,7 @@ paths:
       summary: Create plan
       tags:
       - plan
-  /api/plan/:id:
+  /api/plans/{id}:
     delete:
       consumes:
       - application/json
@@ -1096,6 +1126,11 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
         required: true
         type: string
       - description: plan
@@ -1124,112 +1159,6 @@ paths:
       summary: Delete plan by plan id
       tags:
       - plan
-    patch:
-      consumes:
-      - application/json
-      description: Patch a plan name by id by attach plan id via url params, and updated
-        name by body
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: plan
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdatePlanNameByIDRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.UpdatePlanNameByIDResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Patch plan name by plan id
-      tags:
-      - plan
-    post:
-      consumes:
-      - application/json
-      description: user has to be in the same company as target plan to allow duplicating
-        it
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: plan
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/dto.DuplicatePlanByIDRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.DuplicatePlanByIDResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: DuplicatePlan and its legacy by id
-      tags:
-      - plan
-  /api/plans:
-    get:
-      consumes:
-      - application/json
-      description: all plans metadata in user's company
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.GetPlansResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: get Plans meta data
-      tags:
-      - plan
-  /api/plans/{id}:
     get:
       consumes:
       - application/json
@@ -1264,6 +1193,91 @@ paths:
       security:
       - BearerAuth: []
       summary: get Plan and its legacy by id
+      tags:
+      - plan
+    post:
+      consumes:
+      - application/json
+      description: user has to be in the same company as target plan to allow duplicating
+        it
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DuplicatePlanByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DuplicatePlanByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: DuplicatePlan and its legacy by id
+      tags:
+      - plan
+  /api/plans/name/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Patch a plan name by id by attach plan id via url params, and updated
+        name by body
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePlanNameByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdatePlanNameByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Patch plan name by plan id
       tags:
       - plan
   /api/skills:

@@ -31,7 +31,7 @@ func NewPlanHandler(service *services.PlanService) *PlanHandler {
 // @Success 200 {object} dto.CreatePlanResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan [post]
+// @Router /api/plans [post]
 func (h *PlanHandler) Create(c fiber.Ctx) error {
 	var body dto.CreatePlanRequest
 	if err := c.Bind().Body(&body); err != nil {
@@ -93,11 +93,12 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.UpdatePlanNameByIDRequest true "plan"
 // @Success 200 {object} dto.UpdatePlanNameByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [patch]
+// @Router /api/plans/name/{id} [patch]
 func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -164,11 +165,12 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.DeletePlanByIDRequest true "plan"
 // @Success 200 {object} dto.DeletePlanByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [delete]
+// @Router /api/plans/{id} [delete]
 func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -220,11 +222,12 @@ func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.DuplicatePlanByIDRequest true "plan"
 // @Success 200 {object} dto.DuplicatePlanByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [post]
+// @Router /api/plans/{id} [post]
 func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
