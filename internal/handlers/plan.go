@@ -274,3 +274,55 @@ func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 		"data":    res,
 	})
 }
+
+// GetPlanByID godoc
+// @Summary get Plan and its legacy by id
+// @Description user has to be in the same company as target plan to be allowed to get it
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
+// @Success 200 {object} dto.GetPlanDetailsResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plans/{id} [get]
+func (h *PlanHandler) FindByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "bad request",
+		})
+	}
+
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.service.GetDetailsByID(ctx, id, claims.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrUserNotFound),
+			errors.Is(err, services.ErrPlanNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "plan deleted",
+		"data":    res,
+	})
+}

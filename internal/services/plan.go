@@ -364,3 +364,49 @@ func (r *PlanService) formatDuplicateName(baseName string, count int64) string {
 	}
 	return baseName + suffix
 }
+
+func (s *PlanService) GetDetailsByID(ctx context.Context, planID string, userID uint) (*dto.GetPlanDetailsResponse, error) {
+	user, err := s.userRepository.FindByID(userID)
+	if err != nil {
+		log.Printf("[planService]: GetDetails finding company by user id: %v", err)
+		return nil, ErrUserNotFound
+	}
+
+	plan, err := s.planRepository.FindByID(ctx, planID, *user.CompanyID)
+	if err != nil {
+		log.Printf("[planService]: GetDetails finding plan by company id: %v", err)
+		return nil, ErrPlanNotFound
+	}
+
+	return MapPlanToPlanDetailsResponse(plan), nil
+}
+
+func MapPlanToPlanDetailsResponse(p *models.Plan) *dto.GetPlanDetailsResponse {
+	res := &dto.GetPlanDetailsResponse{
+		ID:        p.ID,
+		Name:      p.Name,
+		CreatedAt: p.CreatedAt,
+	}
+
+	for _, s := range p.TagSkills {
+		res.TagSkills = append(res.TagSkills, dto.TagSkillDetails{ID: s.ID, Name: s.Name, Color: s.Color})
+	}
+
+	for _, v := range p.Vehicles {
+		vRes := dto.VehicleDetails{ID: v.ID, Name: v.Name, NumberPlate: v.PlateNumber, Capacity: v.Capacity}
+		for _, s := range v.Skills {
+			vRes.Skills = append(vRes.Skills, dto.TagSkillID{ID: s.ID})
+		}
+		res.Vehicles = append(res.Vehicles, vRes)
+	}
+
+	for _, i := range p.Orders {
+		iRes := dto.OrderDetails{ID: i.ID, Name: i.Name, Capacity: i.Capacity}
+		for _, s := range i.Skills {
+			iRes.Skills = append(iRes.Skills, dto.TagSkillID{ID: s.ID})
+		}
+		res.Orders = append(res.Orders, iRes)
+	}
+
+	return res
+}
