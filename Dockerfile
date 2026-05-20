@@ -20,6 +20,7 @@ RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appus
 WORKDIR /app
 
 COPY --from=builder /app/rop-backend .
+COPY solver-bin/solver ./solver
 
 RUN chown -R appuser:appgroup /app
 
