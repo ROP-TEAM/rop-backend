@@ -24,6 +24,9 @@ var (
 	ErrCreatingVehicle      = errors.New("creating vehicle")
 	ErrCreatingOrderSkill   = errors.New("creating order tag skill")
 	ErrCreatingVehicleSkill = errors.New("creating vehicl tag skill")
+	ErrInvalidUser          = errors.New("invalid user or user not found ")
+	ErrInvalidDateFormat    = errors.New("invalid date format ")
+	ErrPlanNameTooLong      = errors.New("plan name must not exceed 100 characters")
 )
 
 type ErrPhoneNumberHasRecentRequest struct {

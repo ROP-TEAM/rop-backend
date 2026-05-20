@@ -46,8 +46,6 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	body.SetDefaults()
-
 	claims := middleware.GetUser(c)
 	if claims == nil {
 		return c.Status(401).JSON(fiber.Map{
@@ -71,6 +69,14 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 		case errors.Is(err, services.ErrUserHasNoCompany):
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "user has no company",
+			})
+		case errors.Is(err, services.ErrInvalidDateFormat):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invald data format: expect 2006-01-02 15:04:05.999999-07",
+			})
+		case errors.Is(err, services.ErrPlanNameTooLong): // ADDED
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
 			})
 		default:
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -120,8 +126,6 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 		})
 	}
 
-	body.SetDefaults()
-
 	claims := middleware.GetUser(c)
 	if claims == nil {
 		return c.Status(401).JSON(fiber.Map{
@@ -143,6 +147,10 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 		case errors.Is(err, services.ErrUserHasNoCompany):
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "user has no company",
+			})
+		case errors.Is(err, services.ErrPlanNameTooLong): // ADDED
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
 			})
 		default:
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -255,13 +263,18 @@ func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 				"error": err.Error(),
 			})
 
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+
 		case errors.Is(err, services.ErrCreatingOrder),
 			errors.Is(err, services.ErrCreatingVehicle),
 			errors.Is(err, services.ErrCreatingTagSkill),
 			errors.Is(err, services.ErrCreatingOrderSkill),
 			errors.Is(err, services.ErrCreatingVehicleSkill):
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error":   "internal server error",
+				"error":   "error while duplicating process error",
 				"details": err.Error(),
 			})
 
@@ -315,6 +328,10 @@ func (h *PlanHandler) GetByID(c fiber.Ctx) error {
 		case errors.Is(err, services.ErrUserNotFound),
 			errors.Is(err, services.ErrPlanNotFound):
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		default:

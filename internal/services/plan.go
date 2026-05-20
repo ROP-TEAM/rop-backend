@@ -5,16 +5,19 @@ import (
 	"ROP_Backend/internal/dto"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
+	"ROP_Backend/internal/utils"
+	"ROP_Backend/internal/validators"
 	"context"
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"gorm.io/gorm"
 )
 
-var (
-	ErrInvalidUser = errors.New("invalid user or user not found ")
+const (
+	DefaultPlanName = "UNTITLE"
 )
 
 type PlanService struct {
@@ -65,10 +68,28 @@ func (s *PlanService) CreateByUserID(ctx context.Context, userID uint, req *dto.
 		return nil, ErrUserHasNoCompany
 	}
 
+	if utils.IsSpacedString(req.Name) {
+		*req.Name = DefaultPlanName
+	}
+
+	if len(*req.Name) > 100 {
+		return nil, fmt.Errorf("creating plan: %w", ErrPlanNameTooLong)
+	}
+
+	var planDate time.Time
+	if utils.IsSpacedString(req.PlanDate) {
+		planDate = time.Now()
+	} else {
+		planDate, err = validators.ValidatePlanDate(*req.PlanDate)
+		if err != nil {
+			return nil, fmt.Errorf("creating plan: %w", ErrInvalidDateFormat)
+		}
+	}
+
 	newPlan := models.Plan{
 		CompanyID: *user.CompanyID,
 		Name:      *req.Name,
-		PlanDate:  req.PlanDate,
+		PlanDate:  planDate,
 	}
 	err = s.planRepository.Create(ctx, &newPlan)
 	if err != nil {
@@ -100,6 +121,14 @@ func (s *PlanService) UpdateNameByID(ctx context.Context,
 
 	if user.CompanyID == nil {
 		return nil, ErrUserHasNoCompany
+	}
+
+	if utils.IsSpacedString(req.Name) {
+		*req.Name = DefaultPlanName
+	}
+
+	if len(*req.Name) > 100 {
+		return nil, fmt.Errorf("creating plan: %w", ErrPlanNameTooLong)
 	}
 
 	updatedPlan := models.Plan{Name: *req.Name}
@@ -292,15 +321,18 @@ func (s *PlanService) DuplicateByID(
 
 	user, err := s.userRepository.FindByID(userID)
 	if err != nil {
+		log.Printf("[planService]: DuplicateByID finding user by user id: %v", err)
 		return nil, ErrUserNotFound
 	}
 
 	if user.CompanyID == nil {
+		log.Printf("[planService]: DuplicateByID finding company id : %v", err)
 		return nil, ErrUserHasNoCompany
 	}
 
 	original, err := s.planRepository.FindByID(ctx, planID, *user.CompanyID)
 	if err != nil {
+		log.Printf("[planService]: DuplicateByID finding plan by comapny id: %v", err)
 		return nil, ErrPlanNotFound
 	}
 
@@ -320,6 +352,7 @@ func (s *PlanService) DuplicateByID(
 
 		count, err := planRepository.CountExistingNameCopies(ctx, *user.CompanyID, original.Name)
 		if err != nil {
+			log.Printf("[planService]: DuplicateByID counting duplicated plan name: %v", err)
 			return err
 		}
 
@@ -332,21 +365,25 @@ func (s *PlanService) DuplicateByID(
 
 		err = planRepository.Create(ctx, &newPlan)
 		if err != nil {
+			log.Printf("[planService]: DuplicateByID duplicating plan: %v", err)
 			return ErrCreatingPlan
 		}
 
 		skillMap, err := s.duplicateTagSkills(ctx, skillRepo, original.TagSkills, newPlan.ID)
 		if err != nil {
+			log.Printf("[planService]: DuplicateByID duplicating skill tag: %v", err)
 			return err
 		}
 
 		_, err = s.duplicateVehicles(ctx, vehicleRepo, vehicleTagSkillRepo, original.Vehicles, newPlan.ID, skillMap)
 		if err != nil {
+			log.Printf("[planService]: DuplicateByID duplicating vehicle: %v", err)
 			return err
 		}
 
 		_, err = s.duplicateOrders(ctx, orderRepo, orderTagSkillRepo, original.Orders, newPlan.ID, skillMap)
 		if err != nil {
+			log.Printf("[planService]: DuplicateByID duplicating orders: %v", err)
 			return err
 		}
 
@@ -394,6 +431,7 @@ func MapPlanToPlanDetailsResponse(p *models.Plan) *dto.GetPlanDetailsResponse {
 		ID:        p.ID,
 		Name:      p.Name,
 		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
 	}
 
 	for _, s := range p.TagSkills {

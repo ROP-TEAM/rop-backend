@@ -1,30 +1,12 @@
 package dto
 
 import (
-	"strings"
 	"time"
 )
 
-const (
-	DefautlPlanName = "untitle"
-)
-
-func isSpaceName(a *string) bool {
-	return a == nil || strings.TrimSpace(*a) == ""
-}
-
 type CreatePlanRequest struct {
-	Name     *string   `json:"name" example:"untangle"`
-	PlanDate time.Time `json:"plan_date" example:"2026-05-05 15:44:09.523069+00"`
-}
-
-func (r *CreatePlanRequest) SetDefaults() {
-	if isSpaceName(r.Name) {
-		*r.Name = DefautlPlanName
-	}
-	if r.PlanDate.IsZero() {
-		r.PlanDate = time.Now()
-	}
+	Name     *string `json:"name" example:"untangle"`
+	PlanDate *string `json:"plan_date" example:"2026-05-05 15:44:09.523069+00"` // CHANGED: time.Time -> *string
 }
 
 type CreatePlanResponse struct {
@@ -35,12 +17,6 @@ type CreatePlanResponse struct {
 
 type UpdatePlanNameByIDRequest struct {
 	Name *string `json:"name" example:"united in grief"`
-}
-
-func (r *UpdatePlanNameByIDRequest) SetDefaults() {
-	if isSpaceName(r.Name) {
-		*r.Name = DefautlPlanName
-	}
 }
 
 type UpdatePlanNameByIDResponse struct {
