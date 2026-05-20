@@ -179,6 +179,86 @@ definitions:
       success:
         type: boolean
     type: object
+  dto.OptimizeOrder:
+    properties:
+      capacity:
+        type: integer
+      des_latitude:
+        type: number
+      des_longitude:
+        type: number
+      name:
+        type: string
+      priority:
+        type: integer
+      service_time:
+        type: integer
+      skills:
+        items:
+          type: string
+        type: array
+      time_window_end:
+        type: integer
+      time_window_start:
+        type: integer
+      type:
+        type: integer
+    type: object
+  dto.OptimizeRequest:
+    properties:
+      depot_lat:
+        type: number
+      depot_lon:
+        type: number
+      orders:
+        items:
+          $ref: '#/definitions/dto.OptimizeOrder'
+        minItems: 1
+        type: array
+      vehicles:
+        items:
+          $ref: '#/definitions/dto.OptimizeVehicle'
+        minItems: 1
+        type: array
+    required:
+    - depot_lat
+    - depot_lon
+    - orders
+    - vehicles
+    type: object
+  dto.OptimizeVehicle:
+    properties:
+      capacity:
+        type: integer
+      daily_break_time_end:
+        type: integer
+      daily_break_time_start:
+        type: integer
+      daily_work_time_end:
+        type: integer
+      daily_work_time_start:
+        type: integer
+      end_latitude:
+        type: number
+      end_longitude:
+        type: number
+      max_task:
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      plate_number:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      start_latitude:
+        type: number
+      start_longitude:
+        type: number
+    type: object
   dto.RequestOTPRequest:
     properties:
       tel:
@@ -440,6 +520,8 @@ definitions:
         type: string
       node:
         type: integer
+      provider:
+        type: string
       result:
         $ref: '#/definitions/response.MatrixResponse'
     type: object
@@ -457,6 +539,15 @@ definitions:
             type: integer
           type: array
         type: array
+    type: object
+  response.OptimizeResponse:
+    properties:
+      routes:
+        items:
+          $ref: '#/definitions/response.RouteResponse'
+        type: array
+      status:
+        type: string
     type: object
   response.OrderResponse:
     properties:
@@ -478,6 +569,28 @@ definitions:
       type:
         description: 0=delivery,1=pickup
         type: integer
+    type: object
+  response.RouteResponse:
+    properties:
+      stops:
+        items:
+          $ref: '#/definitions/response.StopResponse'
+        type: array
+      total_distance:
+        type: number
+      total_duration:
+        type: number
+      vehicle_name:
+        type: string
+    type: object
+  response.StopResponse:
+    properties:
+      arrival_min:
+        type: integer
+      depart_min:
+        type: integer
+      order_name:
+        type: string
     type: object
   response.TagSkillGroupResponse:
     properties:
@@ -752,6 +865,40 @@ paths:
       summary: Verify OTP
       tags:
       - onboarding
+  /api/optimize:
+    post:
+      consumes:
+      - application/json
+      description: Optimize vehicle routing problem given vehicles and orders
+      parameters:
+      - description: optimize request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OptimizeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OptimizeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Optimize vehicle routing
+      tags:
+      - planning
   /api/orders:
     delete:
       consumes:

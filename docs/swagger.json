@@ -345,6 +345,58 @@
                 }
             }
         },
+        "/api/optimize": {
+            "post": {
+                "description": "Optimize vehicle routing problem given vehicles and orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "planning"
+                ],
+                "summary": "Optimize vehicle routing",
+                "parameters": [
+                    {
+                        "description": "optimize request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OptimizeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.OptimizeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/orders": {
             "post": {
                 "security": [
@@ -1300,6 +1352,125 @@
                 }
             }
         },
+        "dto.OptimizeOrder": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "des_latitude": {
+                    "type": "number"
+                },
+                "des_longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "service_time": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "time_window_end": {
+                    "type": "integer"
+                },
+                "time_window_start": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OptimizeRequest": {
+            "type": "object",
+            "required": [
+                "depot_lat",
+                "depot_lon",
+                "orders",
+                "vehicles"
+            ],
+            "properties": {
+                "depot_lat": {
+                    "type": "number"
+                },
+                "depot_lon": {
+                    "type": "number"
+                },
+                "orders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.OptimizeOrder"
+                    }
+                },
+                "vehicles": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.OptimizeVehicle"
+                    }
+                }
+            }
+        },
+        "dto.OptimizeVehicle": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "daily_break_time_end": {
+                    "type": "integer"
+                },
+                "daily_break_time_start": {
+                    "type": "integer"
+                },
+                "daily_work_time_end": {
+                    "type": "integer"
+                },
+                "daily_work_time_start": {
+                    "type": "integer"
+                },
+                "end_latitude": {
+                    "type": "number"
+                },
+                "end_longitude": {
+                    "type": "number"
+                },
+                "max_task": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plate_number": {
+                    "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "start_latitude": {
+                    "type": "number"
+                },
+                "start_longitude": {
+                    "type": "number"
+                }
+            }
+        },
         "dto.RequestOTPRequest": {
             "type": "object",
             "required": [
@@ -1690,6 +1861,9 @@
                 "node": {
                     "type": "integer"
                 },
+                "provider": {
+                    "type": "string"
+                },
                 "result": {
                     "$ref": "#/definitions/response.MatrixResponse"
                 }
@@ -1715,6 +1889,20 @@
                             "type": "integer"
                         }
                     }
+                }
+            }
+        },
+        "response.OptimizeResponse": {
+            "type": "object",
+            "properties": {
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RouteResponse"
+                    }
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -1746,6 +1934,40 @@
                 "type": {
                     "description": "0=delivery,1=pickup",
                     "type": "integer"
+                }
+            }
+        },
+        "response.RouteResponse": {
+            "type": "object",
+            "properties": {
+                "stops": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.StopResponse"
+                    }
+                },
+                "total_distance": {
+                    "type": "number"
+                },
+                "total_duration": {
+                    "type": "number"
+                },
+                "vehicle_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.StopResponse": {
+            "type": "object",
+            "properties": {
+                "arrival_min": {
+                    "type": "integer"
+                },
+                "depart_min": {
+                    "type": "integer"
+                },
+                "order_name": {
+                    "type": "string"
                 }
             }
         },

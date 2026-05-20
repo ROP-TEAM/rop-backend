@@ -8,6 +8,7 @@ import (
 
 	_ "ROP_Backend/docs"
 
+	"github.com/ROP-TEAM/rop-algorithm/solver"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -52,6 +53,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	}
 	matrixHandler := handlers.NewMatrixHandler(matrixService)
 
+	slv := solver.NewStub()
+	planningService := services.NewPlanningService(matrixService, slv)
+	planningHandler := handlers.NewPlanningHandler(planningService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -76,6 +81,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/plan/:id", middleware.Protected(cfg), planHandler.DuplicateByID)
 
 	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
+
+	api.Post("/optimize", planningHandler.Optimize)
 
 	//test route
 
