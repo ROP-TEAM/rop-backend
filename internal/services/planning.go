@@ -8,6 +8,8 @@ import (
 
 	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/dto/response"
+	"ROP_Backend/internal/models"
+	"ROP_Backend/internal/repository"
 
 	"github.com/ROP-TEAM/rop-algorithm/model"
 	"github.com/ROP-TEAM/rop-algorithm/solver"
@@ -20,15 +22,28 @@ type matrixBuilder interface {
 type PlanningService struct {
 	matrixSvc matrixBuilder
 	solver    solver.Solver
+
+	planRepo    *repository.PlanRepository
+	vehicleRepo *repository.VehicleRepository
+	orderRepo   *repository.OrderRepository
+	tagRepo     *repository.TagSkillRepository
 }
 
 func NewPlanningService(
 	matrixSvc matrixBuilder,
 	solver solver.Solver,
+	planRepo *repository.PlanRepository,
+	vehicleRepo *repository.VehicleRepository,
+	orderRepo *repository.OrderRepository,
+	tagRepo *repository.TagSkillRepository,
 ) *PlanningService {
 	return &PlanningService{
-		matrixSvc: matrixSvc,
-		solver:    solver,
+		matrixSvc:   matrixSvc,
+		solver:      solver,
+		planRepo:    planRepo,
+		vehicleRepo: vehicleRepo,
+		orderRepo:   orderRepo,
+		tagRepo:     tagRepo,
 	}
 }
 
@@ -73,6 +88,137 @@ func (s *PlanningService) Optimize(
 	error,
 ) {
 	if err := validateRequest(req); err != nil {
+		return nil, err
+	}
+
+	plan := &models.Plan{
+		CompanyID: "c5c5cfc5-d97e-4ade-ae2f-7abec89c6f12",
+	}
+
+	if err := s.planRepo.Create(ctx, plan); err != nil {
+		return nil, err
+	}
+
+	planID := plan.ID
+
+	skillMap := map[string]uint{}
+
+	for _, v := range req.Vehicles {
+		for _, skill := range v.Skills {
+			if _, ok := skillMap[skill.Name]; ok {
+				continue
+			}
+			color := skill.Color
+			if color == "" {
+				color = "#3B82F6"
+			}
+
+			skill := models.TagSkill{
+				Name:   skill.Name,
+				Color:  skill.Color,
+				PlanID: planID,
+			}
+
+			if err := s.tagRepo.Create(&skill); err != nil {
+				return nil, err
+			}
+
+			skillMap[skill.Name] = skill.ID
+		}
+	}
+
+	for _, o := range req.Orders {
+		for _, skill := range o.Skills {
+			if _, ok := skillMap[skill.Name]; ok {
+				continue
+			}
+
+			skill := models.TagSkill{
+				Name:   skill.Name,
+				Color:  skill.Color,
+				PlanID: planID,
+			}
+
+			if err := s.tagRepo.Create(&skill); err != nil {
+				return nil, err
+			}
+
+			skillMap[skill.Name] = skill.ID
+		}
+	}
+
+	vehicles := make([]models.Vehicle, len(req.Vehicles))
+
+	for i, v := range req.Vehicles {
+
+		skills := make([]models.TagSkill, 0, len(v.Skills))
+
+		for _, s := range v.Skills {
+			skills = append(skills, models.TagSkill{
+				ID: skillMap[s.Name],
+			})
+		}
+
+		vehicles[i] = models.Vehicle{
+			Name:        v.Name,
+			Model:       v.Model,
+			PlateNumber: v.PlateNumber,
+
+			Capacity: float64(v.Capacity),
+			MaxTask:  &v.MaxTask,
+
+			PlanID: planID,
+
+			StartLat: &v.StartLatitude,
+			StartLon: &v.StartLongitude,
+			EndLat:   &v.EndLatitude,
+			EndLon:   &v.EndLongitude,
+
+			DailyWorkTimeStart:  &v.DailyWorkTimeStart,
+			DailyWorkTimeEnd:    &v.DailyWorkTimeEnd,
+			DailyBreakTimeStart: &v.DailyBreakTimeStart,
+			DailyBreakTimeEnd:   &v.DailyBreakTimeEnd,
+		}
+	}
+
+	if err := s.vehicleRepo.BatchCreate(ctx, vehicles); err != nil {
+		return nil, err
+	}
+
+	orders := make([]models.Order, len(req.Orders))
+
+	for i, o := range req.Orders {
+
+		skills := make([]models.TagSkill, 0, len(o.Skills))
+
+		for _, s := range o.Skills {
+			skills = append(skills, models.TagSkill{
+				ID: skillMap[s.Name],
+			})
+		}
+
+		orders[i] = models.Order{
+			Name: o.Name,
+
+			Type: o.Type,
+
+			Capacity: float64(o.Capacity),
+
+			Priority: o.Priority,
+
+			PlanID: planID,
+
+			DesLatitude:  &o.DesLatitude,
+			DesLongitude: &o.DesLongitude,
+
+			ServiceTime: &o.ServiceTime,
+
+			TimeWindowStart: &o.TimeWindowStart,
+			TimeWindowEnd:   &o.TimeWindowEnd,
+		}
+	}
+
+	if err := s.orderRepo.BatchCreate(ctx, orders); err != nil {
 		return nil, err
 	}
 
@@ -201,6 +347,12 @@ func optimizeOrderToNode(
 			model.NodeTypePickup
 	}
 
+	tags := make([]string, 0, len(o.Skills))
+
+	for _, s := range o.Skills {
+		tags = append(tags, s.Name)
+	}
+
 	return model.Node{
 		ID: strconv.Itoa(i),
 
@@ -216,7 +368,7 @@ func optimizeOrderToNode(
 
 		TWEnd: o.TimeWindowEnd,
 
-		Tags: o.Skills,
+		Tags: tags,
 
 		Type: nodeType,
 
@@ -230,6 +382,11 @@ func optimizeVehicleToModel(
 	i int,
 	v dto.OptimizeVehicle,
 ) model.Vehicle {
+	tags := make([]string, 0, len(v.Skills))
+
+	for _, s := range v.Skills {
+		tags = append(tags, s.Name)
+	}
 
 	return model.Vehicle{
 		ID: strconv.Itoa(i),
@@ -246,7 +403,7 @@ func optimizeVehicleToModel(
 
 		MaxTasks: v.MaxTask,
 
-		Tags: v.Skills,
+		Tags: tags,
 
 		StartLat: v.StartLatitude,
 
@@ -350,11 +507,11 @@ func intsToFloats(in [][]int) [][]float64 {
 
 func priorityFromInt(p int) model.Priority {
 	switch p {
-	case 4:
-		return model.PriorityCritical
 	case 3:
-		return model.PriorityHigh
+		return model.PriorityCritical
 	case 2:
+		return model.PriorityHigh
+	case 1:
 		return model.PriorityMedium
 	default:
 		return model.PriorityLow

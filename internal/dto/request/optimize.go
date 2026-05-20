@@ -28,7 +28,7 @@ type OptimizeVehicle struct {
 	EndLatitude  float64 `json:"end_latitude"`
 	EndLongitude float64 `json:"end_longitude"`
 
-	Skills []string `json:"skills"`
+	Skills []CreateTagSkill `json:"skills"`
 }
 
 type OptimizeOrder struct {
@@ -48,5 +48,5 @@ type OptimizeOrder struct {
 
 	Priority int `json:"priority"`
 
-	Skills []string `json:"skills"`
+	Skills []CreateTagSkill `json:"skills"`
 }

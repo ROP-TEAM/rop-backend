@@ -1393,7 +1393,7 @@ const docTemplate = `{
                 "skills": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.CreateTagSkill"
                     }
                 },
                 "time_window_end": {
@@ -1477,7 +1477,7 @@ const docTemplate = `{
                 "skills": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dto.CreateTagSkill"
                     }
                 },
                 "start_latitude": {

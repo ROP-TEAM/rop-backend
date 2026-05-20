@@ -195,7 +195,7 @@ definitions:
         type: integer
       skills:
         items:
-          type: string
+          $ref: '#/definitions/dto.CreateTagSkill'
         type: array
       time_window_end:
         type: integer
@@ -252,7 +252,7 @@ definitions:
         type: string
       skills:
         items:
-          type: string
+          $ref: '#/definitions/dto.CreateTagSkill'
         type: array
       start_latitude:
         type: number

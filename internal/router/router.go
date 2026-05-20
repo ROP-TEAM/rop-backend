@@ -4,6 +4,7 @@ import (
 	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/handlers"
 	"ROP_Backend/internal/middleware"
+	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
 
 	_ "ROP_Backend/docs"
@@ -64,7 +65,21 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 			return nil
 		})
 	}
-	planningService := services.NewPlanningService(matrixService, slv)
+
+	planRepo := repository.NewPlanRepository(db)
+	vehicleRepo := repository.NewVehicleRepository(db)
+	orderRepo := repository.NewOrderRepository(db)
+	tagRepo := repository.NewTagSkillRepository(db)
+
+	planningService := services.NewPlanningService(
+		matrixService,
+		slv,
+		planRepo,
+		vehicleRepo,
+		orderRepo,
+		tagRepo,
+	)
+
 	planningHandler := handlers.NewPlanningHandler(planningService)
 
 	api := app.Group("/api")
