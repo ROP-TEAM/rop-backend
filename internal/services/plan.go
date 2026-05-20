@@ -295,6 +295,10 @@ func (s *PlanService) DuplicateByID(
 		return nil, ErrUserNotFound
 	}
 
+	if user.CompanyID == nil {
+		return nil, ErrUserHasNoCompany
+	}
+
 	original, err := s.planRepository.FindByID(ctx, planID, *user.CompanyID)
 	if err != nil {
 		return nil, ErrPlanNotFound
@@ -370,6 +374,10 @@ func (s *PlanService) GetDetailsByID(ctx context.Context, planID string, userID 
 	if err != nil {
 		log.Printf("[planService]: GetDetails finding company by user id: %v", err)
 		return nil, ErrUserNotFound
+	}
+
+	if user.CompanyID == nil {
+		return nil, ErrUserHasNoCompany
 	}
 
 	plan, err := s.planRepository.FindByID(ctx, planID, *user.CompanyID)
