@@ -6,6 +6,12 @@ type OptimizeRequest struct {
 
 	Vehicles []OptimizeVehicle `json:"vehicles" validate:"required,min=1"`
 	Orders   []OptimizeOrder   `json:"orders" validate:"required,min=1"`
+
+	EnableALNS      bool   `json:"enable_alns"`
+	EnableMultiTrip bool   `json:"enable_multi_trip"`
+	ReloadMin       int    `json:"reload_min"`    // minutes; 0 = server default (30)
+	TimeLimitMS     int    `json:"time_limit_ms"` // 0 = server default (5000)
+	Seed            uint32 `json:"seed"`          // 0 = non-deterministic
 }
 
 type OptimizeVehicle struct {

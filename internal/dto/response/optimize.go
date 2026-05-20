@@ -19,7 +19,8 @@ type RouteResponse struct {
 	TotalDistance float64 `json:"total_distance"`
 	TotalDuration float64 `json:"total_duration"`
 
-	Stops []StopResponse `json:"stops"`
+	Stops     []StopResponse `json:"stops"`
+	TripSizes []int          `json:"trip_sizes,omitempty"`
 }
 
 type StopResponse struct {

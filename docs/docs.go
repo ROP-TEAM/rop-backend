@@ -1422,12 +1422,30 @@ const docTemplate = `{
                 "depot_lon": {
                     "type": "number"
                 },
+                "enable_alns": {
+                    "type": "boolean"
+                },
+                "enable_multi_trip": {
+                    "type": "boolean"
+                },
                 "orders": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "$ref": "#/definitions/dto.OptimizeOrder"
                     }
+                },
+                "reload_min": {
+                    "description": "minutes; 0 = server default (30)",
+                    "type": "integer"
+                },
+                "seed": {
+                    "description": "0 = non-deterministic",
+                    "type": "integer"
+                },
+                "time_limit_ms": {
+                    "description": "0 = server default (5000)",
+                    "type": "integer"
                 },
                 "vehicles": {
                     "type": "array",
@@ -1994,6 +2012,12 @@ const docTemplate = `{
                 },
                 "total_duration": {
                     "type": "number"
+                },
+                "trip_sizes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "vehicle_name": {
                     "type": "string"

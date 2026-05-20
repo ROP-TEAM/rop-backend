@@ -330,7 +330,11 @@ func buildOptimizeProblem(
 
 		Distances: distances,
 
-		TimeLimitMS: 4500,
+		TimeLimitMS:     req.TimeLimitMS,
+		EnableALNS:      req.EnableALNS,
+		EnableMultiTrip: req.EnableMultiTrip,
+		ReloadMin:       req.ReloadMin,
+		Seed:            req.Seed,
 	}
 }
 
@@ -465,7 +469,8 @@ func buildOptimizeResponse(
 
 				TotalDuration: float64(r.TotalDuration),
 
-				Stops: stops,
+				Stops:     stops,
+				TripSizes: r.TripSizes,
 			},
 		)
 	}
