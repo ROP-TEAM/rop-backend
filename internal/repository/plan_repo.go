@@ -127,3 +127,16 @@ func (r *PlanRepository) CountExistingNameCopies(ctx context.Context, companyID 
 
 	return &count, err
 }
+
+func (r *PlanRepository) FindByCompanyID(ctx context.Context, companyID string) ([]models.Plan, error) {
+	var plans []models.Plan
+	err := r.db.WithContext(ctx).
+		Where("plan_company_fk = ?", companyID).
+		Find(&plans).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return plans, err
+}

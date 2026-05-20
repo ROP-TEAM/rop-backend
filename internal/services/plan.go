@@ -410,3 +410,37 @@ func MapPlanToPlanDetailsResponse(p *models.Plan) *dto.GetPlanDetailsResponse {
 
 	return res
 }
+
+func (s *PlanService) GetPlans(ctx context.Context, userID uint) (*dto.GetPlansResponse, error) {
+	user, err := s.userRepository.FindByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("GetPlansMetaData user not found: %w", ErrUserNotFound)
+		}
+		log.Printf("[planService]: GetPlansMetaData finding user by user id: %v", err)
+		return nil, fmt.Errorf("creating plan: %w", err)
+	}
+
+	if user.CompanyID == nil {
+		log.Printf("[planService]: GetPlansMetaData finding company id by user id: %v", err)
+		return nil, ErrUserHasNoCompany
+	}
+
+	plans, err := s.planRepository.FindByCompanyID(ctx, *user.CompanyID)
+	if err != nil {
+		log.Printf("[planService]: GetPlansMetaData finding plans by comapnay id: %v", err)
+		return nil, ErrPlanNotFound
+	}
+
+	planResponses := make([]dto.GetPlanMetaDataResponse, len(plans))
+	for i, plan := range plans {
+		planResponses[i] = dto.GetPlanMetaDataResponse{
+			ID:        plan.ID,
+			Name:      plan.Name,
+			CreatedAt: plan.CreatedAt,
+			UpdatedAt: plan.UpdatedAt,
+		}
+	}
+
+	return &dto.GetPlansResponse{Plans: planResponses}, nil
+}

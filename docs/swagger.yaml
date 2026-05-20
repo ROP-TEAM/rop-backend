@@ -152,6 +152,26 @@ definitions:
           $ref: '#/definitions/dto.VehicleDetails'
         type: array
     type: object
+  dto.GetPlanMetaDataResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        example: whatthehell
+        type: string
+      name:
+        example: what
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.GetPlansResponse:
+    properties:
+      plans:
+        items:
+          $ref: '#/definitions/dto.GetPlanMetaDataResponse'
+        type: array
+    type: object
   dto.GroupCreateOrder:
     properties:
       orders:
@@ -1176,6 +1196,37 @@ paths:
       security:
       - BearerAuth: []
       summary: DuplicatePlan and its legacy by id
+      tags:
+      - plan
+  /api/plans:
+    get:
+      consumes:
+      - application/json
+      description: all plans metadata in user's company
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetPlansResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get Plans meta data
       tags:
       - plan
   /api/plans/{id}:

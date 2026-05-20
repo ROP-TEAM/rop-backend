@@ -67,9 +67,6 @@ type GetPlanByIDRequest struct {
 // 	Vehicles  []models.Vehicle
 // }
 
-type GetPlanMetaDataRequest struct {
-}
-
 type GetPlanMetaDataResponse struct {
 	ID        string    `json:"id" example:"whatthehell"`
 	Name      string    `json:"name" example:"what"`
@@ -77,7 +74,8 @@ type GetPlanMetaDataResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type GetPlansRequest struct {
+type GetPlansResponse struct {
+	Plans []GetPlanMetaDataResponse `json:"plans"`
 }
 
 type TagSkillDetails struct {
