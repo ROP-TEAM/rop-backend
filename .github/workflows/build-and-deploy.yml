@@ -53,6 +53,17 @@ jobs:
       #     go mod edit -dropreplace "github.com/ROP-TEAM/rop-algorithm"
       #     go mod tidy
 
+      - name: Download solver binary (Linux)
+        run: |
+          gh release download \
+            --repo ROP-TEAM/rop-algorithm \
+            --pattern "solver" \
+            --dir solver-bin \
+            --clobber
+          chmod +x solver-bin/solver
+        env:
+          GH_TOKEN: ${{ secrets.ALGO_PAT }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -112,4 +123,5 @@ jobs:
           IMAGE_TAG_LOWER=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]')
           echo "Deploying unique image: $IMAGE_TAG_LOWER"
           kubectl set image deployment/rop-backend rop-backend=$IMAGE_TAG_LOWER -n rop
+          kubectl set env deployment/rop-backend SOLVER_BINARY_PATH=/app/solver -n rop
           kubectl rollout status deployment/rop-backend -n rop --timeout=300s
