@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	dto "ROP_Backend/internal/dto/request"
@@ -12,19 +13,56 @@ import (
 	"github.com/ROP-TEAM/rop-algorithm/solver"
 )
 
+type matrixBuilder interface {
+	BuildMatrix(ctx context.Context, locs []dto.LocationInput) (response.MatrixResponse, error)
+}
+
 type PlanningService struct {
-	matrixSvc *MatrixService
+	matrixSvc matrixBuilder
 	solver    solver.Solver
 }
 
 func NewPlanningService(
-	matrixSvc *MatrixService,
+	matrixSvc matrixBuilder,
 	solver solver.Solver,
 ) *PlanningService {
 	return &PlanningService{
 		matrixSvc: matrixSvc,
 		solver:    solver,
 	}
+}
+
+func validateRequest(req dto.OptimizeRequest) error {
+	if len(req.Vehicles) == 0 {
+		return errors.New("vehicles cannot be empty")
+	}
+	if len(req.Orders) == 0 {
+		return errors.New("orders cannot be empty")
+	}
+	if req.DepotLat < -90 || req.DepotLat > 90 {
+		return errors.New("depot_lat must be between -90 and 90")
+	}
+	if req.DepotLon < -180 || req.DepotLon > 180 {
+		return errors.New("depot_lon must be between -180 and 180")
+	}
+	for i, o := range req.Orders {
+		if o.DesLatitude < -90 || o.DesLatitude > 90 {
+			return fmt.Errorf("orders[%d]: des_latitude must be between -90 and 90", i)
+		}
+		if o.DesLongitude < -180 || o.DesLongitude > 180 {
+			return fmt.Errorf("orders[%d]: des_longitude must be between -180 and 180", i)
+		}
+		if o.TimeWindowStart > o.TimeWindowEnd {
+			return fmt.Errorf("orders[%d]: time_window_start must not exceed time_window_end", i)
+		}
+		if o.Capacity < 0 {
+			return fmt.Errorf("orders[%d]: capacity must be >= 0", i)
+		}
+		if o.ServiceTime < 0 {
+			return fmt.Errorf("orders[%d]: service_time must be >= 0", i)
+		}
+	}
+	return nil
 }
 
 func (s *PlanningService) Optimize(
@@ -34,17 +72,8 @@ func (s *PlanningService) Optimize(
 	*response.OptimizeResponse,
 	error,
 ) {
-
-	if len(req.Vehicles) == 0 {
-		return nil, errors.New(
-			"vehicles cannot be empty",
-		)
-	}
-
-	if len(req.Orders) == 0 {
-		return nil, errors.New(
-			"orders cannot be empty",
-		)
+	if err := validateRequest(req); err != nil {
+		return nil, err
 	}
 
 	locations := buildOptimizeLocations(req)
@@ -284,12 +313,27 @@ func buildOptimizeResponse(
 		)
 	}
 
-	return &response.OptimizeResponse{
-		Status: string(
-			solution.Status,
-		),
+	unassigned := make([]string, 0, len(solution.Unassigned))
+	for _, id := range solution.Unassigned {
+		if name, ok := orderMap[id]; ok {
+			unassigned = append(unassigned, name)
+		}
+	}
 
-		Routes: routes,
+	dropReasons := make([]response.DropReasonResponse, 0, len(solution.DropReasons))
+	for _, dr := range solution.DropReasons {
+		dropReasons = append(dropReasons, response.DropReasonResponse{
+			OrderName: orderMap[dr.NodeID],
+			Code:      dr.Code,
+			Detail:    dr.Detail,
+		})
+	}
+
+	return &response.OptimizeResponse{
+		Status:      string(solution.Status),
+		Routes:      routes,
+		Unassigned:  unassigned,
+		DropReasons: dropReasons,
 	}
 }
 

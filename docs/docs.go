@@ -393,14 +393,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/response.OptimizeResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "504": {
+                        "description": "Gateway Timeout",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
@@ -1880,6 +1886,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DropReasonResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "order_name": {
+                    "type": "string"
+                }
+            }
+        },
         "response.MatrixResponse": {
             "type": "object",
             "properties": {
@@ -1906,6 +1926,12 @@ const docTemplate = `{
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
+                "drop_reasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DropReasonResponse"
+                    }
+                },
                 "routes": {
                     "type": "array",
                     "items": {
@@ -1914,6 +1940,12 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "unassigned": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

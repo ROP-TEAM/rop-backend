@@ -8,7 +8,8 @@ import (
 
 	_ "ROP_Backend/docs"
 
-	"github.com/ROP-TEAM/rop-algorithm/solver"
+	"fmt"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -53,7 +54,16 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	}
 	matrixHandler := handlers.NewMatrixHandler(matrixService)
 
-	slv := solver.NewStub()
+	slv, solverCleanup, err := buildSolver(cfg.SOLVER_BINARY_PATH)
+	if err != nil {
+		panic(fmt.Sprintf("failed to start solver: %v", err))
+	}
+	if solverCleanup != nil {
+		app.Hooks().OnPreShutdown(func() error {
+			solverCleanup()
+			return nil
+		})
+	}
 	planningService := services.NewPlanningService(matrixService, slv)
 	planningHandler := handlers.NewPlanningHandler(planningService)
 

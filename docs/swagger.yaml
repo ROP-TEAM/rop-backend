@@ -525,6 +525,15 @@ definitions:
       result:
         $ref: '#/definitions/response.MatrixResponse'
     type: object
+  response.DropReasonResponse:
+    properties:
+      code:
+        type: string
+      detail:
+        type: string
+      order_name:
+        type: string
+    type: object
   response.MatrixResponse:
     properties:
       distances:
@@ -542,12 +551,20 @@ definitions:
     type: object
   response.OptimizeResponse:
     properties:
+      drop_reasons:
+        items:
+          $ref: '#/definitions/response.DropReasonResponse'
+        type: array
       routes:
         items:
           $ref: '#/definitions/response.RouteResponse'
         type: array
       status:
         type: string
+      unassigned:
+        items:
+          type: string
+        type: array
     type: object
   response.OrderResponse:
     properties:
@@ -888,12 +905,16 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
-        "401":
-          description: Unauthorized
+        "422":
+          description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            $ref: '#/definitions/response.OptimizeResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Optimize vehicle routing
