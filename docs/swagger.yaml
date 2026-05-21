@@ -179,6 +179,97 @@ definitions:
       success:
         type: boolean
     type: object
+  dto.OptimizeOrder:
+    properties:
+      capacity:
+        type: integer
+      desLatitude:
+        type: number
+      desLongitude:
+        type: number
+      name:
+        type: string
+      priority:
+        type: integer
+      serviceTime:
+        type: integer
+      skill:
+        type: string
+      timeWindowEnd:
+        type: integer
+      timeWindowStart:
+        type: integer
+      type:
+        type: integer
+    type: object
+  dto.OptimizeRequest:
+    properties:
+      depotLat:
+        type: number
+      depotLon:
+        type: number
+      enableAlns:
+        type: boolean
+      enableMultiTrip:
+        type: boolean
+      orders:
+        items:
+          $ref: '#/definitions/dto.OptimizeOrder'
+        minItems: 1
+        type: array
+      reloadMin:
+        description: minutes; 0 = server default (30)
+        type: integer
+      seed:
+        description: 0 = non-deterministic
+        type: integer
+      timeLimitMS:
+        description: 0 = server default (5000)
+        type: integer
+      vehicles:
+        items:
+          $ref: '#/definitions/dto.OptimizeVehicle'
+        minItems: 1
+        type: array
+    required:
+    - depotLat
+    - depotLon
+    - orders
+    - vehicles
+    type: object
+  dto.OptimizeVehicle:
+    properties:
+      breakTimeEnd:
+        type: integer
+      breakTimeStart:
+        type: integer
+      capacity:
+        type: integer
+      endLatitude:
+        type: number
+      endLongitude:
+        type: number
+      maxTask:
+        type: integer
+      model:
+        type: string
+      name:
+        type: string
+      plateNumber:
+        type: string
+      skills:
+        items:
+          $ref: '#/definitions/dto.CreateTagSkill'
+        type: array
+      startLatitude:
+        type: number
+      startLongitude:
+        type: number
+      workTimeEnd:
+        type: integer
+      workTimeStart:
+        type: integer
+    type: object
   dto.RequestOTPRequest:
     properties:
       tel:
@@ -440,8 +531,19 @@ definitions:
         type: string
       node:
         type: integer
+      provider:
+        type: string
       result:
         $ref: '#/definitions/response.MatrixResponse'
+    type: object
+  response.DropReasonResponse:
+    properties:
+      code:
+        type: string
+      detail:
+        type: string
+      orderName:
+        type: string
     type: object
   response.MatrixResponse:
     properties:
@@ -456,6 +558,23 @@ definitions:
           items:
             type: integer
           type: array
+        type: array
+    type: object
+  response.OptimizeResponse:
+    properties:
+      dropReasons:
+        items:
+          $ref: '#/definitions/response.DropReasonResponse'
+        type: array
+      routes:
+        items:
+          $ref: '#/definitions/response.RouteResponse'
+        type: array
+      status:
+        type: string
+      unassigned:
+        items:
+          type: string
         type: array
     type: object
   response.OrderResponse:
@@ -478,6 +597,32 @@ definitions:
       type:
         description: 0=delivery,1=pickup
         type: integer
+    type: object
+  response.RouteResponse:
+    properties:
+      stops:
+        items:
+          $ref: '#/definitions/response.StopResponse'
+        type: array
+      totalDistance:
+        type: number
+      totalDuration:
+        type: number
+      tripSizes:
+        items:
+          type: integer
+        type: array
+      vehicleName:
+        type: string
+    type: object
+  response.StopResponse:
+    properties:
+      arrivalMin:
+        type: integer
+      departMin:
+        type: integer
+      orderName:
+        type: string
     type: object
   response.TagSkillGroupResponse:
     properties:
@@ -752,6 +897,44 @@ paths:
       summary: Verify OTP
       tags:
       - onboarding
+  /api/optimize:
+    post:
+      consumes:
+      - application/json
+      description: Optimize vehicle routing problem given vehicles and orders
+      parameters:
+      - description: optimize request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OptimizeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.OptimizeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/response.OptimizeResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Optimize vehicle routing
+      tags:
+      - planning
   /api/orders:
     delete:
       consumes:

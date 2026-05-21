@@ -133,7 +133,7 @@ Note: rop-algorithm must be **public** for release flow (or configure GOPRIVATE 
 swag init --parseDependency --parseInternal   # regenerate docs
 ```
 
-Swagger UI: `http://localhost:8080/swagger/index.html`
+Swagger UI: `http://localhost:8080/api/swagger/index.html`
 
 ## Commands
 

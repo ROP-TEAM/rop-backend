@@ -356,6 +356,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/optimize": {
+            "post": {
+                "description": "Optimize vehicle routing problem given vehicles and orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "planning"
+                ],
+                "summary": "Optimize vehicle routing",
+                "parameters": [
+                    {
+                        "description": "optimize request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OptimizeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.OptimizeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/response.OptimizeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "504": {
+                        "description": "Gateway Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/orders": {
             "post": {
                 "security": [
@@ -1311,6 +1369,140 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.OptimizeOrder": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "desLatitude": {
+                    "type": "number"
+                },
+                "desLongitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "serviceTime": {
+                    "type": "integer"
+                },
+                "skill": {
+                    "type": "string"
+                },
+                "timeWindowEnd": {
+                    "type": "integer"
+                },
+                "timeWindowStart": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OptimizeRequest": {
+            "type": "object",
+            "required": [
+                "depotLat",
+                "depotLon",
+                "orders",
+                "vehicles"
+            ],
+            "properties": {
+                "depotLat": {
+                    "type": "number"
+                },
+                "depotLon": {
+                    "type": "number"
+                },
+                "enableAlns": {
+                    "type": "boolean"
+                },
+                "enableMultiTrip": {
+                    "type": "boolean"
+                },
+                "orders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.OptimizeOrder"
+                    }
+                },
+                "reloadMin": {
+                    "description": "minutes; 0 = server default (30)",
+                    "type": "integer"
+                },
+                "seed": {
+                    "description": "0 = non-deterministic",
+                    "type": "integer"
+                },
+                "timeLimitMS": {
+                    "description": "0 = server default (5000)",
+                    "type": "integer"
+                },
+                "vehicles": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/dto.OptimizeVehicle"
+                    }
+                }
+            }
+        },
+        "dto.OptimizeVehicle": {
+            "type": "object",
+            "properties": {
+                "breakTimeEnd": {
+                    "type": "integer"
+                },
+                "breakTimeStart": {
+                    "type": "integer"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "endLatitude": {
+                    "type": "number"
+                },
+                "endLongitude": {
+                    "type": "number"
+                },
+                "maxTask": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "plateNumber": {
+                    "type": "string"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CreateTagSkill"
+                    }
+                },
+                "startLatitude": {
+                    "type": "number"
+                },
+                "startLongitude": {
+                    "type": "number"
+                },
+                "workTimeEnd": {
+                    "type": "integer"
+                },
+                "workTimeStart": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.RequestOTPRequest": {
             "type": "object",
             "required": [
@@ -1701,8 +1893,25 @@ const docTemplate = `{
                 "node": {
                     "type": "integer"
                 },
+                "provider": {
+                    "type": "string"
+                },
                 "result": {
                     "$ref": "#/definitions/response.MatrixResponse"
+                }
+            }
+        },
+        "response.DropReasonResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "orderName": {
+                    "type": "string"
                 }
             }
         },
@@ -1725,6 +1934,32 @@ const docTemplate = `{
                         "items": {
                             "type": "integer"
                         }
+                    }
+                }
+            }
+        },
+        "response.OptimizeResponse": {
+            "type": "object",
+            "properties": {
+                "dropReasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DropReasonResponse"
+                    }
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RouteResponse"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "unassigned": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -1757,6 +1992,46 @@ const docTemplate = `{
                 "type": {
                     "description": "0=delivery,1=pickup",
                     "type": "integer"
+                }
+            }
+        },
+        "response.RouteResponse": {
+            "type": "object",
+            "properties": {
+                "stops": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.StopResponse"
+                    }
+                },
+                "totalDistance": {
+                    "type": "number"
+                },
+                "totalDuration": {
+                    "type": "number"
+                },
+                "tripSizes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "vehicleName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.StopResponse": {
+            "type": "object",
+            "properties": {
+                "arrivalMin": {
+                    "type": "integer"
+                },
+                "departMin": {
+                    "type": "integer"
+                },
+                "orderName": {
+                    "type": "string"
                 }
             }
         },
