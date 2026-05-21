@@ -47,7 +47,7 @@ func NewPlanningService(
 	}
 }
 
-func validateRequest(req dto.OptimizeRequest) error {
+func validateRequest(req *dto.OptimizeRequest) error {
 	if len(req.Vehicles) == 0 {
 		return errors.New("vehicles cannot be empty")
 	}
@@ -82,7 +82,7 @@ func validateRequest(req dto.OptimizeRequest) error {
 
 func (s *PlanningService) Optimize(
 	ctx context.Context,
-	req dto.OptimizeRequest,
+	req *dto.OptimizeRequest,
 ) (
 	*response.OptimizeResponse,
 	error,
@@ -116,7 +116,7 @@ func (s *PlanningService) Optimize(
 
 			skill := models.TagSkill{
 				Name:   skill.Name,
-				Color:  skill.Color,
+				Color:  color,
 				PlanID: planID,
 			}
 
@@ -253,7 +253,7 @@ func (s *PlanningService) Optimize(
 }
 
 func buildOptimizeLocations(
-	req dto.OptimizeRequest,
+	req *dto.OptimizeRequest,
 ) []dto.LocationInput {
 
 	locs := []dto.LocationInput{
@@ -277,7 +277,7 @@ func buildOptimizeLocations(
 }
 
 func buildOptimizeProblem(
-	req dto.OptimizeRequest,
+	req *dto.OptimizeRequest,
 	durations [][]float64,
 	distances [][]float64,
 ) model.Problem {
@@ -416,7 +416,7 @@ func optimizeVehicleToModel(
 }
 
 func buildOptimizeResponse(
-	req dto.OptimizeRequest,
+	req *dto.OptimizeRequest,
 	solution model.Solution,
 ) *response.OptimizeResponse {
 
