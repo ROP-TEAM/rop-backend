@@ -25,44 +25,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
- 
-      # - name: Configure Go private module access
-      #   run: git config --global url."https://x-access-token:${{ secrets.ALGO_PAT }}@github.com/".insteadOf "https://github.com/"
 
-      # - name: Set GOPRIVATE
-      #   run: echo "GOPRIVATE=github.com/ROP-TEAM/rop-algorithm" >> $GITHUB_ENV
-
-      # - name: Get latest rop-algorithm release tag
-      #   id: algotag
-      #   run: |
-      #     TAG=$(gh api repos/ROP-TEAM/rop-algorithm/releases/latest --jq .tag_name 2>/dev/null || echo "")
-      #     if [ -z "$TAG" ]; then
-      #       echo "No release found — falling back to replace directive"
-      #       echo "tag=" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "Using rop-algorithm $TAG"
-      #       echo "tag=$TAG" >> $GITHUB_OUTPUT
-      #     fi
-      #   env:
-      #     GH_TOKEN: ${{ secrets.ALGO_PAT }}
-
-      # - name: Pin rop-algorithm version in go.mod
-      #   if: steps.algotag.outputs.tag != ''
-      #   run: |
-      #     go mod edit -require "github.com/ROP-TEAM/rop-algorithm@${{ steps.algotag.outputs.tag }}"
-      #     go mod edit -dropreplace "github.com/ROP-TEAM/rop-algorithm"
-      #     go mod tidy
-
-      - name: Download solver binary (Linux)
-        run: |
-          gh release download \
-            --repo ROP-TEAM/rop-algorithm \
-            --pattern "solver" \
-            --dir solver-bin \
-            --clobber
-          chmod +x solver-bin/solver
-        env:
-          GH_TOKEN: ${{ secrets.ALGO_PAT }}
+      - name: Checkout rop-algorithm
+        uses: actions/checkout@v4
+        with:
+          repository: ROP-TEAM/rop-algorithm
+          path: rop-algorithm
+          token: ${{ secrets.ALGO_PAT }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
