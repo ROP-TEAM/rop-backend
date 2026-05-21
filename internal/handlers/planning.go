@@ -11,7 +11,7 @@ import (
 )
 
 type planningOptimizer interface {
-	Optimize(ctx context.Context, req dto.OptimizeRequest) (*response.OptimizeResponse, error)
+	Optimize(ctx context.Context, req *dto.OptimizeRequest) (*response.OptimizeResponse, error)
 }
 
 type PlanningHandler struct {
@@ -55,7 +55,7 @@ func (h *PlanningHandler) Optimize(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(c.Context(), 60*time.Second) // extend timer cuz add ALNS
 	defer cancel()
 
-	result, err := h.planningService.Optimize(ctx, req)
+	result, err := h.planningService.Optimize(ctx, &req)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
