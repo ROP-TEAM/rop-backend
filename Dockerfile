@@ -2,14 +2,15 @@ FROM golang:1.26-alpine AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata
 
-WORKDIR /app
+WORKDIR /app/rop-backend
 
-COPY go.mod go.sum ./
+COPY rop-algorithm/ /app/rop-algorithm/
+COPY rop-backend/go.mod rop-backend/go.sum ./
 RUN go mod download
 
-COPY . .
+COPY rop-backend/ .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-backend .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-backend-bin .
 
 FROM alpine:3.21
 
@@ -19,8 +20,8 @@ RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appus
 
 WORKDIR /app
 
-COPY --from=builder /app/rop-backend .
-COPY solver-bin/solver ./solver
+COPY --from=builder /app/rop-backend-bin ./rop-backend
+COPY rop-backend/solver-bin/solver ./solver
 
 RUN chown -R appuser:appgroup /app
 
