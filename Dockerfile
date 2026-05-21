@@ -1,6 +1,6 @@
 FROM alpine:3.21 AS cpp-builder
 
-RUN apk add --no-cache alpine-sdk cmake ninja grpc-dev protobuf-dev
+RUN apk add --no-cache alpine-sdk cmake ninja grpc grpc-dev protobuf-dev
 
 COPY rop-algorithm/core/ /build/core/
 COPY rop-algorithm/solver/proto/ /build/solver/proto/
