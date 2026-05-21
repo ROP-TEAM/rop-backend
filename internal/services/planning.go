@@ -129,23 +129,25 @@ func (s *PlanningService) Optimize(
 	}
 
 	for _, o := range req.Orders {
-		for _, skill := range o.Skills {
-			if _, ok := skillMap[skill.Name]; ok {
-				continue
-			}
-
-			skill := models.TagSkill{
-				Name:   skill.Name,
-				Color:  skill.Color,
-				PlanID: planID,
-			}
-
-			if err := s.tagRepo.Create(&skill); err != nil {
-				return nil, err
-			}
-
-			skillMap[skill.Name] = skill.ID
+		if o.Skill == "" {
+			continue
 		}
+
+		if _, ok := skillMap[o.Skill]; ok {
+			continue
+		}
+
+		skill := models.TagSkill{
+			Name:   o.Skill,
+			Color:  "#3B82F6",
+			PlanID: planID,
+		}
+
+		if err := s.tagRepo.Create(&skill); err != nil {
+			return nil, err
+		}
+
+		skillMap[skill.Name] = skill.ID
 	}
 
 	vehicles := make([]models.Vehicle, len(req.Vehicles))
@@ -189,14 +191,6 @@ func (s *PlanningService) Optimize(
 	orders := make([]models.Order, len(req.Orders))
 
 	for i, o := range req.Orders {
-
-		skills := make([]models.TagSkill, 0, len(o.Skills))
-
-		for _, s := range o.Skills {
-			skills = append(skills, models.TagSkill{
-				ID: skillMap[s.Name],
-			})
-		}
 
 		orders[i] = models.Order{
 			Name: o.Name,
@@ -353,10 +347,10 @@ func optimizeOrderToNode(
 			model.NodeTypePickup
 	}
 
-	tags := make([]string, 0, len(o.Skills))
+	tags := []string{}
 
-	for _, s := range o.Skills {
-		tags = append(tags, s.Name)
+	if o.Skill != "" {
+		tags = append(tags, o.Skill)
 	}
 
 	return model.Node{

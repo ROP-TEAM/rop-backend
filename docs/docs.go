@@ -1375,10 +1375,10 @@ const docTemplate = `{
                 "capacity": {
                     "type": "integer"
                 },
-                "des_latitude": {
+                "desLatitude": {
                     "type": "number"
                 },
-                "des_longitude": {
+                "desLongitude": {
                     "type": "number"
                 },
                 "name": {
@@ -1387,19 +1387,16 @@ const docTemplate = `{
                 "priority": {
                     "type": "integer"
                 },
-                "service_time": {
+                "serviceTime": {
                     "type": "integer"
                 },
-                "skills": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.CreateTagSkill"
-                    }
+                "skill": {
+                    "type": "string"
                 },
-                "time_window_end": {
+                "timeWindowEnd": {
                     "type": "integer"
                 },
-                "time_window_start": {
+                "timeWindowStart": {
                     "type": "integer"
                 },
                 "type": {
@@ -1410,22 +1407,22 @@ const docTemplate = `{
         "dto.OptimizeRequest": {
             "type": "object",
             "required": [
-                "depot_lat",
-                "depot_lon",
+                "depotLat",
+                "depotLon",
                 "orders",
                 "vehicles"
             ],
             "properties": {
-                "depot_lat": {
+                "depotLat": {
                     "type": "number"
                 },
-                "depot_lon": {
+                "depotLon": {
                     "type": "number"
                 },
-                "enable_alns": {
+                "enableAlns": {
                     "type": "boolean"
                 },
-                "enable_multi_trip": {
+                "enableMultiTrip": {
                     "type": "boolean"
                 },
                 "orders": {
@@ -1435,7 +1432,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.OptimizeOrder"
                     }
                 },
-                "reload_min": {
+                "reloadMin": {
                     "description": "minutes; 0 = server default (30)",
                     "type": "integer"
                 },
@@ -1443,7 +1440,7 @@ const docTemplate = `{
                     "description": "0 = non-deterministic",
                     "type": "integer"
                 },
-                "time_limit_ms": {
+                "timeLimitMS": {
                     "description": "0 = server default (5000)",
                     "type": "integer"
                 },
@@ -1459,28 +1456,22 @@ const docTemplate = `{
         "dto.OptimizeVehicle": {
             "type": "object",
             "properties": {
+                "breakTimeEnd": {
+                    "type": "integer"
+                },
+                "breakTimeStart": {
+                    "type": "integer"
+                },
                 "capacity": {
                     "type": "integer"
                 },
-                "daily_break_time_end": {
-                    "type": "integer"
-                },
-                "daily_break_time_start": {
-                    "type": "integer"
-                },
-                "daily_work_time_end": {
-                    "type": "integer"
-                },
-                "daily_work_time_start": {
-                    "type": "integer"
-                },
-                "end_latitude": {
+                "endLatitude": {
                     "type": "number"
                 },
-                "end_longitude": {
+                "endLongitude": {
                     "type": "number"
                 },
-                "max_task": {
+                "maxTask": {
                     "type": "integer"
                 },
                 "model": {
@@ -1489,7 +1480,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "plate_number": {
+                "plateNumber": {
                     "type": "string"
                 },
                 "skills": {
@@ -1498,11 +1489,17 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.CreateTagSkill"
                     }
                 },
-                "start_latitude": {
+                "startLatitude": {
                     "type": "number"
                 },
-                "start_longitude": {
+                "startLongitude": {
                     "type": "number"
+                },
+                "workTimeEnd": {
+                    "type": "integer"
+                },
+                "workTimeStart": {
+                    "type": "integer"
                 }
             }
         },
@@ -1913,7 +1910,7 @@ const docTemplate = `{
                 "detail": {
                     "type": "string"
                 },
-                "order_name": {
+                "orderName": {
                     "type": "string"
                 }
             }
@@ -1944,7 +1941,7 @@ const docTemplate = `{
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
-                "drop_reasons": {
+                "dropReasons": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.DropReasonResponse"
@@ -2007,19 +2004,19 @@ const docTemplate = `{
                         "$ref": "#/definitions/response.StopResponse"
                     }
                 },
-                "total_distance": {
+                "totalDistance": {
                     "type": "number"
                 },
-                "total_duration": {
+                "totalDuration": {
                     "type": "number"
                 },
-                "trip_sizes": {
+                "tripSizes": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
-                "vehicle_name": {
+                "vehicleName": {
                     "type": "string"
                 }
             }
@@ -2027,13 +2024,13 @@ const docTemplate = `{
         "response.StopResponse": {
             "type": "object",
             "properties": {
-                "arrival_min": {
+                "arrivalMin": {
                     "type": "integer"
                 },
-                "depart_min": {
+                "departMin": {
                     "type": "integer"
                 },
-                "order_name": {
+                "orderName": {
                     "type": "string"
                 }
             }

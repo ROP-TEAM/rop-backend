@@ -4,28 +4,28 @@ type OptimizeResponse struct {
 	Status      string               `json:"status"`
 	Routes      []RouteResponse      `json:"routes"`
 	Unassigned  []string             `json:"unassigned,omitempty"`
-	DropReasons []DropReasonResponse `json:"drop_reasons,omitempty"`
+	DropReasons []DropReasonResponse `json:"dropReasons,omitempty"`
 }
 
 type DropReasonResponse struct {
-	OrderName string `json:"order_name"`
+	OrderName string `json:"orderName"`
 	Code      string `json:"code"`
 	Detail    string `json:"detail"`
 }
 
 type RouteResponse struct {
-	VehicleName string `json:"vehicle_name"`
+	VehicleName string `json:"vehicleName"`
 
-	TotalDistance float64 `json:"total_distance"`
-	TotalDuration float64 `json:"total_duration"`
+	TotalDistance float64 `json:"totalDistance"`
+	TotalDuration float64 `json:"totalDuration"`
 
 	Stops     []StopResponse `json:"stops"`
-	TripSizes []int          `json:"trip_sizes,omitempty"`
+	TripSizes []int          `json:"tripSizes,omitempty"`
 }
 
 type StopResponse struct {
-	OrderName string `json:"order_name"`
+	OrderName string `json:"orderName"`
 
-	ArrivalMin int `json:"arrival_min"`
-	DepartMin  int `json:"depart_min"`
+	ArrivalMin int `json:"arrivalMin"`
+	DepartMin  int `json:"departMin"`
 }

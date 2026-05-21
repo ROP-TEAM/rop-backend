@@ -183,49 +183,47 @@ definitions:
     properties:
       capacity:
         type: integer
-      des_latitude:
+      desLatitude:
         type: number
-      des_longitude:
+      desLongitude:
         type: number
       name:
         type: string
       priority:
         type: integer
-      service_time:
+      serviceTime:
         type: integer
-      skills:
-        items:
-          $ref: '#/definitions/dto.CreateTagSkill'
-        type: array
-      time_window_end:
+      skill:
+        type: string
+      timeWindowEnd:
         type: integer
-      time_window_start:
+      timeWindowStart:
         type: integer
       type:
         type: integer
     type: object
   dto.OptimizeRequest:
     properties:
-      depot_lat:
+      depotLat:
         type: number
-      depot_lon:
+      depotLon:
         type: number
-      enable_alns:
+      enableAlns:
         type: boolean
-      enable_multi_trip:
+      enableMultiTrip:
         type: boolean
       orders:
         items:
           $ref: '#/definitions/dto.OptimizeOrder'
         minItems: 1
         type: array
-      reload_min:
+      reloadMin:
         description: minutes; 0 = server default (30)
         type: integer
       seed:
         description: 0 = non-deterministic
         type: integer
-      time_limit_ms:
+      timeLimitMS:
         description: 0 = server default (5000)
         type: integer
       vehicles:
@@ -234,43 +232,43 @@ definitions:
         minItems: 1
         type: array
     required:
-    - depot_lat
-    - depot_lon
+    - depotLat
+    - depotLon
     - orders
     - vehicles
     type: object
   dto.OptimizeVehicle:
     properties:
+      breakTimeEnd:
+        type: integer
+      breakTimeStart:
+        type: integer
       capacity:
         type: integer
-      daily_break_time_end:
-        type: integer
-      daily_break_time_start:
-        type: integer
-      daily_work_time_end:
-        type: integer
-      daily_work_time_start:
-        type: integer
-      end_latitude:
+      endLatitude:
         type: number
-      end_longitude:
+      endLongitude:
         type: number
-      max_task:
+      maxTask:
         type: integer
       model:
         type: string
       name:
         type: string
-      plate_number:
+      plateNumber:
         type: string
       skills:
         items:
           $ref: '#/definitions/dto.CreateTagSkill'
         type: array
-      start_latitude:
+      startLatitude:
         type: number
-      start_longitude:
+      startLongitude:
         type: number
+      workTimeEnd:
+        type: integer
+      workTimeStart:
+        type: integer
     type: object
   dto.RequestOTPRequest:
     properties:
@@ -544,7 +542,7 @@ definitions:
         type: string
       detail:
         type: string
-      order_name:
+      orderName:
         type: string
     type: object
   response.MatrixResponse:
@@ -564,7 +562,7 @@ definitions:
     type: object
   response.OptimizeResponse:
     properties:
-      drop_reasons:
+      dropReasons:
         items:
           $ref: '#/definitions/response.DropReasonResponse'
         type: array
@@ -606,24 +604,24 @@ definitions:
         items:
           $ref: '#/definitions/response.StopResponse'
         type: array
-      total_distance:
+      totalDistance:
         type: number
-      total_duration:
+      totalDuration:
         type: number
-      trip_sizes:
+      tripSizes:
         items:
           type: integer
         type: array
-      vehicle_name:
+      vehicleName:
         type: string
     type: object
   response.StopResponse:
     properties:
-      arrival_min:
+      arrivalMin:
         type: integer
-      depart_min:
+      departMin:
         type: integer
-      order_name:
+      orderName:
         type: string
     type: object
   response.TagSkillGroupResponse:
