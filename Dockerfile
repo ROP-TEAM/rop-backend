@@ -10,6 +10,8 @@ WORKDIR /build/core
 RUN cmake -S . -B /build/out -G Ninja -DCMAKE_BUILD_TYPE=Release \
  && cmake --build /build/out --target solver --parallel
 
+RUN ldd /build/out/solver
+
 FROM golang:1.26-alpine AS go-builder
 
 RUN apk add --no-cache git ca-certificates tzdata
@@ -26,7 +28,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-
 
 FROM alpine:3.21
 
-RUN apk add --no-cache ca-certificates tzdata grpc protobuf
+RUN apk add --no-cache ca-certificates tzdata grpc protobuf libstdc++
 
 RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
