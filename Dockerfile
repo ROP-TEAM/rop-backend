@@ -28,7 +28,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-
 
 FROM alpine:3.21
 
-RUN apk add --no-cache ca-certificates tzdata grpc protobuf libstdc++
+RUN apk add --no-cache ca-certificates tzdata grpc protobuf libstdc++ libgcc icu-libs
 
 RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
@@ -36,6 +36,8 @@ WORKDIR /app
 
 COPY --from=go-builder /app/rop-backend-bin ./rop-backend
 COPY --from=cpp-builder /build/out/solver ./solver
+
+RUN ldd /app/solver
 
 RUN chown -R appuser:appgroup /app
 
