@@ -10,8 +10,6 @@ WORKDIR /build/core
 RUN cmake -S . -B /build/out -G Ninja -DCMAKE_BUILD_TYPE=Release \
  && cmake --build /build/out --target solver --parallel
 
-RUN ldd /build/out/solver
-
 FROM golang:1.26-alpine AS go-builder
 
 RUN apk add --no-cache git ca-certificates tzdata
@@ -37,7 +35,7 @@ WORKDIR /app
 COPY --from=go-builder /app/rop-backend-bin ./rop-backend
 COPY --from=cpp-builder /build/out/solver ./solver
 
-RUN ldd /app/solver
+RUN apk add --no-cache pax-utils && lddtree /app/solver
 
 RUN chown -R appuser:appgroup /app
 
