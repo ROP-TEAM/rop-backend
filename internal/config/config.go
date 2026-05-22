@@ -25,6 +25,7 @@ type Config struct {
 	OTP_APP_URL_REQUEST      string
 	OTP_APP_URL_VERIFY       string
 	DISABLE_AUTH             bool
+	SOLVER_BINARY_PATH       string
 }
 
 func Load() *Config {
@@ -49,6 +50,7 @@ func Load() *Config {
 		OTP_APP_URL_REQUEST:      getEnv("OTP_APP_URL_REQUEST", "https://otp.thaibulksms.com/v2/otp/request"),
 		OTP_APP_URL_VERIFY:       getEnv("OTP_APP_URL_VERIFY", "https://otp.thaibulksms.com/v2/otp/verify"),
 		DISABLE_AUTH:             getBoolEnv("DISABLE_AUTH", false),
+		SOLVER_BINARY_PATH:       getEnv("SOLVER_BINARY_PATH", ""),
 	}
 }
 

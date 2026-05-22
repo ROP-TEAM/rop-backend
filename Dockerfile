@@ -1,26 +1,42 @@
-FROM golang:1.26-alpine AS builder
+FROM alpine:3.21 AS cpp-builder
+
+RUN apk add --no-cache alpine-sdk cmake ninja grpc grpc-dev protobuf-dev
+
+COPY rop-algorithm/core/ /build/core/
+COPY rop-algorithm/solver/proto/ /build/solver/proto/
+
+WORKDIR /build/core
+
+RUN cmake -S . -B /build/out -G Ninja -DCMAKE_BUILD_TYPE=Release \
+ && cmake --build /build/out --target solver --parallel
+
+FROM golang:1.26-alpine AS go-builder
 
 RUN apk add --no-cache git ca-certificates tzdata
 
-WORKDIR /app
+WORKDIR /app/rop-backend
 
-COPY go.mod go.sum ./
+COPY rop-algorithm/ /app/rop-algorithm/
+COPY rop-backend/go.mod rop-backend/go.sum ./
 RUN go mod download
 
-COPY . .
+COPY rop-backend/ .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-backend .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /app/rop-backend-bin .
 
 FROM alpine:3.21
 
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata libstdc++ libgcc
 
 RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
 WORKDIR /app
 
-COPY --from=builder /app/rop-backend .
-COPY solver-bin/solver ./solver
+COPY --from=go-builder /app/rop-backend-bin ./rop-backend
+COPY --from=cpp-builder /build/out/solver ./solver
+COPY --from=cpp-builder /usr/lib/ /usr/lib/
+
+RUN /lib/ld-musl-x86_64.so.1 --list /app/solver
 
 RUN chown -R appuser:appgroup /app
 

@@ -4,9 +4,12 @@ import (
 	"ROP_Backend/internal/config"
 	"ROP_Backend/internal/handlers"
 	"ROP_Backend/internal/middleware"
+	"ROP_Backend/internal/repository"
 	"ROP_Backend/internal/services"
 
 	_ "ROP_Backend/docs"
+
+	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/adaptor"
@@ -52,6 +55,33 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	}
 	matrixHandler := handlers.NewMatrixHandler(matrixService)
 
+	slv, solverCleanup, err := buildSolver(cfg.SOLVER_BINARY_PATH)
+	if err != nil {
+		panic(fmt.Sprintf("failed to start solver: %v", err))
+	}
+	if solverCleanup != nil {
+		app.Hooks().OnPreShutdown(func() error {
+			solverCleanup()
+			return nil
+		})
+	}
+
+	planRepo := repository.NewPlanRepository(db)
+	vehicleRepo := repository.NewVehicleRepository(db)
+	orderRepo := repository.NewOrderRepository(db)
+	tagRepo := repository.NewTagSkillRepository(db)
+
+	planningService := services.NewPlanningService(
+		matrixService,
+		slv,
+		planRepo,
+		vehicleRepo,
+		orderRepo,
+		tagRepo,
+	)
+
+	planningHandler := handlers.NewPlanningHandler(planningService)
+
 	api := app.Group("/api")
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
@@ -78,6 +108,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Get("/plans/", middleware.Protected(cfg), planHandler.GetPlans)
 
 	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
+
+	api.Post("/optimize", planningHandler.Optimize)
 
 	//test route
 
