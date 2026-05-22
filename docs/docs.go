@@ -1709,18 +1709,6 @@ const docTemplate = `{
                 }
             }
         },
-        "gorm.DeletedAt": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
         "handlers.CreateResponse": {
             "type": "object",
             "properties": {
@@ -1852,20 +1840,11 @@ const docTemplate = `{
                 "companyID": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_need_on_boarding": {
                     "type": "boolean"
@@ -1874,12 +1853,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "gorm.Model",
                     "type": "string"
                 },
                 "tel": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }

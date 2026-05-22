@@ -409,14 +409,6 @@ definitions:
         example: success
         type: string
     type: object
-  gorm.DeletedAt:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
-    type: object
   handlers.CreateResponse:
     properties:
       message:
@@ -504,25 +496,18 @@ definitions:
         $ref: '#/definitions/models.Company'
       companyID:
         type: string
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       email:
         type: string
       google_id:
         type: string
-      id:
-        type: integer
       is_need_on_boarding:
         type: boolean
       is_validated:
         type: boolean
       name:
+        description: gorm.Model
         type: string
       tel:
-        type: string
-      updatedAt:
         type: string
     type: object
   response.BuildMatrixResponse:
