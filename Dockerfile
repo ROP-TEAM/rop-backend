@@ -35,7 +35,7 @@ WORKDIR /app
 COPY --from=go-builder /app/rop-backend-bin ./rop-backend
 COPY --from=cpp-builder /build/out/solver ./solver
 
-RUN apk add --no-cache pax-utils && lddtree /app/solver
+RUN /lib/ld-musl-x86_64.so.1 --list /app/solver
 
 RUN chown -R appuser:appgroup /app
 
