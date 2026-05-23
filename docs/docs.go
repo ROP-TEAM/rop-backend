@@ -1371,36 +1371,58 @@ const docTemplate = `{
         },
         "dto.OptimizeOrder": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "capacity": {
                     "type": "integer"
                 },
                 "desLatitude": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
                 },
                 "desLongitude": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
                 },
                 "name": {
                     "type": "string"
                 },
                 "priority": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ]
                 },
                 "serviceTime": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "skill": {
                     "type": "string"
                 },
                 "timeWindowEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "timeWindowStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "type": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
                 }
             }
         },
@@ -1414,10 +1436,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "depotLat": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
                 },
                 "depotLon": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
                 },
                 "enableAlns": {
                     "type": "boolean"
@@ -1455,24 +1481,26 @@ const docTemplate = `{
         },
         "dto.OptimizeVehicle": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "breakTimeEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "breakTimeStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "capacity": {
                     "type": "integer"
                 },
-                "endLatitude": {
-                    "type": "number"
-                },
-                "endLongitude": {
-                    "type": "number"
-                },
                 "maxTask": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "model": {
                     "type": "string"
@@ -1489,17 +1517,15 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.CreateTagSkill"
                     }
                 },
-                "startLatitude": {
-                    "type": "number"
-                },
-                "startLongitude": {
-                    "type": "number"
-                },
                 "workTimeEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "workTimeStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 }
             }
         },
@@ -1709,6 +1735,18 @@ const docTemplate = `{
                 }
             }
         },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
         "handlers.CreateResponse": {
             "type": "object",
             "properties": {
@@ -1840,11 +1878,20 @@ const docTemplate = `{
                 "companyID": {
                     "type": "string"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_need_on_boarding": {
                     "type": "boolean"
@@ -1853,10 +1900,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
-                    "description": "gorm.Model",
                     "type": "string"
                 },
                 "tel": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

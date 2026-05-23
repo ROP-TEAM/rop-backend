@@ -172,10 +172,10 @@ func (s *PlanningService) Optimize(
 
 			PlanID: planID,
 
-			StartLat: &v.StartLatitude,
-			StartLon: &v.StartLongitude,
-			EndLat:   &v.EndLatitude,
-			EndLon:   &v.EndLongitude,
+			// StartLat: &v.StartLatitude,
+			// StartLon: &v.StartLongitude,
+			// EndLat:   &v.EndLatitude,
+			// EndLon:   &v.EndLongitude,
 
 			DailyWorkTimeStart:  &v.DailyWorkTimeStart,
 			DailyWorkTimeEnd:    &v.DailyWorkTimeEnd,
@@ -405,13 +405,13 @@ func optimizeVehicleToModel(
 
 		Tags: tags,
 
-		StartLat: v.StartLatitude,
+		// StartLat: v.StartLatitude,
 
-		StartLng: v.StartLongitude,
+		// StartLng: v.StartLongitude,
 
-		EndLat: v.EndLatitude,
+		// EndLat: v.EndLatitude,
 
-		EndLng: v.EndLongitude,
+		// EndLng: v.EndLongitude,
 	}
 }
 

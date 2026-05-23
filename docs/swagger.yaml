@@ -184,29 +184,52 @@ definitions:
       capacity:
         type: integer
       desLatitude:
+        maximum: 90
+        minimum: -90
         type: number
       desLongitude:
+        maximum: 180
+        minimum: -180
         type: number
       name:
         type: string
       priority:
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
         type: integer
       serviceTime:
+        minimum: 0
         type: integer
       skill:
         type: string
       timeWindowEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       timeWindowStart:
+        maximum: 1439
+        minimum: 0
         type: integer
       type:
+        enum:
+        - 0
+        - 1
         type: integer
+    required:
+    - name
     type: object
   dto.OptimizeRequest:
     properties:
       depotLat:
+        maximum: 90
+        minimum: -90
         type: number
       depotLon:
+        maximum: 180
+        minimum: -180
         type: number
       enableAlns:
         type: boolean
@@ -240,16 +263,17 @@ definitions:
   dto.OptimizeVehicle:
     properties:
       breakTimeEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       breakTimeStart:
+        maximum: 1439
+        minimum: 0
         type: integer
       capacity:
         type: integer
-      endLatitude:
-        type: number
-      endLongitude:
-        type: number
       maxTask:
+        minimum: 0
         type: integer
       model:
         type: string
@@ -261,14 +285,16 @@ definitions:
         items:
           $ref: '#/definitions/dto.CreateTagSkill'
         type: array
-      startLatitude:
-        type: number
-      startLongitude:
-        type: number
       workTimeEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       workTimeStart:
+        maximum: 1439
+        minimum: 0
         type: integer
+    required:
+    - name
     type: object
   dto.RequestOTPRequest:
     properties:
@@ -409,6 +435,14 @@ definitions:
         example: success
         type: string
     type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
   handlers.CreateResponse:
     properties:
       message:
@@ -496,18 +530,25 @@ definitions:
         $ref: '#/definitions/models.Company'
       companyID:
         type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
       email:
         type: string
       google_id:
         type: string
+      id:
+        type: integer
       is_need_on_boarding:
         type: boolean
       is_validated:
         type: boolean
       name:
-        description: gorm.Model
         type: string
       tel:
+        type: string
+      updatedAt:
         type: string
     type: object
   response.BuildMatrixResponse:

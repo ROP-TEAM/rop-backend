@@ -28,11 +28,11 @@ type OptimizeVehicle struct {
 	DailyBreakTimeStart int `json:"breakTimeStart" validate:"gte=0,lte=1439"`
 	DailyBreakTimeEnd   int `json:"breakTimeEnd" validate:"gte=0,lte=1439"`
 
-	StartLatitude  float64 `json:"startLatitude" validate:"gte=-90,lte=90"`
-	StartLongitude float64 `json:"startLongitude" validate:"gte=-180,lte=180"`
+	// StartLatitude  float64 `json:"startLatitude" validate:"gte=-90,lte=90"`
+	// StartLongitude float64 `json:"startLongitude" validate:"gte=-180,lte=180"`
 
-	EndLatitude  float64 `json:"endLatitude" validate:"gte=-90,lte=90"`
-	EndLongitude float64 `json:"endLongitude" validate:"gte=-180,lte=180"`
+	// EndLatitude  float64 `json:"endLatitude" validate:"gte=-90,lte=90"`
+	// EndLongitude float64 `json:"endLongitude" validate:"gte=-180,lte=180"`
 
 	Skills []CreateTagSkill `json:"skills"`
 }
