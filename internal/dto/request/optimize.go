@@ -1,8 +1,8 @@
 package dto
 
 type OptimizeRequest struct {
-	DepotLat float64 `json:"depotLat" validate:"gte=-90,lte=90"`
-	DepotLon float64 `json:"depotLon" validate:"gte=-180,lte=180"`
+	DepotLat float64 `json:"depotLat" validate:"required,gte=-90,lte=90"`
+	DepotLon float64 `json:"depotLon" validate:"required,gte=-180,lte=180"`
 
 	Vehicles []OptimizeVehicle `json:"vehicles" validate:"required,min=1,dive"`
 	Orders   []OptimizeOrder   `json:"orders" validate:"required,min=1,dive"`

@@ -9,12 +9,12 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
+	github.com/go-playground/validator/v10 v10.30.2
 	google.golang.org/api v0.276.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
 
-require github.com/go-playground/validator/v10 v10.30.2
 
 require (
 	cloud.google.com/go/auth v0.20.0 // indirect
