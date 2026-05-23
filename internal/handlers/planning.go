@@ -7,6 +7,7 @@ import (
 	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/dto/response"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -50,6 +51,15 @@ func (h *PlanningHandler) Optimize(c fiber.Ctx) error {
 	var req dto.OptimizeRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	validate := validator.New()
+
+	if err := validate.Struct(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error":   "validation failed",
+			"details": err.Error(),
+		})
 	}
 
 	ctx, cancel := context.WithTimeout(c.Context(), 60*time.Second) // extend timer cuz add ALNS
