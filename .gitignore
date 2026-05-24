@@ -2,6 +2,10 @@
 tmp/
 build/
 
-*.local.md  # local note
+# visual project graph
+graphify-out/
+
+# local note
+*.local.md
 
 *.exe
