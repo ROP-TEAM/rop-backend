@@ -28,4 +28,7 @@ type StopResponse struct {
 
 	ArrivalMin int `json:"arrivalMin"`
 	DepartMin  int `json:"departMin"`
+
+	DistanceFromPrevious float64 `json:"distanceFromPrevious"` // meters
+	TimeFromPrevious     int     `json:"timeFromPrevious"`     // minutes
 }
