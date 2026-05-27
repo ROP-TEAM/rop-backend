@@ -13,6 +13,7 @@ import (
 type OSRMMatrix struct {
 	baseURL    string
 	httpClient *http.Client
+	chunkSize  int
 }
 
 // OSRMMatrixOption configures an OSRMMatrix.
@@ -22,6 +23,13 @@ type OSRMMatrixOption func(*OSRMMatrix)
 func WithHTTPClient(client *http.Client) OSRMMatrixOption {
 	return func(m *OSRMMatrix) {
 		m.httpClient = client
+	}
+}
+
+// WithChunkSize overrides the row chunk size for parallel BuildMatrix requests (default 100).
+func WithChunkSize(size int) OSRMMatrixOption {
+	return func(m *OSRMMatrix) {
+		m.chunkSize = size
 	}
 }
 
@@ -43,12 +51,25 @@ func NewOSRMMatrix(baseURL string, opts ...OSRMMatrixOption) (*OSRMMatrix, error
 }
 
 // BuildMatrix returns n×n matrices of durations (minutes) and distances (meters).
+// Requests with more rows than chunkSize are split into parallel chunk requests.
 func (m *OSRMMatrix) BuildMatrix(ctx context.Context, locs []models.Location, opts models.MatrixOptions) ([][]int, [][]int, error) {
 	n := len(locs)
 	if n == 0 {
 		return [][]int{}, [][]int{}, nil
 	}
 
+	chunkSize := m.chunkSize
+	if chunkSize <= 0 {
+		chunkSize = defaultChunkSize
+	}
+
+	if n <= chunkSize {
+		return m.buildMatrixSingle(ctx, locs, n)
+	}
+	return m.buildMatrixParallel(ctx, locs, chunkSize)
+}
+
+func (m *OSRMMatrix) buildMatrixSingle(ctx context.Context, locs []models.Location, n int) ([][]int, [][]int, error) {
 	url := fmt.Sprintf("%s/table/v1/driving/%s?annotations=duration,distance", m.baseURL, formatCoordinates(locs))
 
 	resp, err := m.executeHTTP(ctx, url)

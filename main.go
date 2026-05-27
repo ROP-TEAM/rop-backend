@@ -19,3 +19,6 @@ func main() {
 	app := router.Setup(db, cfg)
 	log.Fatal(app.Listen("0.0.0.0:" + cfg.APP_PORT))
 }
+
+
+

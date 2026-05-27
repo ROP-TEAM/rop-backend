@@ -18,7 +18,12 @@ implement `gmap.DistanceMatrix` interface — ใช้แทน Google Maps ไ
 ```go
 import "github.com/ROP-TEAM/rop-algorithm/osrm"
 
+// default — chunk size 100 rows
 m, err := osrm.NewOSRMMatrix("http://localhost:5000")
+
+// ปรับ chunk size (server อ่อน ลดลง / server แรง เพิ่มขึ้น)
+m, err := osrm.NewOSRMMatrix("http://localhost:5000", osrm.WithChunkSize(50))
+
 if err != nil {
     return err
 }
@@ -43,7 +48,7 @@ durations, distances, err := m.BuildMatrix(ctx, locs, model.MatrixOptions{})
 | Duration unit | seconds → `/60` → int min | seconds → `/60` → int min |
 | API key | ต้องใช้ | ไม่ต้องใช้ |
 | Traffic | รองรับ (`departure_time`, `traffic_model`) | ไม่รองรับ — `MatrixOptions` ถูกละเลย |
-| Chunking | auto-chunk 10×10 (limit 100 elements) | ไม่จำเป็น — OSRM รับใหญ่พอ |
+| Chunking | auto-chunk 10×10 (limit 100 elements) | auto-chunk parallel (default 100 rows/request) |
 | Cache | in-memory cache, Redis support | ยังไม่มี |
 | Observability | event hook + metrics | ยังไม่มี |
 
@@ -57,11 +62,24 @@ durations, distances, err := m.BuildMatrix(ctx, locs, model.MatrixOptions{})
 func (m *OSRMMatrix) BuildMatrix(ctx context.Context, locs []model.Location, opts model.MatrixOptions) ([][]int, [][]int, error)
 ```
 
-เรียก `GET /table/v1/driving/{lng,lat;...}?annotations=duration,distance`
-
 - `durations` — int นาที (OSRM คืนวินาที → หาร 60)
 - `distances` — int เมตร
 - `opts` ถูกละเลย (OSRM ไม่มี traffic model)
+
+**Chunking อัตโนมัติ:**
+
+| n | พฤติกรรม |
+|---|---|
+| n ≤ 100 | request เดียว `GET /table/v1/driving/{coords}?annotations=duration,distance` |
+| n > 100 | แบ่งเป็น chunk 100 แถว ยิง parallel พร้อมกัน แล้วรวม rows กลับ |
+
+แต่ละ chunk request:
+```
+GET /table/v1/driving/{all_n_coords}
+    ?annotations=duration,distance
+    &sources=0;1;...;99
+    &destinations=0;1;...;n-1
+```
 
 ```go
 locs := []model.Location{
@@ -232,9 +250,11 @@ package จัดการกลับข้างให้อัตโนมั
 
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `matrix_service.go` | `OSRMMatrix` struct, constructor, `BuildMatrix` (implement `gmap.DistanceMatrix`) |
+| `matrix_service.go` | `OSRMMatrix` struct, constructor options (`WithHTTPClient`, `WithChunkSize`), `BuildMatrix`, `buildMatrixSingle` |
+| `matrix_chunks.go` | `buildMatrixParallel` — errgroup + mutex สำหรับ n > chunkSize |
 | `matrix_endpoints.go` | `Nearest`, `Trip`, `Route`, `BuildRectangularMatrix` |
-| `matrix_http.go` | `executeHTTP`, `formatCoordinate`, `formatCoordinates`, `parseTableResponse` |
+| `matrix_http.go` | `executeHTTP`, `formatCoordinate`, `formatCoordinates`, `parseTableResponse`, `indexRange` |
 | `matrix_response.go` | OSRM response types + public result types |
 | `matrix_service_test.go` | 5 tests: BuildMatrix happy path, HTTP error, OSRM error, empty locs, row mismatch |
+| `matrix_chunks_test.go` | 2 tests: chunked happy path (3×3 with chunkSize=2), chunk error propagation |
 | `matrix_endpoints_test.go` | 4 tests: Nearest, Trip, Route, BuildRectangularMatrix |
