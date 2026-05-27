@@ -249,6 +249,8 @@ func (s *PlanningService) Optimize(
 	return buildOptimizeResponse(
 		req,
 		solution,
+		matrixResp.Distances,
+		matrixResp.Durations,
 	), nil
 }
 
@@ -418,6 +420,8 @@ func optimizeVehicleToModel(
 func buildOptimizeResponse(
 	req *dto.OptimizeRequest,
 	solution model.Solution,
+	distances [][]int,
+	durations [][]int,
 ) *response.OptimizeResponse {
 
 	vehicleMap :=
@@ -439,21 +443,31 @@ func buildOptimizeResponse(
 
 	for _, r := range solution.Routes {
 
-		stops :=
-			[]response.StopResponse{}
+		stops := []response.StopResponse{}
+		prevMatrixIdx := 0 // depot
 
 		for _, stop := range r.Stops {
+			nodeIDInt, _ := strconv.Atoi(stop.NodeID)
+			currMatrixIdx := nodeIDInt + 1
 
-			stops = append(
-				stops,
-				response.StopResponse{
-					OrderName: orderMap[stop.NodeID],
+			var distFromPrev float64
+			var timeFromPrev int
+			if prevMatrixIdx < len(distances) && currMatrixIdx < len(distances[prevMatrixIdx]) {
+				distFromPrev = float64(distances[prevMatrixIdx][currMatrixIdx])
+			}
+			if prevMatrixIdx < len(durations) && currMatrixIdx < len(durations[prevMatrixIdx]) {
+				timeFromPrev = durations[prevMatrixIdx][currMatrixIdx]
+			}
 
-					ArrivalMin: stop.ArrivalMin,
+			stops = append(stops, response.StopResponse{
+				OrderName:            orderMap[stop.NodeID],
+				ArrivalMin:           stop.ArrivalMin,
+				DepartMin:            stop.DepartMin,
+				DistanceFromPrevious: distFromPrev,
+				TimeFromPrevious:     timeFromPrev,
+			})
 
-					DepartMin: stop.DepartMin,
-				},
-			)
+			prevMatrixIdx = currMatrixIdx
 		}
 
 		routes = append(
