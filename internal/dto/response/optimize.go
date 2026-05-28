@@ -1,34 +1,63 @@
 package response
 
 type OptimizeResponse struct {
-	Status      string               `json:"status"`
+	Message     string               `json:"message"`
 	Routes      []RouteResponse      `json:"routes"`
 	Unassigned  []string             `json:"unassigned,omitempty"`
 	DropReasons []DropReasonResponse `json:"dropReasons,omitempty"`
 }
 
 type DropReasonResponse struct {
-	OrderName string `json:"orderName"`
-	Code      string `json:"code"`
-	Detail    string `json:"detail"`
+	Code   string `json:"code"`
+	Detail string `json:"detail"`
+}
+
+type VehicleSkill struct {
+	Name  string  `json:"name"`
+	ID    *int    `json:"id,omitempty"`
+	Color *string `json:"color,omitempty"`
 }
 
 type RouteResponse struct {
-	VehicleName string `json:"vehicleName"`
-
 	TotalDistance float64 `json:"totalDistance"`
 	TotalDuration float64 `json:"totalDuration"`
 
-	Stops     []StopResponse `json:"stops"`
-	TripSizes []int          `json:"tripSizes,omitempty"`
+	//vehicle identity
+	Name           string         `json:"name"`
+	Capacity       int            `json:"capacity"`
+	WorkTimeStart  int            `json:"workTimeStart"`
+	WorkTimeEnd    int            `json:"workTimeEnd"`
+	Model          *string        `json:"model,omitempty"`
+	PlateNumber    *string        `json:"plateNumber,omitempty"`
+	ProfileID      *int           `json:"profile_id,omitempty"`
+	BreakTimeStart *int           `json:"breakTimeStart,omitempty"`
+	BreakTimeEnd   *int           `json:"breakTimeEnd,omitempty"`
+	MaxTask        *int           `json:"maxTask,omitempty"`
+	Skills         []VehicleSkill `json:"skills,omitempty"`
+	ID             int            `json:"id"`
+	Stops          []StopResponse `json:"stops"`
+	// TripSizes []int          `json:"tripSizes,omitempty"`
 }
 
 type StopResponse struct {
 	OrderName string `json:"orderName"`
 
 	ArrivalMin int `json:"arrivalMin"`
-	DepartMin  int `json:"departMin"`
+	// DepartMin  int `json:"departMin"`
 
 	DistanceFromPrevious float64 `json:"distanceFromPrevious"` // meters
-	TimeFromPrevious     int     `json:"timeFromPrevious"`     // minutes
+	DurationFromPrevious int     `json:"DurationFromPrevious"` // minutes
+
+	//order identity
+	Capacity        int     `json:"capacity"`
+	TimeWindowStart int     `json:"timeWindowStart"`
+	TimeWindowEnd   int     `json:"timeWindowEnd"`
+	DesLatitude     float64 `json:"desLatitude"`
+	DesLongitude    float64 `json:"desLongitude"`
+	ServiceTime     int     `json:"serviceTime"`
+	Type            int     `json:"type"`
+	Priority        int     `json:"priority"`
+	Note            *string `json:"note,omitempty"`
+	Skill           *string `json:"skill,omitempty"`
+	ID              int     `json:"id"`
 }

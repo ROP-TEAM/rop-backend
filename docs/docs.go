@@ -1735,18 +1735,6 @@ const docTemplate = `{
                 }
             }
         },
-        "gorm.DeletedAt": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
         "handlers.CreateResponse": {
             "type": "object",
             "properties": {
@@ -1878,20 +1866,11 @@ const docTemplate = `{
                 "companyID": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "is_need_on_boarding": {
                     "type": "boolean"
@@ -1900,12 +1879,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "description": "gorm.Model",
                     "type": "string"
                 },
                 "tel": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -1934,9 +1911,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "detail": {
-                    "type": "string"
-                },
-                "orderName": {
                     "type": "string"
                 }
             }
@@ -1973,14 +1947,14 @@ const docTemplate = `{
                         "$ref": "#/definitions/response.DropReasonResponse"
                     }
                 },
+                "message": {
+                    "type": "string"
+                },
                 "routes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.RouteResponse"
                     }
-                },
-                "status": {
-                    "type": "string"
                 },
                 "unassigned": {
                     "type": "array",
@@ -2024,6 +1998,40 @@ const docTemplate = `{
         "response.RouteResponse": {
             "type": "object",
             "properties": {
+                "breakTimeEnd": {
+                    "type": "integer"
+                },
+                "breakTimeStart": {
+                    "type": "integer"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "maxTask": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "vehicle identity",
+                    "type": "string"
+                },
+                "plateNumber": {
+                    "type": "string"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleSkill"
+                    }
+                },
                 "stops": {
                     "type": "array",
                     "items": {
@@ -2036,28 +2044,64 @@ const docTemplate = `{
                 "totalDuration": {
                     "type": "number"
                 },
-                "tripSizes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "workTimeEnd": {
+                    "type": "integer"
                 },
-                "vehicleName": {
-                    "type": "string"
+                "workTimeStart": {
+                    "type": "integer"
                 }
             }
         },
         "response.StopResponse": {
             "type": "object",
             "properties": {
+                "DurationFromPrevious": {
+                    "description": "minutes",
+                    "type": "integer"
+                },
                 "arrivalMin": {
                     "type": "integer"
                 },
-                "departMin": {
+                "capacity": {
+                    "description": "order identity",
                     "type": "integer"
+                },
+                "desLatitude": {
+                    "type": "number"
+                },
+                "desLongitude": {
+                    "type": "number"
+                },
+                "distanceFromPrevious": {
+                    "description": "meters",
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
                 },
                 "orderName": {
                     "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "serviceTime": {
+                    "type": "integer"
+                },
+                "skill": {
+                    "type": "string"
+                },
+                "timeWindowEnd": {
+                    "type": "integer"
+                },
+                "timeWindowStart": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
                 }
             }
         },
@@ -2138,6 +2182,20 @@ const docTemplate = `{
                 },
                 "vehicle_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.VehicleSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }
