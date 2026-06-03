@@ -19,6 +19,11 @@ type matrixBuilder interface {
 	BuildMatrix(ctx context.Context, locs []dto.LocationInput) (response.MatrixResponse, error)
 }
 
+type skillInfo struct {
+	ID    int
+	Color string
+}
+
 type PlanningService struct {
 	matrixSvc matrixBuilder
 	solver    solver.Solver
@@ -102,7 +107,7 @@ func (s *PlanningService) Optimize(
 
 	planID := plan.ID
 
-	skillMap := map[string]uint{}
+	skillMap := map[string]skillInfo{}
 
 	for _, v := range req.Vehicles {
 		for _, skill := range v.Skills {
@@ -114,17 +119,20 @@ func (s *PlanningService) Optimize(
 				color = "#3B82F6"
 			}
 
-			skill := models.TagSkill{
+			tagSkill := models.TagSkill{
 				Name:   skill.Name,
 				Color:  color,
 				PlanID: planID,
 			}
 
-			if err := s.tagRepo.Create(&skill); err != nil {
+			if err := s.tagRepo.Create(&tagSkill); err != nil {
 				return nil, err
 			}
 
-			skillMap[skill.Name] = skill.ID
+			skillMap[skill.Name] = skillInfo{
+				ID:    int(tagSkill.ID),
+				Color: color,
+			}
 		}
 	}
 
@@ -137,30 +145,34 @@ func (s *PlanningService) Optimize(
 			continue
 		}
 
-		skill := models.TagSkill{
+		tagSkill := models.TagSkill{
 			Name:   o.Skill,
 			Color:  "#3B82F6",
 			PlanID: planID,
 		}
 
-		if err := s.tagRepo.Create(&skill); err != nil {
+		if err := s.tagRepo.Create(&tagSkill); err != nil {
 			return nil, err
 		}
 
-		skillMap[skill.Name] = skill.ID
+		skillMap[o.Skill] = skillInfo{
+			ID:    int(tagSkill.ID),
+			Color: "#3B82F6",
+		}
 	}
 
 	vehicles := make([]models.Vehicle, len(req.Vehicles))
 
 	for i, v := range req.Vehicles {
 
-		skills := make([]models.TagSkill, 0, len(v.Skills))
+		// ทำไปทำไมนะ
+		// skills := make([]models.TagSkill, 0, len(v.Skills))
 
-		for _, s := range v.Skills {
-			skills = append(skills, models.TagSkill{
-				ID: skillMap[s.Name],
-			})
-		}
+		// for _, s := range v.Skills {
+		// 	skills = append(skills, models.TagSkill{
+		// 		ID: uint(skillMap[s.Name].ID),
+		// 	})
+		// }
 
 		vehicles[i] = models.Vehicle{
 			Name:        v.Name,
@@ -251,6 +263,9 @@ func (s *PlanningService) Optimize(
 		solution,
 		matrixResp.Distances,
 		matrixResp.Durations,
+		orders,
+		vehicles,
+		skillMap,
 	), nil
 }
 
@@ -422,32 +437,24 @@ func buildOptimizeResponse(
 	solution model.Solution,
 	distances [][]int,
 	durations [][]int,
+	savedOrders []models.Order,
+	savedVehicles []models.Vehicle,
+	skillMap map[string]skillInfo,
 ) *response.OptimizeResponse {
-
-	vehicleMap :=
-		map[string]string{}
-
-	orderMap :=
-		map[string]string{}
-
-	for i, v := range req.Vehicles {
-		vehicleMap[strconv.Itoa(i)] = v.Name
-	}
-
-	for i, o := range req.Orders {
-		orderMap[strconv.Itoa(i)] = o.Name
-	}
-
-	routes :=
-		[]response.RouteResponse{}
+	routes := make([]response.RouteResponse, 0, len(solution.Routes))
 
 	for _, r := range solution.Routes {
 
-		stops := []response.StopResponse{}
+		stops := make([]response.StopResponse, 0, len(r.Stops))
 		prevMatrixIdx := 0 // depot
 
 		for _, stop := range r.Stops {
-			nodeIDInt, _ := strconv.Atoi(stop.NodeID)
+			nodeIDInt, err := strconv.Atoi(stop.NodeID)
+
+			if err != nil || nodeIDInt < 0 || nodeIDInt >= len(req.Orders) {
+				continue
+			}
+
 			currMatrixIdx := nodeIDInt + 1
 
 			var distFromPrev float64
@@ -459,50 +466,107 @@ func buildOptimizeResponse(
 				timeFromPrev = durations[prevMatrixIdx][currMatrixIdx]
 			}
 
+			order := req.Orders[nodeIDInt]
+			dbOrder := savedOrders[nodeIDInt]
+
+			var skillPtr *string
+			if order.Skill != "" {
+				skillPtr = &req.Orders[nodeIDInt].Skill
+			}
+
 			stops = append(stops, response.StopResponse{
-				OrderName:            orderMap[stop.NodeID],
+				OrderName:            order.Name,
 				ArrivalMin:           stop.ArrivalMin,
-				DepartMin:            stop.DepartMin,
 				DistanceFromPrevious: distFromPrev,
-				TimeFromPrevious:     timeFromPrev,
+				DurationFromPrevious: timeFromPrev,
+
+				// add from frontend requirement
+				Capacity:        order.Capacity,
+				TimeWindowStart: order.TimeWindowStart,
+				TimeWindowEnd:   order.TimeWindowEnd,
+				DesLatitude:     order.DesLatitude,
+				DesLongitude:    order.DesLongitude,
+				ServiceTime:     order.ServiceTime,
+				Type:            order.Type,
+				Priority:        order.Priority,
+				Skill:           skillPtr,
+				ID:              int(dbOrder.ID),
+				Note:            nil,
 			})
 
 			prevMatrixIdx = currMatrixIdx
 		}
 
-		routes = append(
-			routes,
-			response.RouteResponse{
-				VehicleName: vehicleMap[r.VehicleID],
+		routeResp := response.RouteResponse{
+			TotalDistance: r.TotalDistance,
+			TotalDuration: float64(r.TotalDuration),
+			Stops:         stops,
+		}
 
-				TotalDistance: r.TotalDistance,
+		if vIdx, err := strconv.Atoi(r.VehicleID); err == nil && vIdx >= 0 && vIdx < len(req.Vehicles) {
+			v := req.Vehicles[vIdx]
+			dbVehicle := savedVehicles[vIdx]
 
-				TotalDuration: float64(r.TotalDuration),
+			routeResp.ID = int(dbVehicle.ID)
+			routeResp.Name = v.Name
+			routeResp.Capacity = v.Capacity
+			routeResp.WorkTimeStart = v.DailyWorkTimeStart
+			routeResp.WorkTimeEnd = v.DailyWorkTimeEnd
 
-				Stops:     stops,
-				TripSizes: r.TripSizes,
-			},
-		)
+			if v.Model != "" {
+				routeResp.Model = &req.Vehicles[vIdx].Model
+			}
+			if v.PlateNumber != "" {
+				routeResp.PlateNumber = &req.Vehicles[vIdx].PlateNumber
+			}
+
+			maxTaskCopy := v.MaxTask
+			routeResp.MaxTask = &maxTaskCopy
+
+			breakStartCopy := v.DailyBreakTimeStart
+			routeResp.BreakTimeStart = &breakStartCopy
+
+			breakEndCopy := v.DailyBreakTimeEnd
+			routeResp.BreakTimeEnd = &breakEndCopy
+
+			if len(v.Skills) > 0 {
+				routeResp.Skills = make([]response.VehicleSkill, len(v.Skills))
+				for idx, sk := range v.Skills {
+					info := skillMap[sk.Name]
+					idCopy := info.ID
+					colorCopy := info.Color
+
+					routeResp.Skills[idx] = response.VehicleSkill{
+						Name:  sk.Name,
+						ID:    &idCopy,
+						Color: &colorCopy,
+					}
+				}
+			}
+		}
+
+		routes = append(routes, routeResp)
 	}
 
 	unassigned := make([]string, 0, len(solution.Unassigned))
-	for _, id := range solution.Unassigned {
-		if name, ok := orderMap[id]; ok {
-			unassigned = append(unassigned, name)
+	for _, idStr := range solution.Unassigned {
+		if idx, err := strconv.Atoi(idStr); err == nil && idx >= 0 && idx < len(req.Orders) {
+			unassigned = append(unassigned, req.Orders[idx].Name)
+		} else {
+			unassigned = append(unassigned, idStr) // Fallback to raw ID string if unparsable
 		}
 	}
 
 	dropReasons := make([]response.DropReasonResponse, 0, len(solution.DropReasons))
 	for _, dr := range solution.DropReasons {
 		dropReasons = append(dropReasons, response.DropReasonResponse{
-			OrderName: orderMap[dr.NodeID],
-			Code:      dr.Code,
-			Detail:    dr.Detail,
+			Code:   dr.Code,
+			Detail: dr.Detail,
 		})
 	}
 
 	return &response.OptimizeResponse{
-		Status:      string(solution.Status),
+		Message:     string(solution.Status),
 		Routes:      routes,
 		Unassigned:  unassigned,
 		DropReasons: dropReasons,
