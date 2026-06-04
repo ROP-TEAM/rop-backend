@@ -570,6 +570,8 @@ func buildOptimizeResponse(
 		Routes:      routes,
 		Unassigned:  unassigned,
 		DropReasons: dropReasons,
+		DepotLat:    req.DepotLat,
+		DepotLon:    req.DepotLon,
 	}
 }
 

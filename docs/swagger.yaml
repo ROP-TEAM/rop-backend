@@ -571,6 +571,10 @@ definitions:
     type: object
   response.OptimizeResponse:
     properties:
+      depotLat:
+        type: number
+      depotLon:
+        type: number
       dropReasons:
         items:
           $ref: '#/definitions/response.DropReasonResponse'

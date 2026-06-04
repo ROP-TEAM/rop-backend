@@ -1941,6 +1941,12 @@ const docTemplate = `{
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
+                "depotLat": {
+                    "type": "number"
+                },
+                "depotLon": {
+                    "type": "number"
+                },
                 "dropReasons": {
                     "type": "array",
                     "items": {

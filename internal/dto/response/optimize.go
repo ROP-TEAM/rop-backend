@@ -5,6 +5,8 @@ type OptimizeResponse struct {
 	Routes      []RouteResponse      `json:"routes"`
 	Unassigned  []string             `json:"unassigned,omitempty"`
 	DropReasons []DropReasonResponse `json:"dropReasons,omitempty"`
+	DepotLat    float64              `json:"depotLat"`
+	DepotLon    float64              `json:"depotLon"`
 }
 
 type DropReasonResponse struct {
