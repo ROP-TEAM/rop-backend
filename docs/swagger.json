@@ -582,7 +582,54 @@
                 }
             }
         },
-        "/api/plan": {
+        "/api/plans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "all plans metadata in user's company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "get Plans meta data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetPlansResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -640,7 +687,126 @@
                 }
             }
         },
-        "/api/plan/:id": {
+        "/api/plans/name/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Patch a plan name by id by attach plan id via url params, and updated name by body",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "Patch plan name by plan id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "plan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePlanNameByIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePlanNameByIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/plans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "user has to be in the same company as target plan to be allowed to get it",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plan"
+                ],
+                "summary": "get Plan and its legacy by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetPlanDetailsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -664,6 +830,13 @@
                         "description": "Bearer token",
                         "name": "Authorization",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -723,6 +896,13 @@
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Plan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "plan",
                         "name": "body",
                         "in": "body",
@@ -737,62 +917,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.DeletePlanByIDResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Patch a plan name by id by attach plan id via url params, and updated name by body",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plan"
-                ],
-                "summary": "Patch plan name by plan id",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "plan",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdatePlanNameByIDRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdatePlanNameByIDResponse"
                         }
                     },
                     "400": {
@@ -1268,6 +1392,81 @@
                 }
             }
         },
+        "dto.GetPlanDetailsResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-05-05 15:44:09.523069+00"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "whatthehell"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "what"
+                },
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OrderDetails"
+                    }
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RouteDetails"
+                    }
+                },
+                "tag_skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagSkillDetails"
+                    }
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2026-05-05 15:44:09.523069+00"
+                },
+                "vehicles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VehicleDetails"
+                    }
+                }
+            }
+        },
+        "dto.GetPlanMetaDataResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "whatthehell"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "what"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetPlansResponse": {
+            "type": "object",
+            "properties": {
+                "plans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GetPlanMetaDataResponse"
+                    }
+                }
+            }
+        },
         "dto.GroupCreateOrder": {
             "type": "object",
             "properties": {
@@ -1518,6 +1717,61 @@
                 }
             }
         },
+        "dto.OrderDetails": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number",
+                    "example": 77
+                },
+                "des_latitude": {
+                    "type": "number",
+                    "example": 1.992
+                },
+                "des_longitude": {
+                    "type": "number",
+                    "example": 2.991
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "name": {
+                    "type": "string",
+                    "example": "red bicycle"
+                },
+                "note": {
+                    "type": "string",
+                    "example": "owned by P sek"
+                },
+                "priority": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "service_time": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagSkillID"
+                    }
+                },
+                "time_window_end": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "time_window_start": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "type": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "dto.RequestOTPRequest": {
             "type": "object",
             "required": [
@@ -1555,6 +1809,80 @@
                 "tel": {
                     "type": "string",
                     "example": "0999999999"
+                }
+            }
+        },
+        "dto.RouteDetails": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "stops": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.StopDetails"
+                    }
+                },
+                "total_distance": {
+                    "type": "number",
+                    "example": 720
+                },
+                "total_time": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "vehicle_id": {
+                    "type": "integer",
+                    "example": 1314
+                }
+            }
+        },
+        "dto.StopDetails": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "order_id": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "route_id": {
+                    "type": "integer",
+                    "example": 72
+                },
+                "sequence_number": {
+                    "type": "integer",
+                    "example": 77
+                }
+            }
+        },
+        "dto.TagSkillDetails": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "example": "red"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1314
+                },
+                "name": {
+                    "type": "string",
+                    "example": "driver must meet buety standard"
+                }
+            }
+        },
+        "dto.TagSkillID": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1314
                 }
             }
         },
@@ -1676,6 +2004,77 @@
                     "items": {
                         "$ref": "#/definitions/dto.VehicleTagSkill"
                     }
+                }
+            }
+        },
+        "dto.VehicleDetails": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "daily_break_time_end": {
+                    "type": "integer",
+                    "example": 780
+                },
+                "daily_break_time_start": {
+                    "type": "integer",
+                    "example": 720
+                },
+                "daily_work_time_end": {
+                    "type": "integer",
+                    "example": 960
+                },
+                "daily_work_time_start": {
+                    "type": "integer",
+                    "example": 480
+                },
+                "end_latitude": {
+                    "type": "number",
+                    "example": 1.3288
+                },
+                "end_longitude": {
+                    "type": "number",
+                    "example": 8.8231
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1314
+                },
+                "max_task": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "model": {
+                    "type": "string",
+                    "example": "Malah model Y"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "รถคันนี้สีแดง"
+                },
+                "number_plate": {
+                    "type": "string",
+                    "example": "สกร2019"
+                },
+                "profile_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TagSkillID"
+                    }
+                },
+                "start_latitude": {
+                    "type": "number",
+                    "example": 1.3288
+                },
+                "start_longitude": {
+                    "type": "number",
+                    "example": 8.8231
                 }
             }
         },

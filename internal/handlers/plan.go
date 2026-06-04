@@ -31,7 +31,7 @@ func NewPlanHandler(service *services.PlanService) *PlanHandler {
 // @Success 200 {object} dto.CreatePlanResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan [post]
+// @Router /api/plans [post]
 func (h *PlanHandler) Create(c fiber.Ctx) error {
 	var body dto.CreatePlanRequest
 	if err := c.Bind().Body(&body); err != nil {
@@ -45,8 +45,6 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 			"error": "name field is required",
 		})
 	}
-
-	body.SetDefaults()
 
 	claims := middleware.GetUser(c)
 	if claims == nil {
@@ -72,6 +70,14 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "user has no company",
 			})
+		case errors.Is(err, services.ErrInvalidDateFormat):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invald data format: expect 2006-01-02 15:04:05.999999-07",
+			})
+		case errors.Is(err, services.ErrPlanNameTooLong): // ADDED
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		default:
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "internal server error",
@@ -93,11 +99,12 @@ func (h *PlanHandler) Create(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.UpdatePlanNameByIDRequest true "plan"
 // @Success 200 {object} dto.UpdatePlanNameByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [patch]
+// @Router /api/plans/name/{id} [patch]
 func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -118,8 +125,6 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 			"error": "name field is required",
 		})
 	}
-
-	body.SetDefaults()
 
 	claims := middleware.GetUser(c)
 	if claims == nil {
@@ -143,6 +148,10 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "user has no company",
 			})
+		case errors.Is(err, services.ErrPlanNameTooLong): // ADDED
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
 		default:
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "internal server error",
@@ -164,11 +173,12 @@ func (h *PlanHandler) UpdateNameByID(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.DeletePlanByIDRequest true "plan"
 // @Success 200 {object} dto.DeletePlanByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [delete]
+// @Router /api/plans/{id} [delete]
 func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -220,11 +230,12 @@ func (h *PlanHandler) DeleteByID(c fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
 // @Param body body dto.DuplicatePlanByIDRequest true "plan"
 // @Success 200 {object} dto.DuplicatePlanByIDResponse
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /api/plan/:id [post]
+// @Router /api/plans/{id} [post]
 func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
@@ -252,13 +263,18 @@ func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 				"error": err.Error(),
 			})
 
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+
 		case errors.Is(err, services.ErrCreatingOrder),
 			errors.Is(err, services.ErrCreatingVehicle),
 			errors.Is(err, services.ErrCreatingTagSkill),
 			errors.Is(err, services.ErrCreatingOrderSkill),
 			errors.Is(err, services.ErrCreatingVehicleSkill):
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-				"error":   "internal server error",
+				"error":   "error while duplicating process error",
 				"details": err.Error(),
 			})
 
@@ -271,6 +287,110 @@ func (h *PlanHandler) DuplicateByID(c fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "plan duplicated",
+		"data":    res,
+	})
+}
+
+// GetPlanByID godoc
+// @Summary get Plan and its legacy by id
+// @Description user has to be in the same company as target plan to be allowed to get it
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Param id path string true "Plan ID"
+// @Success 200 {object} dto.GetPlanDetailsResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plans/{id} [get]
+func (h *PlanHandler) GetByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "bad request",
+		})
+	}
+
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.service.GetDetailsByID(ctx, id, claims.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrUserNotFound),
+			errors.Is(err, services.ErrPlanNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "successful",
+		"data":    res,
+	})
+}
+
+// GetPlansMetaData godoc
+// @Summary get Plans meta data
+// @Description all plans metadata in user's company
+// @Tags plan
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string true "Bearer token"
+// @Success 200 {object} dto.GetPlansResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /api/plans [get]
+func (h *PlanHandler) GetPlans(c fiber.Ctx) error {
+	claims := middleware.GetUser(c)
+	if claims == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.service.GetPlans(ctx, claims.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrUserNotFound),
+			errors.Is(err, services.ErrPlanNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		case errors.Is(err, services.ErrUserHasNoCompany):
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "successful",
 		"data":    res,
 	})
 }

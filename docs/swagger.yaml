@@ -121,6 +121,57 @@ definitions:
         example: vhkp9^,lvo0y[0bh'0dsojvp]
         type: string
     type: object
+  dto.GetPlanDetailsResponse:
+    properties:
+      created_at:
+        example: 2026-05-05 15:44:09.523069+00
+        type: string
+      id:
+        example: whatthehell
+        type: string
+      name:
+        example: what
+        type: string
+      orders:
+        items:
+          $ref: '#/definitions/dto.OrderDetails'
+        type: array
+      routes:
+        items:
+          $ref: '#/definitions/dto.RouteDetails'
+        type: array
+      tag_skills:
+        items:
+          $ref: '#/definitions/dto.TagSkillDetails'
+        type: array
+      updated_at:
+        example: 2026-05-05 15:44:09.523069+00
+        type: string
+      vehicles:
+        items:
+          $ref: '#/definitions/dto.VehicleDetails'
+        type: array
+    type: object
+  dto.GetPlanMetaDataResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        example: whatthehell
+        type: string
+      name:
+        example: what
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.GetPlansResponse:
+    properties:
+      plans:
+        items:
+          $ref: '#/definitions/dto.GetPlanMetaDataResponse'
+        type: array
+    type: object
   dto.GroupCreateOrder:
     properties:
       orders:
@@ -296,6 +347,46 @@ definitions:
     required:
     - name
     type: object
+  dto.OrderDetails:
+    properties:
+      capacity:
+        example: 77
+        type: number
+      des_latitude:
+        example: 1.992
+        type: number
+      des_longitude:
+        example: 2.991
+        type: number
+      id:
+        example: 720
+        type: integer
+      name:
+        example: red bicycle
+        type: string
+      note:
+        example: owned by P sek
+        type: string
+      priority:
+        example: 1
+        type: integer
+      service_time:
+        example: 7
+        type: integer
+      skills:
+        items:
+          $ref: '#/definitions/dto.TagSkillID'
+        type: array
+      time_window_end:
+        example: 1000
+        type: integer
+      time_window_start:
+        example: 720
+        type: integer
+      type:
+        example: 1
+        type: integer
+    type: object
   dto.RequestOTPRequest:
     properties:
       tel:
@@ -323,6 +414,58 @@ definitions:
       tel:
         example: "0999999999"
         type: string
+    type: object
+  dto.RouteDetails:
+    properties:
+      id:
+        example: 720
+        type: integer
+      stops:
+        items:
+          $ref: '#/definitions/dto.StopDetails'
+        type: array
+      total_distance:
+        example: 720
+        type: number
+      total_time:
+        example: 720
+        type: integer
+      vehicle_id:
+        example: 1314
+        type: integer
+    type: object
+  dto.StopDetails:
+    properties:
+      id:
+        example: 7
+        type: integer
+      order_id:
+        example: 720
+        type: integer
+      route_id:
+        example: 72
+        type: integer
+      sequence_number:
+        example: 77
+        type: integer
+    type: object
+  dto.TagSkillDetails:
+    properties:
+      color:
+        example: red
+        type: string
+      id:
+        example: 1314
+        type: integer
+      name:
+        example: driver must meet buety standard
+        type: string
+    type: object
+  dto.TagSkillID:
+    properties:
+      id:
+        example: 1314
+        type: integer
     type: object
   dto.UpdateOrder:
     properties:
@@ -403,6 +546,58 @@ definitions:
         items:
           $ref: '#/definitions/dto.VehicleTagSkill'
         type: array
+    type: object
+  dto.VehicleDetails:
+    properties:
+      capacity:
+        example: 1000
+        type: number
+      daily_break_time_end:
+        example: 780
+        type: integer
+      daily_break_time_start:
+        example: 720
+        type: integer
+      daily_work_time_end:
+        example: 960
+        type: integer
+      daily_work_time_start:
+        example: 480
+        type: integer
+      end_latitude:
+        example: 1.3288
+        type: number
+      end_longitude:
+        example: 8.8231
+        type: number
+      id:
+        example: 1314
+        type: integer
+      max_task:
+        example: 20
+        type: integer
+      model:
+        example: Malah model Y
+        type: string
+      name:
+        example: รถคันนี้สีแดง
+        type: string
+      number_plate:
+        example: สกร2019
+        type: string
+      profile_id:
+        example: 1
+        type: integer
+      skills:
+        items:
+          $ref: '#/definitions/dto.TagSkillID'
+        type: array
+      start_latitude:
+        example: 1.3288
+        type: number
+      start_longitude:
+        example: 8.8231
+        type: number
     type: object
   dto.VehicleTagSkill:
     properties:
@@ -1120,7 +1315,37 @@ paths:
       summary: Update order
       tags:
       - order
-  /api/plan:
+  /api/plans:
+    get:
+      consumes:
+      - application/json
+      description: all plans metadata in user's company
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetPlansResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get Plans meta data
+      tags:
+      - plan
     post:
       consumes:
       - application/json
@@ -1157,7 +1382,7 @@ paths:
       summary: Create plan
       tags:
       - plan
-  /api/plan/:id:
+  /api/plans/{id}:
     delete:
       consumes:
       - application/json
@@ -1167,6 +1392,11 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
         required: true
         type: string
       - description: plan
@@ -1195,30 +1425,29 @@ paths:
       summary: Delete plan by plan id
       tags:
       - plan
-    patch:
+    get:
       consumes:
       - application/json
-      description: Patch a plan name by id by attach plan id via url params, and updated
-        name by body
+      description: user has to be in the same company as target plan to be allowed
+        to get it
       parameters:
       - description: Bearer token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: plan
-        in: body
-        name: body
+      - description: Plan ID
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/dto.UpdatePlanNameByIDRequest'
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.UpdatePlanNameByIDResponse'
+            $ref: '#/definitions/dto.GetPlanDetailsResponse'
         "400":
           description: Bad Request
           schema:
@@ -1229,7 +1458,7 @@ paths:
             $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Patch plan name by plan id
+      summary: get Plan and its legacy by id
       tags:
       - plan
     post:
@@ -1241,6 +1470,11 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
         required: true
         type: string
       - description: plan
@@ -1267,6 +1501,49 @@ paths:
       security:
       - BearerAuth: []
       summary: DuplicatePlan and its legacy by id
+      tags:
+      - plan
+  /api/plans/name/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Patch a plan name by id by attach plan id via url params, and updated
+        name by body
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: plan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePlanNameByIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UpdatePlanNameByIDResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Patch plan name by plan id
       tags:
       - plan
   /api/skills:
