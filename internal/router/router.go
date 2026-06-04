@@ -24,9 +24,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	app.Use(middleware.RateLimiter())
 
-	app.Get("/api/swagger/*", adaptor.HTTPHandler(
-		httpSwagger.WrapHandler,
-	))
+	// app.Get("/api/swagger/*", adaptor.HTTPHandler(
+	// 	httpSwagger.WrapHandler,
+	// ))
 
 	authService := services.NewAuthService(db, cfg)
 	authHandler := handlers.NewAuthHandler(authService)
@@ -83,6 +83,11 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	planningHandler := handlers.NewPlanningHandler(planningService)
 
 	api := app.Group("/api")
+
+	api.Get("/swagger/*", adaptor.HTTPHandler(httpSwagger.Handler(
+		httpSwagger.URL("/api/swagger/doc.json"),
+	)))
+
 	api.Post("/auth/google", authHandler.GoogleLogin)
 
 	api.Post("/onboarding", middleware.Protected(cfg), userHandler.Onboarding)

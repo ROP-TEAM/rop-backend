@@ -235,29 +235,52 @@ definitions:
       capacity:
         type: integer
       desLatitude:
+        maximum: 90
+        minimum: -90
         type: number
       desLongitude:
+        maximum: 180
+        minimum: -180
         type: number
       name:
         type: string
       priority:
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
         type: integer
       serviceTime:
+        minimum: 0
         type: integer
       skill:
         type: string
       timeWindowEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       timeWindowStart:
+        maximum: 1439
+        minimum: 0
         type: integer
       type:
+        enum:
+        - 0
+        - 1
         type: integer
+    required:
+    - name
     type: object
   dto.OptimizeRequest:
     properties:
       depotLat:
+        maximum: 90
+        minimum: -90
         type: number
       depotLon:
+        maximum: 180
+        minimum: -180
         type: number
       enableAlns:
         type: boolean
@@ -291,16 +314,17 @@ definitions:
   dto.OptimizeVehicle:
     properties:
       breakTimeEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       breakTimeStart:
+        maximum: 1439
+        minimum: 0
         type: integer
       capacity:
         type: integer
-      endLatitude:
-        type: number
-      endLongitude:
-        type: number
       maxTask:
+        minimum: 0
         type: integer
       model:
         type: string
@@ -312,14 +336,16 @@ definitions:
         items:
           $ref: '#/definitions/dto.CreateTagSkill'
         type: array
-      startLatitude:
-        type: number
-      startLongitude:
-        type: number
       workTimeEnd:
+        maximum: 1439
+        minimum: 0
         type: integer
       workTimeStart:
+        maximum: 1439
+        minimum: 0
         type: integer
+    required:
+    - name
     type: object
   dto.OrderDetails:
     properties:
@@ -722,8 +748,6 @@ definitions:
         type: string
       detail:
         type: string
-      orderName:
-        type: string
     type: object
   response.MatrixResponse:
     properties:
@@ -742,16 +766,20 @@ definitions:
     type: object
   response.OptimizeResponse:
     properties:
+      depotLat:
+        type: number
+      depotLon:
+        type: number
       dropReasons:
         items:
           $ref: '#/definitions/response.DropReasonResponse'
         type: array
+      message:
+        type: string
       routes:
         items:
           $ref: '#/definitions/response.RouteResponse'
         type: array
-      status:
-        type: string
       unassigned:
         items:
           type: string
@@ -780,6 +808,29 @@ definitions:
     type: object
   response.RouteResponse:
     properties:
+      breakTimeEnd:
+        type: integer
+      breakTimeStart:
+        type: integer
+      capacity:
+        type: integer
+      id:
+        type: integer
+      maxTask:
+        type: integer
+      model:
+        type: string
+      name:
+        description: vehicle identity
+        type: string
+      plateNumber:
+        type: string
+      profile_id:
+        type: integer
+      skills:
+        items:
+          $ref: '#/definitions/response.VehicleSkill'
+        type: array
       stops:
         items:
           $ref: '#/definitions/response.StopResponse'
@@ -788,21 +839,46 @@ definitions:
         type: number
       totalDuration:
         type: number
-      tripSizes:
-        items:
-          type: integer
-        type: array
-      vehicleName:
-        type: string
+      workTimeEnd:
+        type: integer
+      workTimeStart:
+        type: integer
     type: object
   response.StopResponse:
     properties:
+      DurationFromPrevious:
+        description: minutes
+        type: integer
       arrivalMin:
         type: integer
-      departMin:
+      capacity:
+        description: order identity
         type: integer
+      desLatitude:
+        type: number
+      desLongitude:
+        type: number
+      distanceFromPrevious:
+        description: meters
+        type: number
+      id:
+        type: integer
+      note:
+        type: string
       orderName:
         type: string
+      priority:
+        type: integer
+      serviceTime:
+        type: integer
+      skill:
+        type: string
+      timeWindowEnd:
+        type: integer
+      timeWindowStart:
+        type: integer
+      type:
+        type: integer
     type: object
   response.TagSkillGroupResponse:
     properties:
@@ -855,6 +931,15 @@ definitions:
         type: array
       vehicle_id:
         type: integer
+    type: object
+  response.VehicleSkill:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
     type: object
 info:
   contact: {}

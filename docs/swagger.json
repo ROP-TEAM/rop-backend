@@ -1559,36 +1559,58 @@
         },
         "dto.OptimizeOrder": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "capacity": {
                     "type": "integer"
                 },
                 "desLatitude": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
                 },
                 "desLongitude": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
                 },
                 "name": {
                     "type": "string"
                 },
                 "priority": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ]
                 },
                 "serviceTime": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "skill": {
                     "type": "string"
                 },
                 "timeWindowEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "timeWindowStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "type": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
                 }
             }
         },
@@ -1602,10 +1624,14 @@
             ],
             "properties": {
                 "depotLat": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 90,
+                    "minimum": -90
                 },
                 "depotLon": {
-                    "type": "number"
+                    "type": "number",
+                    "maximum": 180,
+                    "minimum": -180
                 },
                 "enableAlns": {
                     "type": "boolean"
@@ -1643,24 +1669,26 @@
         },
         "dto.OptimizeVehicle": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "breakTimeEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "breakTimeStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "capacity": {
                     "type": "integer"
                 },
-                "endLatitude": {
-                    "type": "number"
-                },
-                "endLongitude": {
-                    "type": "number"
-                },
                 "maxTask": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "model": {
                     "type": "string"
@@ -1677,17 +1705,15 @@
                         "$ref": "#/definitions/dto.CreateTagSkill"
                     }
                 },
-                "startLatitude": {
-                    "type": "number"
-                },
-                "startLongitude": {
-                    "type": "number"
-                },
                 "workTimeEnd": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 },
                 "workTimeStart": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 1439,
+                    "minimum": 0
                 }
             }
         },
@@ -2274,9 +2300,6 @@
                 },
                 "detail": {
                     "type": "string"
-                },
-                "orderName": {
-                    "type": "string"
                 }
             }
         },
@@ -2306,20 +2329,26 @@
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
+                "depotLat": {
+                    "type": "number"
+                },
+                "depotLon": {
+                    "type": "number"
+                },
                 "dropReasons": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.DropReasonResponse"
                     }
                 },
+                "message": {
+                    "type": "string"
+                },
                 "routes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.RouteResponse"
                     }
-                },
-                "status": {
-                    "type": "string"
                 },
                 "unassigned": {
                     "type": "array",
@@ -2363,6 +2392,40 @@
         "response.RouteResponse": {
             "type": "object",
             "properties": {
+                "breakTimeEnd": {
+                    "type": "integer"
+                },
+                "breakTimeStart": {
+                    "type": "integer"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "maxTask": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "vehicle identity",
+                    "type": "string"
+                },
+                "plateNumber": {
+                    "type": "string"
+                },
+                "profile_id": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.VehicleSkill"
+                    }
+                },
                 "stops": {
                     "type": "array",
                     "items": {
@@ -2375,28 +2438,64 @@
                 "totalDuration": {
                     "type": "number"
                 },
-                "tripSizes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "workTimeEnd": {
+                    "type": "integer"
                 },
-                "vehicleName": {
-                    "type": "string"
+                "workTimeStart": {
+                    "type": "integer"
                 }
             }
         },
         "response.StopResponse": {
             "type": "object",
             "properties": {
+                "DurationFromPrevious": {
+                    "description": "minutes",
+                    "type": "integer"
+                },
                 "arrivalMin": {
                     "type": "integer"
                 },
-                "departMin": {
+                "capacity": {
+                    "description": "order identity",
                     "type": "integer"
+                },
+                "desLatitude": {
+                    "type": "number"
+                },
+                "desLongitude": {
+                    "type": "number"
+                },
+                "distanceFromPrevious": {
+                    "description": "meters",
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
                 },
                 "orderName": {
                     "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "serviceTime": {
+                    "type": "integer"
+                },
+                "skill": {
+                    "type": "string"
+                },
+                "timeWindowEnd": {
+                    "type": "integer"
+                },
+                "timeWindowStart": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
                 }
             }
         },
@@ -2477,6 +2576,20 @@
                 },
                 "vehicle_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.VehicleSkill": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         }
