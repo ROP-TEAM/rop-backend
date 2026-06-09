@@ -34,6 +34,7 @@ definitions:
         example: untangle
         type: string
       plan_date:
+        description: 'CHANGED: time.Time -> *string'
         example: 2026-05-05 15:44:09.523069+00
         type: string
     type: object
@@ -630,6 +631,14 @@ definitions:
         example: success
         type: string
     type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
   handlers.CreateResponse:
     properties:
       message:
@@ -717,18 +726,25 @@ definitions:
         $ref: '#/definitions/models.Company'
       companyID:
         type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
       email:
         type: string
       google_id:
         type: string
+      id:
+        type: integer
       is_need_on_boarding:
         type: boolean
       is_validated:
         type: boolean
       name:
-        description: gorm.Model
         type: string
       tel:
+        type: string
+      updatedAt:
         type: string
     type: object
   response.BuildMatrixResponse:
@@ -748,6 +764,8 @@ definitions:
         type: string
       detail:
         type: string
+      order:
+        $ref: '#/definitions/response.OrdersResponse'
     type: object
   response.MatrixResponse:
     properties:
@@ -780,10 +798,6 @@ definitions:
         items:
           $ref: '#/definitions/response.RouteResponse'
         type: array
-      unassigned:
-        items:
-          type: string
-        type: array
     type: object
   response.OrderResponse:
     properties:
@@ -804,6 +818,29 @@ definitions:
         type: array
       type:
         description: 0=delivery,1=pickup
+        type: integer
+    type: object
+  response.OrdersResponse:
+    properties:
+      capacity:
+        type: integer
+      desLatitude:
+        type: number
+      desLongitude:
+        type: number
+      name:
+        type: string
+      priority:
+        type: integer
+      serviceTime:
+        type: integer
+      skill:
+        type: string
+      timeWindowEnd:
+        type: integer
+      timeWindowStart:
+        type: integer
+      type:
         type: integer
     type: object
   response.RouteResponse:
@@ -846,9 +883,6 @@ definitions:
     type: object
   response.StopResponse:
     properties:
-      DurationFromPrevious:
-        description: minutes
-        type: integer
       arrivalMin:
         type: integer
       capacity:
@@ -861,6 +895,9 @@ definitions:
       distanceFromPrevious:
         description: meters
         type: number
+      durationFromPrevious:
+        description: minutes
+        type: integer
       id:
         type: integer
       note:

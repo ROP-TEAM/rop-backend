@@ -1272,6 +1272,7 @@ const docTemplate = `{
                     "example": "untangle"
                 },
                 "plan_date": {
+                    "description": "CHANGED: time.Time -\u003e *string",
                     "type": "string",
                     "example": "2026-05-05 15:44:09.523069+00"
                 }
@@ -2134,6 +2135,18 @@ const docTemplate = `{
                 }
             }
         },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
         "handlers.CreateResponse": {
             "type": "object",
             "properties": {
@@ -2265,11 +2278,20 @@ const docTemplate = `{
                 "companyID": {
                     "type": "string"
                 },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "email": {
                     "type": "string"
                 },
                 "google_id": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_need_on_boarding": {
                     "type": "boolean"
@@ -2278,10 +2300,12 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
-                    "description": "gorm.Model",
                     "type": "string"
                 },
                 "tel": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -2311,6 +2335,9 @@ const docTemplate = `{
                 },
                 "detail": {
                     "type": "string"
+                },
+                "order": {
+                    "$ref": "#/definitions/response.OrdersResponse"
                 }
             }
         },
@@ -2360,12 +2387,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.RouteResponse"
                     }
-                },
-                "unassigned": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2396,6 +2417,41 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "0=delivery,1=pickup",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.OrdersResponse": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "type": "integer"
+                },
+                "desLatitude": {
+                    "type": "number"
+                },
+                "desLongitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "serviceTime": {
+                    "type": "integer"
+                },
+                "skill": {
+                    "type": "string"
+                },
+                "timeWindowEnd": {
+                    "type": "integer"
+                },
+                "timeWindowStart": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "integer"
                 }
             }
@@ -2460,10 +2516,6 @@ const docTemplate = `{
         "response.StopResponse": {
             "type": "object",
             "properties": {
-                "DurationFromPrevious": {
-                    "description": "minutes",
-                    "type": "integer"
-                },
                 "arrivalMin": {
                     "type": "integer"
                 },
@@ -2480,6 +2532,10 @@ const docTemplate = `{
                 "distanceFromPrevious": {
                     "description": "meters",
                     "type": "number"
+                },
+                "durationFromPrevious": {
+                    "description": "minutes",
+                    "type": "integer"
                 },
                 "id": {
                     "type": "integer"

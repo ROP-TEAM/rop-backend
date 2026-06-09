@@ -3,15 +3,15 @@ package response
 type OptimizeResponse struct {
 	Message     string               `json:"message"`
 	Routes      []RouteResponse      `json:"routes"`
-	Unassigned  []string             `json:"unassigned,omitempty"`
 	DropReasons []DropReasonResponse `json:"dropReasons,omitempty"`
 	DepotLat    float64              `json:"depotLat"`
 	DepotLon    float64              `json:"depotLon"`
 }
 
 type DropReasonResponse struct {
-	Code   string `json:"code"`
-	Detail string `json:"detail"`
+	Code   string         `json:"code"`
+	Detail string         `json:"detail"`
+	Order  OrdersResponse `json:"order"`
 }
 
 type VehicleSkill struct {
@@ -62,4 +62,17 @@ type StopResponse struct {
 	Note            *string `json:"note,omitempty"`
 	Skill           *string `json:"skill,omitempty"`
 	ID              int     `json:"id"`
+}
+
+type OrdersResponse struct {
+	Name            string  `json:"name"`
+	Capacity        int     `json:"capacity"`
+	Skill           *string `json:"skill,omitempty"`
+	TimeWindowStart int     `json:"timeWindowStart"`
+	TimeWindowEnd   int     `json:"timeWindowEnd"`
+	DesLatitude     float64 `json:"desLatitude"`
+	DesLongitude    float64 `json:"desLongitude"`
+	ServiceTime     int     `json:"serviceTime"`
+	Type            int     `json:"type"`
+	Priority        int     `json:"priority"`
 }
