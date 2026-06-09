@@ -48,7 +48,7 @@ type StopResponse struct {
 	// DepartMin  int `json:"departMin"`
 
 	DistanceFromPrevious float64 `json:"distanceFromPrevious"` // meters
-	DurationFromPrevious int     `json:"DurationFromPrevious"` // minutes
+	DurationFromPrevious int     `json:"durationFromPrevious"` // minutes
 
 	//order identity
 	Capacity        int     `json:"capacity"`
