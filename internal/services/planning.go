@@ -548,27 +548,42 @@ func buildOptimizeResponse(
 		routes = append(routes, routeResp)
 	}
 
-	unassigned := make([]string, 0, len(solution.Unassigned))
-	for _, idStr := range solution.Unassigned {
-		if idx, err := strconv.Atoi(idStr); err == nil && idx >= 0 && idx < len(req.Orders) {
-			unassigned = append(unassigned, req.Orders[idx].Name)
-		} else {
-			unassigned = append(unassigned, idStr) // Fallback to raw ID string if unparsable
-		}
-	}
-
 	dropReasons := make([]response.DropReasonResponse, 0, len(solution.DropReasons))
 	for _, dr := range solution.DropReasons {
+
+		idx, err := strconv.Atoi(dr.NodeID)
+		if err != nil || idx < 0 || idx >= len(req.Orders) {
+			continue
+		}
+
+		order := req.Orders[idx]
+
+		var skillPtr *string
+		if order.Skill != "" {
+			skillPtr = &order.Skill
+		}
+
 		dropReasons = append(dropReasons, response.DropReasonResponse{
 			Code:   dr.Code,
 			Detail: dr.Detail,
+			Order: response.OrdersResponse{
+				Name:            order.Name,
+				Capacity:        order.Capacity,
+				Skill:           skillPtr,
+				TimeWindowStart: order.TimeWindowStart,
+				TimeWindowEnd:   order.TimeWindowEnd,
+				DesLatitude:     order.DesLatitude,
+				DesLongitude:    order.DesLongitude,
+				ServiceTime:     order.ServiceTime,
+				Type:            order.Type,
+				Priority:        order.Priority,
+			},
 		})
 	}
 
 	return &response.OptimizeResponse{
 		Message:     string(solution.Status),
 		Routes:      routes,
-		Unassigned:  unassigned,
 		DropReasons: dropReasons,
 		DepotLat:    req.DepotLat,
 		DepotLon:    req.DepotLon,
