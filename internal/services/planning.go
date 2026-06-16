@@ -346,8 +346,10 @@ func buildOptimizeProblem(
 		TimeLimitMS:     req.TimeLimitMS,
 		EnableALNS:      req.EnableALNS,
 		EnableMultiTrip: req.EnableMultiTrip,
-		ReloadMin:       req.ReloadMin,
-		Seed:            req.Seed,
+		ReloadMin:         req.ReloadMin,
+		Seed:              req.Seed,
+		DisableCapacity:   req.DisableCapacity,
+		DisableTimeWindow: req.DisableTimeWindow,
 	}
 }
 

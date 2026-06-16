@@ -10,8 +10,10 @@ type OptimizeRequest struct {
 	EnableALNS      bool   `json:"enableAlns"`
 	EnableMultiTrip bool   `json:"enableMultiTrip"`
 	ReloadMin       int    `json:"reloadMin"`   // minutes; 0 = server default (30)
-	TimeLimitMS     int    `json:"timeLimitMS"` // 0 = server default (5000)
-	Seed            uint32 `json:"seed"`        // 0 = non-deterministic
+	TimeLimitMS       int    `json:"timeLimitMS"` // 0 = server default (5000)
+	Seed              uint32 `json:"seed"`        // 0 = non-deterministic
+	DisableCapacity   bool   `json:"disableCapacity"`
+	DisableTimeWindow bool   `json:"disableTimeWindow"`
 }
 
 type OptimizeVehicle struct {
