@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	dto "ROP_Backend/internal/dto/request"
 	"ROP_Backend/internal/dto/response"
 	"ROP_Backend/internal/models"
 	"ROP_Backend/internal/repository"
+	"ROP_Backend/internal/utils"
 
 	"github.com/ROP-TEAM/rop-algorithm/model"
 	"github.com/ROP-TEAM/rop-algorithm/solver"
@@ -115,8 +117,9 @@ func (s *PlanningService) Optimize(
 				continue
 			}
 			color := skill.Color
+
 			if color == "" {
-				color = "#3B82F6"
+				color = utils.SkillColors[len(skillMap)%len(utils.SkillColors)]
 			}
 
 			tagSkill := models.TagSkill{
@@ -145,9 +148,11 @@ func (s *PlanningService) Optimize(
 			continue
 		}
 
+		color := utils.SkillColors[len(skillMap)%len(utils.SkillColors)]
+
 		tagSkill := models.TagSkill{
 			Name:   o.Skill,
-			Color:  "#3B82F6",
+			Color:  color,
 			PlanID: planID,
 		}
 
@@ -157,7 +162,7 @@ func (s *PlanningService) Optimize(
 
 		skillMap[o.Skill] = skillInfo{
 			ID:    int(tagSkill.ID),
-			Color: "#3B82F6",
+			Color: color,
 		}
 	}
 
@@ -470,8 +475,12 @@ func buildOptimizeResponse(
 			dbOrder := savedOrders[nodeIDInt]
 
 			var skillPtr *string
+			var color *string
 			if order.Skill != "" {
-				skillPtr = &req.Orders[nodeIDInt].Skill
+				skillPtr = &order.Skill
+
+				colorValue := skillMap[order.Skill].Color
+				color = &colorValue
 			}
 
 			stops = append(stops, response.StopResponse{
@@ -490,6 +499,7 @@ func buildOptimizeResponse(
 				Type:            order.Type,
 				Priority:        order.Priority,
 				Skill:           skillPtr,
+				Color:           color,
 				ID:              int(dbOrder.ID),
 				Note:            nil,
 			})
@@ -559,8 +569,13 @@ func buildOptimizeResponse(
 		order := req.Orders[idx]
 
 		var skillPtr *string
+		var color *string
+
 		if order.Skill != "" {
 			skillPtr = &order.Skill
+
+			colorValue := skillMap[order.Skill].Color
+			color = &colorValue
 		}
 
 		dropReasons = append(dropReasons, response.DropReasonResponse{
@@ -570,6 +585,7 @@ func buildOptimizeResponse(
 				Name:            order.Name,
 				Capacity:        order.Capacity,
 				Skill:           skillPtr,
+				Color:           color,
 				TimeWindowStart: order.TimeWindowStart,
 				TimeWindowEnd:   order.TimeWindowEnd,
 				DesLatitude:     order.DesLatitude,
@@ -582,6 +598,7 @@ func buildOptimizeResponse(
 	}
 
 	return &response.OptimizeResponse{
+		CreatedAt:   time.Now().UTC(),
 		Message:     string(solution.Status),
 		Routes:      routes,
 		DropReasons: dropReasons,

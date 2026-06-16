@@ -1,6 +1,9 @@
 package response
 
+import "time"
+
 type OptimizeResponse struct {
+	CreatedAt   time.Time            `json:"createdAt"`
 	Message     string               `json:"message"`
 	Routes      []RouteResponse      `json:"routes"`
 	DropReasons []DropReasonResponse `json:"dropReasons,omitempty"`
@@ -42,7 +45,7 @@ type RouteResponse struct {
 }
 
 type StopResponse struct {
-	OrderName string `json:"orderName"`
+	OrderName string `json:"name"`
 
 	ArrivalMin int `json:"arrivalMin"`
 	// DepartMin  int `json:"departMin"`
@@ -61,6 +64,7 @@ type StopResponse struct {
 	Priority        int     `json:"priority"`
 	Note            *string `json:"note,omitempty"`
 	Skill           *string `json:"skill,omitempty"`
+	Color           *string `json:"color,omitempty"`
 	ID              int     `json:"id"`
 }
 
@@ -68,6 +72,7 @@ type OrdersResponse struct {
 	Name            string  `json:"name"`
 	Capacity        int     `json:"capacity"`
 	Skill           *string `json:"skill,omitempty"`
+	Color           *string `json:"color,omitempty"`
 	TimeWindowStart int     `json:"timeWindowStart"`
 	TimeWindowEnd   int     `json:"timeWindowEnd"`
 	DesLatitude     float64 `json:"desLatitude"`

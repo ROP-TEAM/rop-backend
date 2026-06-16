@@ -393,12 +393,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/response.OptimizeResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2367,6 +2361,9 @@ const docTemplate = `{
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
                 "depotLat": {
                     "type": "number"
                 },
@@ -2426,6 +2423,9 @@ const docTemplate = `{
             "properties": {
                 "capacity": {
                     "type": "integer"
+                },
+                "color": {
+                    "type": "string"
                 },
                 "desLatitude": {
                     "type": "number"
@@ -2523,6 +2523,9 @@ const docTemplate = `{
                     "description": "order identity",
                     "type": "integer"
                 },
+                "color": {
+                    "type": "string"
+                },
                 "desLatitude": {
                     "type": "number"
                 },
@@ -2540,10 +2543,10 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "note": {
+                "name": {
                     "type": "string"
                 },
-                "orderName": {
+                "note": {
                     "type": "string"
                 },
                 "priority": {
