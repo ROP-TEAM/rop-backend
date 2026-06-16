@@ -25,8 +25,6 @@ func NewPlanningHandler(s planningOptimizer) *PlanningHandler {
 
 func statusToHTTP(status string) int {
 	switch status {
-	case "INFEASIBLE":
-		return 422
 	case "TIMEOUT":
 		return 504
 	default:
@@ -43,7 +41,6 @@ func statusToHTTP(status string) int {
 // @Param body body dto.OptimizeRequest true "optimize request"
 // @Success 200 {object} response.OptimizeResponse
 // @Failure 400 {object} handlers.ErrorResponse
-// @Failure 422 {object} response.OptimizeResponse
 // @Failure 500 {object} handlers.ErrorResponse
 // @Failure 504 {object} handlers.ErrorResponse
 // @Router /api/optimize [post]

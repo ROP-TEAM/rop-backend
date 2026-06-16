@@ -382,12 +382,6 @@
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "$ref": "#/definitions/response.OptimizeResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2356,6 +2350,9 @@
         "response.OptimizeResponse": {
             "type": "object",
             "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
                 "depotLat": {
                     "type": "number"
                 },
@@ -2415,6 +2412,9 @@
             "properties": {
                 "capacity": {
                     "type": "integer"
+                },
+                "color": {
+                    "type": "string"
                 },
                 "desLatitude": {
                     "type": "number"
@@ -2512,6 +2512,9 @@
                     "description": "order identity",
                     "type": "integer"
                 },
+                "color": {
+                    "type": "string"
+                },
                 "desLatitude": {
                     "type": "number"
                 },
@@ -2529,10 +2532,10 @@
                 "id": {
                     "type": "integer"
                 },
-                "note": {
+                "name": {
                     "type": "string"
                 },
-                "orderName": {
+                "note": {
                     "type": "string"
                 },
                 "priority": {
