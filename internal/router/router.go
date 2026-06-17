@@ -82,6 +82,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	planningHandler := handlers.NewPlanningHandler(planningService)
 
+	wastePlanningService := services.NewWastePlanningService(slv)
+	wasteHandler := handlers.NewWasteHandler(wastePlanningService)
+
 	api := app.Group("/api")
 
 	api.Get("/swagger/*", adaptor.HTTPHandler(httpSwagger.Handler(
@@ -115,6 +118,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 	api.Post("/matrix", middleware.Protected(cfg), matrixHandler.BuildMatrix)
 
 	api.Post("/optimize", planningHandler.Optimize)
+
+	api.Post("/waste/plan", wasteHandler.Plan)
 
 	//test route
 
