@@ -82,9 +82,6 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	planningHandler := handlers.NewPlanningHandler(planningService)
 
-	wastePlanningService := services.NewWastePlanningService(slv)
-	wasteHandler := handlers.NewWasteHandler(wastePlanningService)
-
 	api := app.Group("/api")
 
 	api.Get("/swagger/*", adaptor.HTTPHandler(httpSwagger.Handler(
