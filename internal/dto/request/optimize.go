@@ -7,13 +7,16 @@ type OptimizeRequest struct {
 	Vehicles []OptimizeVehicle `json:"vehicles" validate:"required,min=1,dive"`
 	Orders   []OptimizeOrder   `json:"orders" validate:"required,min=1,dive"`
 
-	EnableALNS      bool   `json:"enableAlns"`
-	EnableMultiTrip bool   `json:"enableMultiTrip"`
-	ReloadMin       int    `json:"reloadMin"`   // minutes; 0 = server default (30)
+	EnableALNS        bool   `json:"enableAlns"`
+	EnableMultiTrip   bool   `json:"enableMultiTrip"`
+	ReloadMin         int    `json:"reloadMin"`   // minutes; 0 = server default (30)
 	TimeLimitMS       int    `json:"timeLimitMS"` // 0 = server default (5000)
 	Seed              uint32 `json:"seed"`        // 0 = non-deterministic
 	DisableCapacity   bool   `json:"disableCapacity"`
 	DisableTimeWindow bool   `json:"disableTimeWindow"`
+
+	WeightDistance float64 `json:"wDist" validate:"gte=0"` // objective weight on distance; both weights 0 = server default (0.5/0.5)
+	WeightCost     float64 `json:"wCost" validate:"gte=0"` // objective weight on cost
 }
 
 type OptimizeVehicle struct {

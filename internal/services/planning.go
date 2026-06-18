@@ -348,13 +348,15 @@ func buildOptimizeProblem(
 
 		Distances: distances,
 
-		TimeLimitMS:     req.TimeLimitMS,
-		EnableALNS:      req.EnableALNS,
-		EnableMultiTrip: req.EnableMultiTrip,
+		TimeLimitMS:       req.TimeLimitMS,
+		EnableALNS:        req.EnableALNS,
+		EnableMultiTrip:   req.EnableMultiTrip,
 		ReloadMin:         req.ReloadMin,
 		Seed:              req.Seed,
 		DisableCapacity:   req.DisableCapacity,
 		DisableTimeWindow: req.DisableTimeWindow,
+		WeightDistance:    req.WeightDistance,
+		WeightCost:        req.WeightCost,
 	}
 }
 
