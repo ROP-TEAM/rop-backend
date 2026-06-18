@@ -116,8 +116,6 @@ func Setup(db *gorm.DB, cfg *config.Config) *fiber.App {
 
 	api.Post("/optimize", planningHandler.Optimize)
 
-	api.Post("/waste/plan", wasteHandler.Plan)
-
 	//test route
 
 	api.Get("/test", middleware.Protected(cfg), handlers.Test)
